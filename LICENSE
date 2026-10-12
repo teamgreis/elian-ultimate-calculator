@@ -1,21 +1,93 @@
-MIT License
+PROPRIETÄRE LIZENZ — ALLE RECHTE VORBEHALTEN
 
-Copyright (c) 2026 Felix Greis
+ELIAN Ultimate Calculator v7.0
+Copyright (c) 2026 Felix Greis. Alle Rechte vorbehalten.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+--------------------------------------------------------------------------------
+1. EIGENTUM
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+Der vollständige Quellcode dieser Software (die „Software"), einschließlich
+aller Dateien, des Layouts, der Gestaltung und der Dokumentation, ist und
+bleibt alleiniges geistiges Eigentum des Urhebers.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+
+2. ERLAUBTE NUTZUNG
+
+Es wird ausschließlich das Recht eingeräumt, die Software für private,
+nicht-kommerzielle Zwecke zu verwenden. „Verwenden" bedeutet: die Software
+auf dem eigenen Gerät öffnen, ausführen und ihre Funktionen nutzen.
+
+
+3. UNTERSAGTE HANDLUNGEN
+
+Ohne ausdrückliche vorherige schriftliche Genehmigung des Urhebers ist es
+UNTERSAGT:
+
+  a) den Quellcode zu verändern, zu ergänzen, zu übersetzen oder
+     abgeleitete Werke davon zu erstellen („Forks", Modifikationen,
+     Umarbeitungen);
+
+  b) den Quellcode oder Teile davon zu vervielfältigen, zu verbreiten,
+     zu veröffentlichen, weiterzugeben, hoch- oder herunterzuladen,
+     zu verkaufen, zu vermieten, zu verleihen oder Unterlizenzen
+     davon zu vergeben;
+
+  c) die Software oder Teile davon für kommerzielle oder geschäftliche
+     Zwecke zu nutzen, einschließlich der Nutzung im Rahmen einer
+     Erwerbstätigkeit, in einem Unternehmen, einer Behörde, einer
+     Bildungseinrichtung oder einer Organisation;
+
+  d) Urheberrechtsvermerke, Lizenzhinweise oder Autorenangaben zu
+     entfernen, zu verändern oder zu verdecken;
+
+  e) die Software zurückzuentwickeln (Reverse Engineering), zu
+     dekompilieren oder zu disassemblieren, soweit nicht zwingendes
+     Recht etwas anderes vorsieht;
+
+  f) die Software in ein anderes Produkt, eine andere Anwendung oder
+     einen anderen Dienst zu integrieren oder als Grundlage dafür
+     zu verwenden.
+
+
+4. KEINE OPEN-SOURCE-LIZENZ
+
+Diese Lizenz ist KEINE Open-Source-Lizenz. Die öffentliche Zugänglichkeit
+des Codes auf einer Hosting-Plattform begründet weder ein Recht zur
+Nutzung über Absatz 2 hinaus noch ein Recht zur Veränderung oder
+Weitergabe. Ein Sichtbarmachen auf einer Plattform ist keine Einwilligung
+in die Nutzung.
+
+
+5. KEINE GARANTIE
+
+DIE SOFTWARE WIRD „WIE SIE IST" OHNE JEGLICHE GARANTIE BEREITGESTELLT,
+WEDER AUSDRÜCKLICH NOCH STILLSCHWEIGEND, EINSCHLIESSLICH — ABER NICHT
+BESCHRÄNKT AUF — DER GARANTIE DER MARKTGÄNGIGKEIT, DER EIGNUNG FÜR EINEN
+BESTIMMTEN ZWECK UND DER NICHTVERLETZUNG VON RECHTEN DRITTER.
+
+DER URHEBER HAFTET IN KEINEM FALL FÜR ANSPRÜCHE, SCHÄDEN ODER SONSTIGE
+VERPFLICHTUNGEN, GLEICH AUS WELCHEM RECHTSGRUND, DIE AUS ODER IM
+ZUSAMMENHANG MIT DER SOFTWARE ODER DEREN NUTZUNG ENTSTEHEN.
+
+
+6. LAUFZEIT UND BEENDIGUNG
+
+Das Nutzungsrecht nach Absatz 2 endet automatisch und ohne weitere
+Erklärung, sobald eine Bestimmung dieser Lizenz verletzt wird. Mit der
+Beendigung sind alle Kopien der Software zu löschen. Die übrigen
+Bestimmungen dieser Lizenz bleiben davon unberührt.
+
+
+7. SONSTIGES
+
+Sollte eine Bestimmung dieser Lizenz unwirksam sein, bleibt die
+Wirksamkeit der übrigen Bestimmungen davon unberührt.
+
+Es gilt das Recht der Bundesrepublik Deutschland unter Ausschluss des
+UN-Kaufrechts.
+
+Für Rückfragen zu einer Nutzung außerhalb des in Absatz 2 genannten
+Umfangs wenden Sie sich bitte an den Urheber.
+
+--------------------------------------------------------------------------------
+Kontakt: Felix Greis

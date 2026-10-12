@@ -135,4 +135,20 @@ Geprüft werden Operatorreihenfolge, alle Mathematikfunktionen, Winkelmodi, Fehl
 
 ## Lizenz
 
-MIT
+**Proprietär — alle Rechte vorbehalten.**
+
+Diese Software ist **keine** Open-Source-Software. Erlaubt ist ausschließlich
+die **private, nicht-kommerzielle Nutzung** auf dem eigenen Gerät.
+
+**Nicht erlaubt** ohne ausdrückliche schriftliche Genehmigung des Urhebers:
+
+- Veränderung, Ergänzung, Übersetzung oder Ableitung des Codes (auch Forks)
+- Vervielfältigung, Verbreitung, Weitergabe, Verkauf oder Vermietung
+- Kommerzielle oder geschäftliche Nutzung, auch im Unternehmen oder in Bildungseinrichtungen
+- Entfernen oder Verdecken von Urheberrechtsvermerken
+- Reverse Engineering, Dekompilierung oder Disassemblierung
+- Integration in andere Produkte oder Dienste
+
+Die öffentliche Zugänglichkeit des Codes auf einer Hosting-Plattform ist keine
+Einwilligung in eine darüberhinausgehende Nutzung. Vollständiger Text in
+[`LICENSE`](LICENSE).

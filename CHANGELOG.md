@@ -37,3 +37,10 @@
 
 ### Verifiziert
 181 automatisierte Tests, null Fehlschlägen, null Laufzeitfehlern.
+
+
+## Lizenzänderung — 2026-10-12
+
+Lizenz von MIT auf proprietär umgestellt. Gestattet ist nun ausschließlich
+die private, nicht-kommerzielle Nutzung. Änderung, Weitergabe und
+kommerzielle Nutzung sind ohne schriftliche Genehmigung untersagt.
