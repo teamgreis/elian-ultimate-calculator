@@ -39,8 +39,14 @@
 181 automatisierte Tests, null Fehlschlägen, null Laufzeitfehlern.
 
 
-## Lizenzänderung — 2026-10-12
+## Lizenzänderung — 2026-10-12 (überarbeitet)
 
-Lizenz von MIT auf proprietär umgestellt. Gestattet ist nun ausschließlich
-die private, nicht-kommerzielle Nutzung. Änderung, Weitergabe und
-kommerzielle Nutzung sind ohne schriftliche Genehmigung untersagt.
+Lizenz von proprietär auf vollständige Nutzungs- und Lizenzbedingungen
+überführt. Gestattet ist ausschließlich die Nutzung der unveränderten
+Software für private, nicht-kommerzielle Zwecke.
+
+- Umschreiben und Forken ausdrücklich untersagt
+- Kommerzielle Nutzung nur auf schriftliche Anfrage möglich
+- Datenschutzerklärung als eigenes Dokument ergänzt
+- Bezug auf UrhG, BGB, DSGVO und TDDDG jeweils Fassung 2026
+- Geltendes Recht: Bundesrepublik Deutschland

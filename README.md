@@ -135,20 +135,38 @@ Geprüft werden Operatorreihenfolge, alle Mathematikfunktionen, Winkelmodi, Fehl
 
 ## Lizenz
 
-**Proprietär — alle Rechte vorbehalten.**
+**Proprietär — alle Rechte vorbehalten. Nutzung nur im engsten Rahmen gestattet.**
 
-Diese Software ist **keine** Open-Source-Software. Erlaubt ist ausschließlich
-die **private, nicht-kommerzielle Nutzung** auf dem eigenen Gerät.
+Die vollständigen Bedingungen stehen in [`LICENSE`](LICENSE) (Nutzungs- und
+Lizenzbedingungen) und [`DATENSCHUTZ.md`](DATENSCHUTZ.md).
+
+**Erlaubt ist ausschließlich:** die Nutzung der **unveränderten** Software für
+**private, nicht-kommerzielle** Zwecke auf dem eigenen Gerät.
 
 **Nicht erlaubt** ohne ausdrückliche schriftliche Genehmigung des Urhebers:
 
-- Veränderung, Ergänzung, Übersetzung oder Ableitung des Codes (auch Forks)
-- Vervielfältigung, Verbreitung, Weitergabe, Verkauf oder Vermietung
-- Kommerzielle oder geschäftliche Nutzung, auch im Unternehmen oder in Bildungseinrichtungen
-- Entfernen oder Verdecken von Urheberrechtsvermerken
-- Reverse Engineering, Dekompilierung oder Disassemblierung
-- Integration in andere Produkte oder Dienste
+- **Umschreiben** — Ändern, Bearbeiten, Übersetzen, Ableiten von Werken
+- **Forken** — auf einer Plattform forken, klonen, kopieren oder spiegeln
+- Vervielfältigen, Verbreiten, Veröffentlichen, Weitergeben
+- Verkaufen, Vermieten, Verleihen, Unterlizenzierung
+- Integration in andere Produkte, Dienste oder Anwendungen
+- Entfernen von Urheberrechts- oder Autorenvermerken
+- Reverse Engineering (über das zwingende Recht aus § 69e UrhG hinaus)
+- **Jede kommerzielle Nutzung**
 
-Die öffentliche Zugänglichkeit des Codes auf einer Hosting-Plattform ist keine
-Einwilligung in eine darüberhinausgehende Nutzung. Vollständiger Text in
-[`LICENSE`](LICENSE).
+**Kommerzielle Nutzung ist nur auf Anfrage möglich** — sie bedarf einer
+gesonderten schriftlichen Genehmigung. Anfragen sind ausdrücklich möglich, die
+Erteilung ist freiwillig und kann an Bedingungen geknüpft werden.
+
+Diese Software ist **keine** Open-Source-Software. Die öffentliche Zugänglichkeit
+des Codes ist keine Genehmigung zur Nutzung, Änderung oder Weitergabe.
+
+**Geltendes Recht:** Bundesrepublik Deutschland, Fassung 2026.
+
+### Datenschutz
+
+Die Software speichert **ausschließlich lokal** in Ihrem Browser. Es gibt keinen
+Server, kein Tracking, keine Cookies, keine externen Ressourcen und keine
+Weitergabe. Nichts verlässt Ihr Gerät. Details in
+[`DATENSCHUTZ.md`](DATENSCHUTZ.md).
+

@@ -1,93 +1,178 @@
-PROPRIETÄRE LIZENZ — ALLE RECHTE VORBEHALTEN
-
+NUTZUNGS- UND LIZENZBEDINGUNGEN
 ELIAN Ultimate Calculator v7.0
+
 Copyright (c) 2026 Felix Greis. Alle Rechte vorbehalten.
+Rechtsstand: Bundesrepublik Deutschland, Fassung 2026.
+
+Diese Bedingungen regeln die Nutzung der Software ELIAN Ultimate Calculator
+(die „Software"). Sie sind verbindlicher Bestandteil jeder Nutzung. Abweichende
+Allgemeine Geschäftsbedingungen des Nutzers werden nicht Vertragsbestandteil.
 
 --------------------------------------------------------------------------------
-1. EIGENTUM
+1. URHEBERRECHT UND EIGENTUM
 
-Der vollständige Quellcode dieser Software (die „Software"), einschließlich
-aller Dateien, des Layouts, der Gestaltung und der Dokumentation, ist und
-bleibt alleiniges geistiges Eigentum des Urhebers.
+Die Software ist ein gemäß §§ 2, 69a Urheberrechtsgesetz (UrhG) geschütztes
+Computerprogramm. Sämtliche Rechte — einschließlich Verfielfältigung,
+Verbreitung, Bearbeitung und Übersetzung gemäß §§ 16, 17, 23, 69c Nr. 1 UrhG —
+liegen ausschließlich beim Urheber. Es wird kein Eigentum und kein
+urheberrechtliches Nutzungsrecht über den in Absatz 2 genannten Umfang hinaus
+übertragen; § 31 Abs. 5 UrhG (Zweckübertragungsgrundsatz) gilt entsprechend.
 
 
 2. ERLAUBTE NUTZUNG
 
-Es wird ausschließlich das Recht eingeräumt, die Software für private,
-nicht-kommerzielle Zwecke zu verwenden. „Verwenden" bedeutet: die Software
-auf dem eigenen Gerät öffnen, ausführen und ihre Funktionen nutzen.
+Gestattet ist ausschließlich die Nutzung der unveränderten Software für
+private, nicht-kommerzielle Zwecke auf eigenen Geräten des Nutzers. „Nutzen"
+bedeutet: die Software öffnen, ausführen und ihre Funktionen verwenden.
+
+Dieses Recht ist nicht ausschließlich, nicht übertragbar, nicht unterlizenzierbar
+und widerruflich. Es entsteht durch das bestimmungsgemäße Verwenden der
+Software.
 
 
-3. UNTERSAGTE HANDLUNGEN
+3. KOMMERZIELLE NUTZUNG — NUR AUF ANFRAGE
 
-Ohne ausdrückliche vorherige schriftliche Genehmigung des Urhebers ist es
-UNTERSAGT:
+Jede Nutzung, die über Absatz 2 hinausgeht — insbesondere die geschäftliche,
+berufliche, behördliche, schulische oder anderweitig organisierte Nutzung
+sowie die Nutzung zur unmittelbaren oder mittelbaren Einnahmeerzielung —
+bedarf einer gesonderten, ausdrücklichen und SCHRIFTLICHEN Genehmigung des
+Urhebers.
 
-  a) den Quellcode zu verändern, zu ergänzen, zu übersetzen oder
-     abgeleitete Werke davon zu erstellen („Forks", Modifikationen,
-     Umarbeitungen);
-
-  b) den Quellcode oder Teile davon zu vervielfältigen, zu verbreiten,
-     zu veröffentlichen, weiterzugeben, hoch- oder herunterzuladen,
-     zu verkaufen, zu vermieten, zu verleihen oder Unterlizenzen
-     davon zu vergeben;
-
-  c) die Software oder Teile davon für kommerzielle oder geschäftliche
-     Zwecke zu nutzen, einschließlich der Nutzung im Rahmen einer
-     Erwerbstätigkeit, in einem Unternehmen, einer Behörde, einer
-     Bildungseinrichtung oder einer Organisation;
-
-  d) Urheberrechtsvermerke, Lizenzhinweise oder Autorenangaben zu
-     entfernen, zu verändern oder zu verdecken;
-
-  e) die Software zurückzuentwickeln (Reverse Engineering), zu
-     dekompilieren oder zu disassemblieren, soweit nicht zwingendes
-     Recht etwas anderes vorsieht;
-
-  f) die Software in ein anderes Produkt, eine andere Anwendung oder
-     einen anderen Dienst zu integrieren oder als Grundlage dafür
-     zu verwenden.
+Anfragen sind möglich. Die Erteilung ist freiwillig, kann an Bedingungen oder
+ein Entgelt geknüpft werden und begründet keinen Anspruch auf künftige
+Erteilungen. Bis zur schriftlichen Erteilung ist jede kommerzielle Nutzung
+untersagt.
 
 
-4. KEINE OPEN-SOURCE-LIZENZ
+4. UNTERSAGTE HANDLUNGEN
 
-Diese Lizenz ist KEINE Open-Source-Lizenz. Die öffentliche Zugänglichkeit
-des Codes auf einer Hosting-Plattform begründet weder ein Recht zur
-Nutzung über Absatz 2 hinaus noch ein Recht zur Veränderung oder
-Weitergabe. Ein Sichtbarmachen auf einer Plattform ist keine Einwilligung
-in die Nutzung.
+Ohne die in Absatz 3 genannte schriftliche Genehmigung ist es untersagt:
+
+  a) UMSCHREIBEN — den Quellcode zu bearbeiten, zu ändern, zu ergänzen, zu
+     übersetzen, zu kürzen, umzugestalten oder daraus abgeleitete Werke
+     (Bearbeitungen i. S. d. § 23 UrhG, „Mods", „Forks") zu erstellen;
+
+  b) FORKEN — die Software auf einer Hosting-Plattform zu forken, zu klonen,
+     zu kopieren, zu spiegeln oder in ein eigenes Projekt zu übernehmen;
+
+  c) den Quellcode oder Teile davon zu vervielfältigen, zu verbreiten, zu
+     veröffentlichen, weiterzugeben, hochzuladen, zu verkaufen, zu vermieten,
+     zu verleihen oder Unterlizenzen davon zu vergeben;
+
+  d) die Software oder Teile davon — auch auszugsweise, auch in veränderter
+     oder zusammengeführter Form — in andere Produkte, Dienste, Websites oder
+     Anwendungen zu integrieren oder als deren Grundlage zu verwenden;
+
+  e) Urheberrechtsvermerke, Lizenz- oder Autorenangaben zu entfernen, zu
+     verändern, zu verdecken oder zu umgehen;
+
+  f) die Software zurückzuentwickeln, zu dekompilieren oder zu
+     disassemblieren. Das zwingende Recht zur Herstellung von
+     Interoperabilität gemäß § 69e UrhG bleibt hiervon unberührt und darf nur
+     im dort gesetzlich gestatteten Umfang ausgeübt werden;
+
+  g) technische Schutzmaßnahmen zu umgehen, sofern solche eingesetzt werden.
 
 
-5. KEINE GARANTIE
+5. ÖFFENTLICHE ZUGÄNGLICHKEIT IST KEINE GENEHMIGUNG
 
-DIE SOFTWARE WIRD „WIE SIE IST" OHNE JEGLICHE GARANTIE BEREITGESTELLT,
-WEDER AUSDRÜCKLICH NOCH STILLSCHWEIGEND, EINSCHLIESSLICH — ABER NICHT
-BESCHRÄNKT AUF — DER GARANTIE DER MARKTGÄNGIGKEIT, DER EIGNUNG FÜR EINEN
-BESTIMMTEN ZWECK UND DER NICHTVERLETZUNG VON RECHTEN DRITTER.
+Soweit der Quellcode auf einer Hosting-Plattform öffentlich einsehbar ist,
+begründet dies weder ein Recht zur Nutzung über Absatz 2 hinaus noch ein
+Recht zur Bearbeitung, zum Fork oder zur Weitergabe. Die Sichtbarkeit auf
+einer Plattform ist keine Einwilligung in eine weitergehende Nutzung und
+keine konkludente Lizenzvergabe. Dies gilt unabhängig davon, dass die
+Plattform technisch Fork-Funktionen anbietet.
 
-DER URHEBER HAFTET IN KEINEM FALL FÜR ANSPRÜCHE, SCHÄDEN ODER SONSTIGE
-VERPFLICHTUNGEN, GLEICH AUS WELCHEM RECHTSGRUND, DIE AUS ODER IM
-ZUSAMMENHANG MIT DER SOFTWARE ODER DEREN NUTZUNG ENTSTEHEN.
-
-
-6. LAUFZEIT UND BEENDIGUNG
-
-Das Nutzungsrecht nach Absatz 2 endet automatisch und ohne weitere
-Erklärung, sobald eine Bestimmung dieser Lizenz verletzt wird. Mit der
-Beendigung sind alle Kopien der Software zu löschen. Die übrigen
-Bestimmungen dieser Lizenz bleiben davon unberührt.
+Diese Software ist KEINE Open-Source-Software und erfüllt nicht die
+Kriterien der Open-Source-Definition.
 
 
-7. SONSTIGES
+6. DATENSCHUTZ
 
-Sollte eine Bestimmung dieser Lizenz unwirksam sein, bleibt die
-Wirksamkeit der übrigen Bestimmungen davon unberührt.
+Die Software verarbeitet personenbezogene Daten ausschließlich lokal auf dem
+Gerät des Nutzers. Es findet keine Übertragung an den Urheber oder Dritte
+statt, es werden keine Server betrieben, kein Tracking, keine Analyse und
+keine Werbung eingesetzt.
 
-Es gilt das Recht der Bundesrepublik Deutschland unter Ausschluss des
-UN-Kaufrechts.
+Die Datenschutzerklärung ist Bestandteil dieser Bedingungen und in der Datei
+DATENSCHUTZ.md dokumentiert. Maßgeblich sind die Datenschutz-Grundverordnung
+(DSGVO) sowie das Telekommunikation-Digitale-Dienste-Datenschutz-Gesetz
+(TDDDG), jeweils in der Fassung 2026.
 
-Für Rückfragen zu einer Nutzung außerhalb des in Absatz 2 genannten
-Umfangs wenden Sie sich bitte an den Urheber.
+
+7. HAFTUNG
+
+Die Software wird „wie sie ist" und ohne jegliche Gewährleistung
+bereitgestellt, soweit dies gesetzlich zulässig ist. Die Haftung richtet sich
+nach den zwingenden Vorschriften des Bürgerlichen Gesetzbuchs (BGB),
+insbesondere §§ 280 ff. und §§ 823 ff. BGB.
+
+Für leichte Fahrlässigkeit haftet der Urheber nur bei Verletzung wesentlicher
+Vertragspflichten (Kardinalpflichten), begrenzt auf den vertragstypischen,
+vorhersehbaren Schaden. Die Haftung für Schäden aus der Verletzung von Leben,
+Körper oder Gesundheit sowie nach dem Produkthaftungsgesetz bleibt unberührt.
+
+Eine Haftung für Datenverluste — einschließlich des Verlusts lokal
+gespeicherter Sitzungsdaten — wird auf die Fälle vorsätzlichen oder grob
+fahrlässigen Verhaltens beschränkt, soweit der Urheber nicht zur
+Datensicherung verpflichtet war.
+
+Der Nutzer ist für die Sicherung seiner eigenen Daten selbst verantwortlich.
+
+
+8. LAUFZEIT UND BEENDIGUNG
+
+Das Nutzungsrecht nach Absatz 2 endet automatisch, ohne dass es einer
+Erklärung bedarf, sobald eine Bestimmung dieser Bedingungen verletzt wird.
+Mit Beendigung sind alle Kopien und Sicherungen der Software zu löschen.
+Die übrigen Bestimmungen, insbesondere die Haftungs- und Rechtsfolgeregelungen,
+gelten über die Beendigung hinaus fort.
+
+Der Urheber kann die Software jederzeit ändern, einschränken oder einstellen.
+Ein Anspruch auf Fortbestand bestimmter Funktionen oder auf Updates besteht
+nicht. Wird eine Funktion sicherheitsrelevant geändert oder entfernt, wird
+darauf — soweit zumutbar — hingewiesen.
+
+
+9. ÄNDERUNGEN DIESER BEDINGUNGEN
+
+Der Urheber kann diese Bedingungen mit Wirkung für die Zukunft ändern. Die
+jeweils aktuelle Fassung ist der Datei LICENSE im Projektverzeichnis zu
+entnehmen. Für bereits begründete Nutzungsrechte gilt die Fassung, die zum
+Zeitpunkt des Rechtserwerbs galt, sofern nicht zwingendes Recht entgegensteht.
+
+
+10. SALVATORISCHE KLAUSEL
+
+Sollte eine Bestimmung dieser Bedingungen ganz oder teilweise unwirksam oder
+undurchführbar sein, bleibt die Wirksamkeit der übrigen Bestimmungen
+unberührt. An die Stelle der unwirksamen Bestimmung tritt die wirksame
+Regelung, die dem wirtschaftlichen Zweck am nächsten kommt
+(§ 139 BGB entsprechend).
+
+
+11. ANWENDBARES RECHT UND GERICHTSSTAND
+
+Es gilt ausschließlich das Recht der Bundesrepublik Deutschland in der am
+12. Oktober 2026 geltenden Fassung. Die Anwendbarkeit des UN-Kaufrechts
+(CISG) ist ausgeschlossen.
+
+Gerichtsstand für alle Streitigkeiten aus oder im Zusammenhang mit diesen
+Bedingungen ist — soweit gesetzlich zulässig — der Sitz des Urhebers.
+
+
+12. KONTAKT
+
+Für Genehmigungsanfragen nach Absatz 3, für Meldungen von
+Sicherheitslücken und für sonstige Anfragen:
+
+    Felix Greis
 
 --------------------------------------------------------------------------------
-Kontakt: Felix Greis
+ZUSAMMENFASSUNG
+--------------------------------------------------------------------------------
+ERLAUBT:   Private, nicht-kommerzielle Nutzung der unveränderten Software.
+UNTERSAGT: Umschreiben, Forken, Verändern, Kopieren, Weitergeben, Verkaufen,
+           Integrieren in andere Produkte, kommerzielle Nutzung.
+AUF ANFRAGE: Kommerzielle Nutzung — schriftliche Genehmigung erforderlich.
+RECHT:     Bundesrepublik Deutschland, Fassung 2026.
