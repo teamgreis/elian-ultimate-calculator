@@ -1,0 +1,3812 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="ELIAN Ultimate Calculator - vollstandig lokaler Offline-Rechner in einer einzigen HTML-Datei.">
+<title>ELIAN Ultimate Calculator v7.0</title>
+<style>
+:root{
+  --bg:#07101b;--bg2:#0b1725;--glass:rgba(255,255,255,.105);--glass2:rgba(255,255,255,.065);
+  --line:rgba(255,255,255,.14);--text:#f7fbff;--muted:#aebdce;--accent:#72b8ff;--accent2:#a98cff;
+  --danger:#ff6b7d;--ok:#62d9a0;--warn:#ffd36a;--shadow:0 22px 70px rgba(0,0,0,.28);--radius:22px;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+html{min-height:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+body{margin:0;min-height:100vh;color:var(--text);background:radial-gradient(circle at 12% 8%,rgba(93,181,255,.18),transparent 30%),radial-gradient(circle at 86% 12%,rgba(157,111,255,.16),transparent 28%),linear-gradient(135deg,var(--bg),var(--bg2));overflow:auto}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+::selection{background:rgba(114,184,255,.32)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16);border-radius:8px;border:2px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.28);background-clip:content-box}
+.hidden{display:none!important}
+.muted,.help{color:var(--muted)}
+.ok{color:var(--ok)}
+.err{color:var(--danger)}
+.warning{color:var(--warn)}
+
+/* ---------- Themes ---------- */
+body.theme-liquid2{--bg:#07101b;--bg2:#111d2b;--glass:rgba(255,255,255,.12);--glass2:rgba(255,255,255,.07);--accent:#8fd0ff}
+body.theme-liquid2:before{content:"";position:fixed;inset:-20%;pointer-events:none;background:radial-gradient(circle at 20% 30%,rgba(114,184,255,.18),transparent 28%),radial-gradient(circle at 78% 25%,rgba(186,142,255,.16),transparent 25%),radial-gradient(circle at 58% 82%,rgba(76,232,194,.09),transparent 24%);filter:blur(50px);animation:floatGlow 16s ease-in-out infinite alternate;z-index:-1}
+@keyframes floatGlow{to{transform:translate3d(3%,2%,0) scale(1.06)}}
+body.theme-pride{--bg:#0a1f18;--bg2:#12304a;--accent:#2f8f6b;--accent2:#3f7fd0;--glass:rgba(255,255,255,.14);--glass2:rgba(255,255,255,.1);--text:#f2fff8;--muted:#b9d8c8;background:linear-gradient(135deg,#1d6b52 0%,#eaf7f0 46%,#2b5fa8 100%);background-attachment:fixed}
+body.theme-pride .glass{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.3);color:#0d2018}
+body.theme-pride .card h2,body.theme-pride .card h3,body.theme-pride .title,body.theme-pride .brand b{color:#0d2018}
+body.theme-pride .help,body.theme-pride .muted{color:#2c4a3c}
+body.theme-pride .top{background:rgba(240,250,246,.62)}
+body.theme-pride .side{background:rgba(255,255,255,.14)}
+body.theme-pride .input,body.theme-pride textarea,body.theme-pride select{background:rgba(255,255,255,.4);color:#0d2018}
+body.theme-pride .display{background:rgba(255,255,255,.42);color:#0d2018}
+body.theme-pride .display .expr{color:#2c4a3c}
+body.theme-pride .role{background:rgba(47,143,107,.18);color:#1c5c44}
+body.theme-premium{--bg:#0b0c0e;--bg2:#292b30;--accent:#e4e8ef;--accent2:#c9ced8;--glass:rgba(255,255,255,.09);background:radial-gradient(circle at 20% 15%,rgba(255,255,255,.13),transparent 25%),linear-gradient(135deg,#090a0c,#303238,#101114);background-attachment:fixed}
+body.theme-diamond{--bg:#07090e;--bg2:#1a1f2b;--glass:rgba(245,248,255,.13);--glass2:rgba(220,235,255,.07);--accent:#dff7ff;--accent2:#b89cff;--line:rgba(224,242,255,.25);background:radial-gradient(circle at 15% 10%,rgba(255,255,255,.28),transparent 18%),radial-gradient(circle at 85% 20%,rgba(117,208,255,.20),transparent 22%),radial-gradient(circle at 55% 80%,rgba(181,137,255,.18),transparent 25%),linear-gradient(135deg,#05070b,#151a25 45%,#080b12);background-attachment:fixed;color:#f6fbff}
+body.theme-diamond:before{content:'';position:fixed;inset:0;pointer-events:none;background:linear-gradient(125deg,transparent 0 20%,rgba(255,255,255,.08) 21%,transparent 23% 45%,rgba(255,255,255,.05) 46%,transparent 48% 100%);mix-blend-mode:screen;opacity:.7;z-index:-1}
+.t-diamond{background:linear-gradient(135deg,#07090e,#f7fbff 32%,#91dfff 52%,#b89cff 73%,#0b0e16)}
+body.theme-rainbow{background:linear-gradient(120deg,#ff5c76,#ffc66e,#5bd8a0,#59a8ff,#b477ff,#ff65bd);background-size:400% 400%;animation:rainbow 18s ease infinite}
+@keyframes rainbow{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}
+
+/* ---------- Layout ---------- */
+.glass{background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(28px) saturate(145%);-webkit-backdrop-filter:blur(28px) saturate(145%);box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.13);border-radius:var(--radius)}
+.app{min-height:100vh;display:grid;grid-template-columns:248px minmax(0,1fr)}
+.side{position:sticky;top:0;height:100vh;padding:18px 14px;overflow:auto;border-radius:0 24px 24px 0;background:var(--glass2);border-right:1px solid var(--line);backdrop-filter:blur(30px)}
+.brand{display:flex;align-items:center;gap:11px;padding:8px 8px 18px}
+.logo{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#06101b;font-weight:900;box-shadow:0 8px 24px rgba(114,184,255,.25)}
+.brand b{font-size:17px}
+.brand small{display:block;color:var(--muted);margin-top:2px}
+.nav{display:grid;gap:6px}
+.nav button{width:100%;border:0;background:transparent;color:var(--muted);padding:11px 12px;border-radius:13px;text-align:left;transition:background .15s,color .15s}
+.nav button:hover,.nav button.active{background:rgba(255,255,255,.09);color:var(--text)}
+.nav button.active{box-shadow:inset 2px 0 0 var(--accent)}
+.user-mini{margin-top:18px;padding:12px}
+.user-mini strong{display:block}
+.role{display:inline-block;margin-top:5px;padding:3px 8px;border-radius:999px;background:rgba(114,184,255,.12);font-size:11px;color:var(--accent)}
+.main{min-width:0;padding-bottom:40px}
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;padding:14px 22px;background:rgba(7,16,27,.56);border-bottom:1px solid var(--line);backdrop-filter:blur(28px)}
+.title{font-weight:800;font-size:19px}
+.actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+.icon,.btn,.key{border:1px solid var(--line);background:var(--glass);color:var(--text);border-radius:13px;padding:9px 12px;transition:background .15s,transform .08s,border-color .15s}
+.icon:hover,.btn:hover,.key:hover{background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.24)}
+.key:active,.btn:active,.icon:active{transform:translateY(1px)}
+.content{padding:22px;max-width:1600px;margin:auto}
+.view{display:none}
+.view.active{display:block;animation:viewIn .22s ease}
+@keyframes viewIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.card{padding:20px;margin-bottom:16px}
+.card h2,.card h3{margin-top:0}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+label{display:block}
+.input,textarea,select{width:100%;border:1px solid var(--line);background:rgba(0,0,0,.13);color:var(--text);border-radius:13px;padding:10px 11px;outline:none;transition:border-color .15s,box-shadow .15s}
+.input:focus,textarea:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(114,184,255,.18)}
+select option{background:#0d1725;color:#f7fbff}
+textarea{resize:vertical;min-height:120px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;line-height:1.55}
+hr{border:0;border-top:1px solid var(--line);margin:20px 0}
+
+/* ---------- Calculator ---------- */
+.display{padding:20px;min-height:105px;display:flex;flex-direction:column;justify-content:center;margin-bottom:12px}
+.display .expr{color:var(--muted);min-height:24px;word-break:break-word;font-size:15px}
+.display .result{font-size:clamp(26px,5vw,38px);font-weight:750;word-break:break-word;line-height:1.15}
+.keys{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.key{min-height:52px;font-size:16px;font-weight:600}
+.key.op{background:rgba(114,184,255,.16)}
+.key.mem{background:rgba(162,140,255,.14)}
+.key.danger{background:rgba(255,107,125,.13)}
+.key.equals{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#06101b;border-color:transparent;font-weight:800}
+.mem-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;font-size:12px}
+
+/* ---------- Graph ---------- */
+.two-col{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px}
+.plot-controls{display:grid;grid-template-columns:repeat(5,minmax(90px,1fr));gap:8px;margin:10px 0}
+.plot-controls label{min-width:0;font-size:11px;color:var(--muted)}
+.plot-controls .input{min-width:0;padding:8px 9px}
+.plot-help{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0 10px}
+.plot-shell{position:relative;overflow:hidden;border-radius:18px;border:1px solid var(--line);background:rgba(0,0,0,.18);overscroll-behavior:contain;touch-action:none}
+canvas{display:block;width:100%;height:clamp(420px,58vh,700px);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.plot-tooltip{position:absolute;display:none;pointer-events:none;z-index:5;padding:7px 9px;border:1px solid var(--line);border-radius:10px;background:rgba(8,14,22,.9);font-size:12px;white-space:nowrap;backdrop-filter:blur(6px)}
+.graph-side{padding:14px;overflow:auto}
+.graph-side h3{margin:14px 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.graph-side h3:first-child{margin-top:0}
+.object-list{display:grid;gap:7px;max-height:300px;overflow:auto}
+.object{display:grid;grid-template-columns:auto auto 28px minmax(0,1fr) auto auto;gap:7px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:12px;background:var(--glass2)}
+.object code{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+.object input[type=color]{width:28px;height:28px;padding:2px;border-radius:8px;border:1px solid var(--line);background:transparent}
+.object .icon{padding:6px 8px}
+.swatch{width:13px;height:13px;border-radius:50%;border:1px solid rgba(255,255,255,.3);flex:none}
+.analysis{max-height:320px;overflow:auto;font-size:12.5px;line-height:1.6}
+.sliders{max-height:220px;overflow:auto}
+input[type=range]{width:100%;accent-color:var(--accent)}
+
+/* ---------- Tables / badges ---------- */
+.table-wrap{overflow:auto;max-height:460px;border-radius:12px;border:1px solid var(--line)}
+.table{width:100%;border-collapse:collapse;font-size:13px}
+.table th,.table td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+.table th{position:sticky;top:0;background:rgba(10,18,30,.94);backdrop-filter:blur(8px);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);z-index:1}
+.table tbody tr:hover{background:rgba(255,255,255,.045)}
+.table td:first-child{color:var(--muted)}
+.badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:5px 9px;background:rgba(255,255,255,.08);font-size:12px;white-space:nowrap}
+.feature{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.feature:last-child{border-bottom:0}
+.toggle{appearance:none;width:44px;height:25px;border-radius:20px;background:rgba(255,255,255,.16);position:relative;cursor:pointer;transition:background .2s;flex:none}
+.toggle:before{content:"";position:absolute;width:19px;height:19px;left:3px;top:3px;border-radius:50%;background:#fff;transition:transform .2s}
+.toggle:checked{background:var(--accent)}
+.toggle:checked:before{transform:translateX(19px)}
+
+/* ---------- Themes picker ---------- */
+.theme-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.theme{padding:10px;text-align:left;border-radius:16px}
+.theme[aria-pressed=true]{border-color:var(--accent);box-shadow:0 0 0 2px rgba(114,184,255,.28)}
+.theme-preview{height:48px;border-radius:12px;margin-bottom:8px}
+.t-l2{background:linear-gradient(135deg,#07101b,#8fd0ff,#a98cff)}
+.t-p{background:linear-gradient(120deg,#1d6b52,#eaf7f0,#2b5fa8)}
+.t-prem{background:linear-gradient(120deg,#0b0c0e,#eee,#383b42)}
+.t-rain{background:linear-gradient(90deg,#ff5c76,#ffc66e,#5bd8a0,#59a8ff,#b477ff)}
+
+/* ---------- Modal / toast / lock ---------- */
+.modal{position:fixed;inset:0;z-index:100;display:none;place-items:center;background:rgba(0,0,0,.5);padding:18px;backdrop-filter:blur(4px)}
+.modal.open{display:grid;animation:fadeIn .16s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-box{width:min(820px,100%);max-height:88vh;overflow:auto;padding:20px;animation:popIn .18s ease}
+@keyframes popIn{from{opacity:0;transform:scale(.97) translateY(8px)}to{opacity:1;transform:none}}
+.modal-box .close{float:right}
+.modal-box h2:first-child{margin-top:0}
+.modal-box ul{line-height:1.75;padding-left:20px}
+.modal-box code{background:rgba(255,255,255,.09);padding:2px 6px;border-radius:6px;font-size:12.5px}
+.lock{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:18px;overflow:auto;background:radial-gradient(circle at 50% 15%,rgba(114,184,255,.15),transparent 30%),#050a11}
+.login{width:min(430px,100%);padding:24px}
+.pin{font-size:26px;letter-spacing:8px;text-align:center}
+.secure{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;word-break:break-all;color:var(--muted)}
+.toast{position:fixed;right:18px;bottom:18px;z-index:150;padding:12px 15px;border-radius:14px;display:none;max-width:min(360px,86vw)}
+.toast.show{display:block;animation:toastIn .2s ease}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.mobile{display:none}
+kbd{display:inline-block;padding:2px 7px;border-radius:6px;border:1px solid var(--line);background:rgba(255,255,255,.08);font-size:12px;font-family:inherit}
+.bits{display:flex;flex-wrap:wrap;gap:5px}
+.bits .icon{font-family:ui-monospace,monospace;font-size:12px;padding:8px 7px;min-width:34px;text-align:center}
+.bits .icon.on{background:rgba(98,217,160,.2);border-color:rgba(98,217,160,.4)}
+.bits .icon.off{opacity:.5}
+
+/* ---------- Responsive ---------- */
+@media(max-width:1180px){
+  .app{grid-template-columns:210px 1fr}
+  .two-col{grid-template-columns:1fr}
+  .graph-side{max-height:none}
+  .object-list,.analysis{max-height:none}
+  .grid{grid-template-columns:repeat(2,1fr)}
+  .plot-controls{grid-template-columns:repeat(3,minmax(90px,1fr))}
+}
+@media(max-width:760px){
+  .app{display:block}
+  .side{position:fixed;left:-280px;top:0;width:min(86vw,300px);z-index:80;height:100dvh;transition:left .2s}
+  .side.open{left:0}
+  .mobile{display:inline-flex}
+  .content{padding:10px}
+  .top{padding:9px 10px;min-height:58px}
+  .title{font-size:16px}
+  .actions{gap:5px}
+  .actions .icon,.actions .badge{padding:7px 9px}
+  .card{padding:14px}
+  .grid,.grid2,.grid3,.theme-grid{grid-template-columns:1fr}
+  .keys{grid-template-columns:repeat(4,1fr)}
+  canvas{height:clamp(360px,62dvh,560px)}
+  .plot-controls{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .plot-controls label:last-child{grid-column:1/-1}
+  .row .btn{flex:1 1 auto}
+  .object{grid-template-columns:auto auto 32px minmax(0,1fr) auto}
+  .object .kind{display:none}
+  .object code{font-size:12px}
+  .graph-side{padding:12px}
+  .modal{padding:10px}
+  .modal-box{max-height:92dvh;padding:14px}
+  .login{padding:18px}
+  .table-wrap{max-height:340px}
+}
+@media(max-width:430px){
+  .content{padding:7px}
+  .card{padding:11px}
+  .plot-controls{grid-template-columns:1fr 1fr}
+  .plot-controls .input{padding:9px 8px}
+  .top .actions .badge{display:none}
+  .keys{gap:5px}
+  .key{min-height:46px;padding:7px}
+  .object{grid-template-columns:20px 24px 32px minmax(0,1fr) 34px;gap:4px}
+  .object .icon{padding:6px}
+  .login{width:100%}
+}
+@media print{
+  .side,.top,.keys,#modal,#toast{display:none!important}
+  .app{display:block}
+  body{background:#fff;color:#000}
+  .glass{background:#fff;border:1px solid #ccc;box-shadow:none;backdrop-filter:none}
+}
+
+/* ================= v7.0 Erweiterungen ================= */
+/* Command-Palette */
+.cmdk{position:fixed;inset:0;z-index:300;display:none;place-items:start center;padding:10vh 18px 18px;background:rgba(2,6,12,.62);backdrop-filter:blur(6px)}
+.cmdk.open{display:grid;animation:fadeIn .14s ease}
+.cmdk-box{width:min(620px,100%);max-height:70vh;display:flex;flex-direction:column;overflow:hidden}
+.cmdk-input{width:100%;border:0;background:transparent;color:var(--text);font-size:17px;padding:16px 18px;outline:none}
+.cmdk-input::placeholder{color:var(--muted)}
+.cmdk-list{overflow:auto;border-top:1px solid var(--line);padding:8px}
+.cmdk-item{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent;color:var(--text);padding:11px 12px;border-radius:11px;text-align:left;font-size:14px}
+.cmdk-item:hover,.cmdk-item.sel{background:rgba(255,255,255,.1)}
+.cmdk-item .ico{width:26px;text-align:center;opacity:.85;flex:none}
+.cmdk-item .hint{margin-left:auto;font-size:11px;color:var(--muted);flex:none}
+.cmdk-empty{padding:18px;text-align:center;color:var(--muted);font-size:13px}
+
+/* Kontext-Hilfe / Tastatur-Overlay */
+.kbd-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.kbd-row{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);border-radius:11px;background:var(--glass2);font-size:13px}
+.kbd-row span{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+
+/* Historien-Suche */
+.hist-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.hist-search{flex:1 1 220px;min-width:0}
+.chip{border:1px solid var(--line);background:var(--glass);color:var(--muted);border-radius:999px;padding:6px 12px;font-size:12px;transition:.15s}
+.chip:hover{color:var(--text)}
+.chip.on{background:rgba(114,184,255,.18);border-color:var(--accent);color:var(--text)}
+.hist-item{display:flex;align-items:center;gap:12px}
+.hist-item .he{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hist-item .hr{font-weight:700;flex:none}
+
+/* Unit-Schnellauswahl */
+.unit-quick{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+
+/* Bruch-Eingabe */
+.frac-row{display:flex;align-items:center;gap:8px}
+.frac-row .input{text-align:center}
+.frac-slash{font-size:20px;color:var(--muted)}
+
+/* Matrix-Größenwähler */
+.mat-dims{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.mat-dims select{width:auto;min-width:70px}
+
+/* Statistik-Diagramm */
+.bar-chart{display:flex;align-items:flex-end;gap:3px;height:130px;padding:10px;border:1px solid var(--line);border-radius:12px;background:rgba(0,0,0,.15);overflow:hidden}
+.bar-chart .bar{flex:1;min-width:3px;background:linear-gradient(180deg,var(--accent),var(--accent2));border-radius:3px 3px 0 0;min-height:2px;transition:height .25s}
+.bar-chart .bar:hover{filter:brightness(1.25)}
+
+/* Polynom-Eingabe */
+.poly-input{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:14px}
+
+/* Notizen */
+.note-area{min-height:220px;font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.6}
+.note-list{display:grid;gap:8px;margin-top:10px}
+.note-item{display:flex;gap:10px;align-items:flex-start;padding:11px;border:1px solid var(--line);border-radius:12px;background:var(--glass2)}
+.note-item .nt{flex:1;min-width:0}
+.note-item .nt b{display:block;margin-bottom:3px;font-size:13.5px}
+.note-item .nt small{color:var(--muted);font-size:11px}
+
+/* Konstanten-Tabelle */
+.const-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:8px}
+.const-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);border-radius:11px;background:var(--glass2);font-size:13px}
+.const-item b{font-weight:650}
+.const-item code{color:var(--muted);font-size:11.5px}
+
+/* Wissens-Karten */
+.info-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:10px}
+.info-card{padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--glass2)}
+.info-card h4{margin:0 0 6px;font-size:13.5px;color:var(--accent)}
+.info-card p{margin:0;font-size:12.5px;line-height:1.65;color:var(--muted)}
+
+/* Toast-Varianten */
+.toast.ok{border-color:rgba(98,217,160,.4)}
+.toast.err{border-color:rgba(255,107,125,.4)}
+
+/* Schnellrechner-Leiste */
+.quick-calc{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.quick-calc .input{flex:1 1 160px;min-width:0}
+
+/* Ansicht-Umschalter für große Textflächen */
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+@media(max-width:900px){.split{grid-template-columns:1fr}}
+
+/* Marker für aktive Sektion */
+.view.active>h2{scroll-margin-top:80px}
+
+/* Skeleton für Ladezustände */
+.sk{background:linear-gradient(90deg,rgba(255,255,255,.05),rgba(255,255,255,.12),rgba(255,255,255,.05));background-size:200% 100%;animation:sk 1.3s linear infinite;border-radius:8px;height:14px}
+@keyframes sk{to{background-position:-200% 0}}
+</style>
+</head>
+<body class="theme-liquid2">
+
+<div id="lock" class="lock">
+  <div class="login glass">
+    <div class="brand"><div class="logo">E</div><div><b>ELIAN Ultimate</b><small>Calculator · v7.0</small></div></div>
+    <h2 style="margin:6px 0 4px">Anmelden</h2>
+    <p class="help" style="margin-top:0">Lokal auf diesem Gerät. Keine Serververbindung, keine Konten in der Cloud.</p>
+    <div class="row" style="margin-bottom:10px">
+      <button class="btn" id="accountModeBtn">Benutzerkonto</button>
+      <button class="btn" id="guestModeBtn">Als Gast</button>
+    </div>
+    <div id="accountLogin">
+      <label style="margin-bottom:10px">Benutzername
+        <input id="loginUser" class="input" autocomplete="username" style="margin-top:6px">
+      </label>
+      <label style="margin-bottom:10px">6-stellige PIN
+        <input id="loginPin" class="input pin" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password" style="margin-top:6px">
+      </label>
+      <button class="btn" id="loginBtn" style="width:100%">Anmelden</button>
+    </div>
+    <div id="guestLogin" style="display:none">
+      <div class="grid2">
+        <label>Vorname<input id="guestFirst" class="input" autocomplete="given-name" style="margin-top:6px"></label>
+        <label>Nachname<input id="guestLast" class="input" autocomplete="family-name" style="margin-top:6px"></label>
+      </div>
+      <button class="btn" id="guestBtn" style="width:100%;margin-top:10px">Ohne Konto starten</button>
+      <p class="help" style="font-size:11px">Für den Gastzugang sind weder Benutzername noch PIN nötig.</p>
+    </div>
+    <p id="loginMsg" class="err" style="min-height:18px"></p>
+    <p class="help" style="font-size:11px">Erster Start: <b>admin</b> · PIN <b>123456</b>. Danach PIN im Adminbereich ändern.</p>
+  </div>
+</div>
+
+<div id="cmdk" class="cmdk" role="dialog" aria-modal="true" aria-label="Befehlspalette">
+  <div class="cmdk-box glass">
+    <input id="cmdkInput" class="cmdk-input" placeholder="Befehl, Modul oder Funktion suchen …" autocomplete="off" spellcheck="false">
+    <div id="cmdkList" class="cmdk-list"></div>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <aside class="side" id="side">
+    <div class="brand"><div class="logo">E</div><div><b>ELIAN Ultimate</b><small>v7.0 · Offline</small></div></div>
+    <nav class="nav" id="nav" aria-label="Hauptnavigation"></nav>
+    <div class="user-mini glass">
+      <strong id="who">–</strong>
+      <span id="roleBadge" class="role">–</span>
+      <button class="btn" id="logoutBtn" style="width:100%;margin-top:10px">Abmelden</button>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="top">
+      <button class="icon mobile" id="menuBtn" aria-label="Menü">☰</button>
+      <div class="title" id="pageTitle">Rechner</div>
+      <div class="actions">
+        <span id="angleBadge" class="badge">DEG</span>
+        <button class="icon" id="themeCycle" title="Design wechseln">◐</button>
+        <button class="icon" id="infoBtn" title="Über ELIAN">ⓘ</button>
+        <button class="icon" id="helpBtn" title="Hilfe">?</button>
+      </div>
+    </header>
+    <div class="content">
+
+      <section id="calculator" class="view active" aria-label="Rechner">
+        <div class="card glass">
+          <div class="mem-bar">
+            <span class="help">Speicher: <b id="memVal">0</b></span>
+            <span class="help" id="calcHint">Tippe einen Ausdruck oder nutze die Tasten.</span>
+          </div>
+          <div class="display glass">
+            <div id="expr" class="expr"></div>
+            <div id="result" class="result">0</div>
+          </div>
+          <div id="keys" class="keys"></div>
+          <p class="help" style="margin:12px 0 0;font-size:12px">
+            Operatorreihenfolge korrekt: <code>2+3*4</code> = 14 · Punkt vor Strich, Klammern,
+            Potenzen rechtsassoziativ (<code>2^3^2</code> = 512), implizite Multiplikation (<code>2(3)</code>, <code>2pi</code>).
+          </p>
+        </div>
+      </section>
+
+      <section id="scientific" class="view" aria-label="Wissenschaft">
+        <div class="card glass">
+          <h2>Wissenschaft</h2>
+          <div class="grid2">
+            <div>
+              <label>Ausdruck
+                <textarea id="sciInput" placeholder="sin(30)+sqrt(16)" style="margin-top:6px"></textarea>
+              </label>
+              <div class="row" style="margin-top:10px">
+                <button class="btn" id="sciBtn">Berechnen</button>
+                <button class="btn" id="angleBtn">Winkel: DEG</button>
+                <button class="btn" id="fractionBtn">Als Bruch</button>
+                <button class="btn" id="ansBtn">ANS einsetzen</button>
+              </div>
+            </div>
+            <div id="sciOut" class="glass" style="padding:15px">Bereit.</div>
+          </div>
+          <p class="help">Trigonometrie, Hyperbolik, Logarithmen, Kombinatorik, Fakultät, ggT/kgV, Statistikfunktionen.
+          Winkelmodus gilt für sin/cos/tan und Umkehrfunktionen. Konstanten: <code>pi</code>, <code>e</code>, <code>tau</code>, <code>phi</code>.</p>
+<div class="card glass" style="margin-top:14px">
+  <h3>Bruchrechnung</h3>
+  <p class="help">Exakte Brucharithmetik — Ergebnisse werden automatisch gekürzt.</p>
+  <div class="row" style="align-items:center">
+    <span class="frac-row"><input id="frA" class="input" value="3" style="width:70px"><span class="frac-slash">/</span><input id="frB" class="input" value="4" style="width:70px"></span>
+    <select id="frOp" style="width:70px"><option value="+">+</option><option value="-">−</option><option value="*">×</option><option value="/">÷</option></select>
+    <span class="frac-row"><input id="frC" class="input" value="1" style="width:70px"><span class="frac-slash">/</span><input id="frD" class="input" value="6" style="width:70px"></span>
+    <button class="btn" id="frCalc">Berechnen</button>
+  </div>
+  <div id="frOut" class="glass" style="padding:15px;margin-top:10px">–</div>
+</div>
+
+        </div>
+      </section>
+
+      <section id="algebra" class="view" aria-label="Algebra">
+        <div class="card glass">
+          <h2>Algebra &amp; LGS</h2>
+          <div class="grid2">
+            <div>
+              <label>Gleichung
+                <input id="algEq" class="input" value="2x+5=17" style="margin-top:6px">
+              </label>
+              <button class="btn" id="solveEq" style="margin-top:8px">Lösen</button>
+            </div>
+            <div id="algOut" class="glass" style="padding:15px">–</div>
+          </div>
+          <hr>
+          <div class="grid2">
+            <div>
+              <label>LGS, eine Gleichung pro Zeile
+                <textarea id="linsys" placeholder="2x+y=7&#10;x-y=1" style="margin-top:6px"></textarea>
+              </label>
+              <button class="btn" id="solveLgs" style="margin-top:8px">LGS lösen</button>
+            </div>
+            <div id="lgsOut" class="glass" style="padding:15px">Variablen werden automatisch erkannt.</div>
+          </div>
+          <hr>
+          <div class="grid2">
+            <div>
+              <label>Variable setzen
+                <input id="varInput" class="input" placeholder="a=5" style="margin-top:6px">
+              </label>
+              <button class="btn" id="setVar" style="margin-top:8px">Speichern</button>
+            </div>
+            <div id="varOut" class="glass" style="padding:15px">–</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="graph" class="view" aria-label="Funktionsplotter">
+        <div class="card glass">
+          <h2>Funktionsplotter</h2>
+          <p class="help">Mathematisch korrektes Sampling: <b>y=9x+5</b> liegt bei x=0 auf y=5.
+          Punkte werden nicht automatisch mit Kurven verbunden. Polstellen erzeugen keine falschen Linien.</p>
+          <div class="two-col">
+            <div>
+              <textarea id="graphInput" placeholder="y=9x+5&#10;y=x^2-4&#10;A=(2,5)&#10;x=3&#10;x^2+y^2=25&#10;y&lt;=2x+1&#10;r=2+sin(3t)&#10;x=cos(t), y=sin(t)"></textarea>
+              <div class="row" style="margin:10px 0">
+                <button class="btn" id="plotBtn">Plotten</button>
+                <button class="btn" id="fitBtn">Ansicht anpassen</button>
+                <button class="btn" id="resetBtn">Reset</button>
+                <button class="btn" id="addPoint">Punkt</button>
+                <button class="btn" id="exportPng">PNG</button>
+                <button class="btn" id="exportSvg">SVG</button>
+                <button class="btn" id="copyPlot">Kopieren</button>
+              </div>
+              <div class="row">
+                <label style="flex:1">x min<input id="xmin" class="input" value="-10"></label>
+                <label style="flex:1">x max<input id="xmax" class="input" value="10"></label>
+                <label style="flex:1">y min<input id="ymin" class="input" value="-7"></label>
+                <label style="flex:1">y max<input id="ymax" class="input" value="7"></label>
+              </div>
+              <div class="plot-controls">
+                <label>Raster X<input id="gridStepX" class="input" type="number" min="0.000001" step="any" value="1"></label>
+                <label>Raster Y<input id="gridStepY" class="input" type="number" min="0.000001" step="any" value="1"></label>
+                <label>Kurvenschritt Δx<input id="curveStep" class="input" type="number" min="0.000001" step="any" value="0.02"></label>
+                <label>Detailstufe<input id="sampleMax" class="input" type="number" min="100" max="20000" step="100" value="6000"></label>
+                <label>Zoomfaktor<input id="zoomFactor" class="input" type="number" min="1.01" max="5" step="0.01" value="1.25"></label>
+              </div>
+              <div class="plot-help">
+                <span class="badge">🖱 Mausrad = Zoom</span>
+                <span class="badge">👆 1 Finger = Verschieben</span>
+                <span class="badge">🤏 2 Finger = Pinch-Zoom</span>
+                <span class="badge">✦ Doppeltippen = Zoom</span>
+              </div>
+              <div class="row" style="margin:8px 0">
+                <span class="badge">Präzision:</span>
+                <button class="btn" data-plotpreset="fast">Schnell</button>
+                <button class="btn" data-plotpreset="normal">Normal</button>
+                <button class="btn" data-plotpreset="high">Hoch</button>
+                <button class="btn" data-plotpreset="ultra">Ultra</button>
+                <span id="plotStatus" class="help"></span>
+              </div>
+              <div class="plot-shell" id="plotShell">
+                <canvas id="plot"></canvas>
+                <div id="plotTip" class="plot-tooltip"></div>
+              </div>
+            </div>
+            <aside class="graph-side glass">
+              <h3>Objekte</h3>
+              <div id="objects" class="object-list"></div>
+              <h3>Analyse</h3>
+              <div id="analysis" class="analysis help">Noch keine Analyse.</div>
+              <h3>Parameter</h3>
+              <div id="sliders" class="sliders help">Keine Parameter erkannt.</div>
+            </aside>
+          </div>
+          <div class="card glass" style="margin-top:14px">
+            <h3>Wertetabelle</h3>
+            <div class="row">
+              <label>Start<input id="tableStart" class="input" value="-5" style="width:110px"></label>
+              <label>Schrittweite<input id="tableStep" class="input" value="1" style="width:110px"></label>
+              <label>Anzahl<input id="tableCount" class="input" value="11" style="width:110px"></label>
+              <button class="btn" id="makeTable">Tabelle erstellen</button>
+            </div>
+            <div id="tableOut" class="table-wrap" style="margin-top:10px"></div>
+          </div>
+          <div class="card glass" style="margin-top:14px">
+            <h3>Ableitung &amp; Integral</h3>
+            <div class="row">
+              <select id="calcFunc" style="min-width:220px"></select>
+              <input id="intA" class="input" value="0" style="width:110px" placeholder="a">
+              <input id="intB" class="input" value="1" style="width:110px" placeholder="b">
+              <button class="btn" id="derivativeBtn">Ableitung anzeigen</button>
+              <button class="btn" id="integralBtn">Integral berechnen</button>
+            </div>
+            <div id="calcOut" class="help" style="margin-top:10px"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="statistics" class="view" aria-label="Statistik">
+        <div class="card glass">
+          <h2>Stochastik &amp; Statistik</h2>
+          <label>Daten
+            <textarea id="statData" placeholder="1, 2, 3, 4, 5" style="margin-top:6px"></textarea>
+          </label>
+          <div class="row" style="margin-top:10px">
+            <button class="btn" id="statBtn">Auswerten</button>
+            <button class="btn" id="randBtn">Zufallsgenerator</button>
+          </div>
+          <div id="statOut" style="margin-top:12px"></div>
+          <div class="grid3" style="margin-top:14px">
+            <div>
+              <h3>Normalverteilung</h3>
+              <input id="normX" class="input" placeholder="x">
+              <input id="normMu" class="input" placeholder="μ = 0" style="margin-top:6px">
+              <input id="normSigma" class="input" placeholder="σ = 1" style="margin-top:6px">
+              <button class="btn" id="normBtn" style="margin-top:6px">Dichte</button>
+              <div id="normOut" class="help" style="margin-top:6px"></div>
+            </div>
+            <div>
+              <h3>Kombinatorik</h3>
+              <input id="combN" class="input" placeholder="n">
+              <input id="combR" class="input" placeholder="r" style="margin-top:6px">
+              <button class="btn" id="combBtn" style="margin-top:6px">nCr / nPr</button>
+              <div id="combOut" class="help" style="margin-top:6px"></div>
+            </div>
+            <div>
+              <h3>Zufall</h3>
+              <input id="randMin" class="input" value="1">
+              <input id="randMax" class="input" value="100" style="margin-top:6px">
+              <input id="randN" class="input" value="10" style="margin-top:6px">
+              <button class="btn" id="randMake" style="margin-top:6px">Generieren</button>
+              <div id="randOut" class="help" style="margin-top:6px"></div>
+            </div>
+          </div>
+<div class="card glass" style="margin-top:14px">
+  <h3>Verteilung</h3>
+  <div id="statChart" class="bar-chart"></div>
+  <div id="statChartInfo" class="help" style="margin-top:8px">Nach dem Auswerten erscheint hier die Häufigkeitsverteilung.</div>
+</div>
+<div class="card glass" style="margin-top:14px">
+  <h2>Erweiterte Statistik</h2>
+  <p class="help">Streuungsmaße, Korrelation und Regression aus zwei Datenreihen.</p>
+  <div class="grid2">
+    <label>Reihe X<textarea id="regX" placeholder="1, 2, 3, 4, 5" style="margin-top:6px"></textarea></label>
+    <label>Reihe Y<textarea id="regY" placeholder="2, 4, 5, 4, 5" style="margin-top:6px"></textarea></label>
+  </div>
+  <div class="row" style="margin-top:8px">
+    <button class="btn" id="regBtn">Korrelation &amp; Regression</button>
+    <button class="btn" id="regFromStat">Aus Statistik-Daten übernehmen</button>
+    <button class="btn" id="regPlotBtn">Regressionsgerade plotten</button>
+  </div>
+  <div id="regOut" class="glass" style="padding:15px;margin-top:10px">–</div>
+</div>
+        </div>
+      </section>
+
+      <section id="matrix" class="view" aria-label="Matrizen">
+        <div class="card glass">
+          <h2>Matrizen</h2>
+          <div class="grid2">
+            <label>Matrix A<textarea id="matA" placeholder="1 2&#10;3 4" style="margin-top:6px"></textarea></label>
+            <label>Matrix B<textarea id="matB" placeholder="5 6&#10;7 8" style="margin-top:6px"></textarea></label>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <button class="btn" data-mat="add">A+B</button>
+            <button class="btn" data-mat="mul">A×B</button>
+            <button class="btn" data-mat="det">det(A)</button>
+            <button class="btn" data-mat="inv">A⁻¹</button>
+            <button class="btn" data-mat="transpose">Aᵀ</button>
+            <button class="btn" data-mat="rank">Rang(A)</button>
+            <button class="btn" data-mat="trace">Spur(A)</button>
+          </div>
+          <div id="matOut" class="glass" style="padding:14px;margin-top:12px"></div>
+<div class="card glass" style="margin-top:14px">
+  <h3>Matrix-Größe</h3>
+  <div class="mat-dims">
+    <label>Zeilen<input id="matRows" class="input" type="number" min="1" max="8" value="2" style="width:80px"></label>
+    <label>Spalten<input id="matCols" class="input" type="number" min="1" max="8" value="2" style="width:80px"></label>
+    <button class="btn" id="matResize">Raster anwenden</button>
+    <button class="btn" id="matRandom">Zufällig füllen</button>
+    <button class="btn" id="matClear">Leeren</button>
+  </div>
+  <div id="matGrid" style="overflow:auto"></div>
+  <div class="row" style="margin-top:10px">
+    <button class="btn" id="matReadGrid">In A übernehmen</button>
+  </div>
+</div>
+        </div>
+      </section>
+
+      <section id="units" class="view" aria-label="Einheiten">
+        <div class="card glass">
+          <h2>Einheiten</h2>
+          <div class="grid3">
+            <label>Wert<input id="unitVal" class="input" value="1" style="margin-top:6px"></label>
+            <label>Von<select id="unitFrom" style="margin-top:6px"></select></label>
+            <label>Nach<select id="unitTo" style="margin-top:6px"></select></label>
+          </div>
+          <button class="btn" id="unitBtn" style="margin-top:8px">Umrechnen</button>
+          <button class="btn" id="unitSwap" style="margin-top:8px">Tauschen</button>
+          <div id="unitOut" style="margin-top:10px"></div>
+        </div>
+      </section>
+
+      <section id="programmer" class="view" aria-label="Programmierer">
+        <div class="card glass">
+          <h2>Programmierer</h2>
+          <div class="grid2">
+            <div>
+              <label>Wert<input id="progVal" class="input" value="255" style="margin-top:6px"></label>
+              <label style="margin-top:8px">Basis
+                <select id="progBase" style="margin-top:6px">
+                  <option value="10">Dezimal</option>
+                  <option value="2">Binär</option>
+                  <option value="8">Oktal</option>
+                  <option value="16">Hex</option>
+                </select>
+              </label>
+              <button class="btn" id="progBtn" style="margin-top:8px">Umwandeln</button>
+            </div>
+            <div id="progOut" class="glass" style="padding:14px"></div>
+          </div>
+          <h3 style="margin-top:20px">Bit-Toggle (32 Bit)</h3>
+          <div id="bits" class="bits"></div>
+          <div id="bitOut" class="help" style="margin-top:10px"></div>
+        </div>
+      </section>
+
+      <section id="finance" class="view" aria-label="Finanzen">
+        <div class="card glass">
+          <h2>Finanzen</h2>
+          <div class="grid3">
+            <label>Kredit<input id="loanP" class="input" value="10000" placeholder="Kredit" style="margin-top:6px"></label>
+            <label>Zins % p.a.<input id="loanRate" class="input" value="5" placeholder="Zins %" style="margin-top:6px"></label>
+            <label>Jahre<input id="loanYears" class="input" value="5" placeholder="Jahre" style="margin-top:6px"></label>
+          </div>
+          <button class="btn" id="loanBtn" style="margin-top:8px">Tilgungsplan</button>
+          <div id="loanOut" class="table-wrap" style="margin-top:12px"></div>
+        </div>
+      </section>
+
+      <section id="users" class="view" aria-label="Benutzerverwaltung">
+        <div class="card glass">
+          <h2>Benutzerverwaltung</h2>
+          <p class="help">Nur Admins. Benutzer und PINs bleiben lokal im Browser (SHA-256, nie im Klartext).</p>
+          <div class="grid2">
+            <div>
+              <input id="newFirst" class="input" placeholder="Vorname">
+              <input id="newLast" class="input" placeholder="Nachname" style="margin-top:6px">
+              <input id="newName" class="input" placeholder="Benutzername" style="margin-top:6px">
+              <input id="newPin" class="input" maxlength="6" inputmode="numeric" type="password" placeholder="6-stellige PIN" style="margin-top:6px">
+              <select id="newRole" style="margin-top:6px"><option>Gast</option><option>Normal</option><option>Admin</option></select>
+              <button class="btn" id="createUser" style="margin-top:8px">Benutzer erstellen</button>
+            </div>
+            <div id="userList"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="admin" class="view" aria-label="Admin">
+        <div class="card glass">
+          <h2>Admin-Zentrale</h2>
+          <p class="help">Module können für die lokale Anwendung deaktiviert werden.</p>
+          <div id="featureList"></div>
+          <div class="row" style="margin-top:12px">
+            <button class="btn" id="saveFeatures">Speichern</button>
+            <button class="btn" id="resetFeatures">Werkseinstellungen</button>
+          </div>
+        </div>
+        <div class="card glass">
+          <h3>Build &amp; Diagnose</h3>
+          <div id="integrity" class="secure">Lade …</div>
+          <div class="row" style="margin-top:10px">
+            <button class="btn" id="refreshDiagnostics">Diagnose aktualisieren</button>
+            <button class="btn" id="wipeLocalData">Alle lokalen Daten löschen</button>
+          </div>
+          <p class="help">Alle Daten dieses Rechners liegen ausschließlich im lokalen Browser-Speicher dieses Geräts.
+          Es gibt keine Serververbindung, keine Lizenzprüfung und keine automatische Aktualisierung.</p>
+        </div>
+        <div class="card glass">
+          <h3>Login-Protokoll</h3>
+          <p class="help">Lokal gespeichert: Datum/Uhrzeit, Name, Rolle, Gast/Konto und Ergebnis. Keine Daten verlassen dieses Gerät.</p>
+          <div class="row">
+            <button class="btn" id="refreshLoginLog">Aktualisieren</button>
+            <button class="btn" id="clearLoginLog">Protokoll löschen</button>
+          </div>
+          <div id="loginLog" class="table-wrap" style="margin-top:10px"></div>
+        </div>
+      </section>
+
+      <section id="settings" class="view" aria-label="Einstellungen">
+        <div class="card glass">
+          <h2>Design &amp; Bedienung</h2>
+          <div class="theme-grid">
+            <button class="theme glass" data-theme="liquid2" aria-pressed="false"><div class="theme-preview t-l2"></div><b>Liquid Glass 2</b><small class="help">räumliches, modernes Glas</small></button>
+            <button class="theme glass" data-theme="pride" aria-pressed="false"><div class="theme-preview t-p"></div><b>Pride Glass</b><small class="help">Grün · Weiß · Blau</small></button>
+            <button class="theme glass" data-theme="premium" aria-pressed="false"><div class="theme-preview t-prem"></div><b>Premium</b><small class="help">Marmor · Silber</small></button>
+            <button class="theme glass" data-theme="rainbow" aria-pressed="false"><div class="theme-preview t-rain"></div><b>Rainbow</b><small class="help">dynamischer Verlauf</small></button>
+            <button class="theme glass" data-theme="diamond" aria-pressed="false"><div class="theme-preview t-diamond"></div><b>Diamond Luxurious</b><small class="help">Kristall · Diamant · Luxus</small></button>
+          </div>
+          <div class="row" style="margin-top:16px">
+            <button class="btn" id="exportData">Sitzung exportieren</button>
+            <button class="btn" id="importData">Sitzung importieren</button>
+            <button class="btn" id="shortcuts">Tastenkürzel</button>
+            <button class="btn" id="easter">✨</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="polynomial" class="view" aria-label="Polynome">
+        <div class="card glass">
+          <h2>Polynome</h2>
+          <p class="help">Koeffizienten in fallender Reihenfolge, getrennt durch Komma oder Leerzeichen.
+          <code>3,-1,2</code> bedeutet 3x² − x + 2.</p>
+          <div class="row">
+            <input id="polyCoeffs" class="input poly-input" style="flex:1 1 320px" placeholder="3, -1, 2" value="3,-1,2">
+            <button class="btn" id="polyEvalBtn">An x auswerten</button>
+            <button class="btn" id="polyDerivBtn">Ableiten</button>
+            <button class="btn" id="polyIntegBtn">Integrieren</button>
+            <button class="btn" id="polyRootsBtn">Nullstellen</button>
+            <button class="btn" id="polyFactorBtn">Faktorisieren</button>
+            <input id="polyX" class="input" style="width:110px" placeholder="x" value="1">
+          </div>
+          <div id="polyOut" class="glass" style="padding:15px;margin-top:12px">–</div>
+          <div class="row" style="margin-top:10px">
+            <button class="btn" id="polyPlotBtn">Im Plotter anzeigen</button>
+            <button class="btn" id="polyClear">Leeren</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="complex" class="view" aria-label="Komplexe Zahlen">
+        <div class="card glass">
+          <h2>Komplexe Zahlen</h2>
+          <div class="grid3">
+            <label>a (Real)<input id="cxA" class="input" value="3" style="margin-top:6px"></label>
+            <label>b (Imaginär)<input id="cxB" class="input" value="4" style="margin-top:6px"></label>
+            <select id="cxOp" style="margin-top:6px"><option value="+">+</option><option value="-">−</option><option value="*">×</option><option value="/">÷</option><option value="^">^</option></select>
+          </div>
+          <div class="grid3" style="margin-top:8px">
+            <label>c (Real)<input id="cxC" class="input" value="1" style="margin-top:6px"></label>
+            <label>d (Imaginär)<input id="cxD" class="input" value="2" style="margin-top:6px"></label>
+            <button class="btn" id="cxCalc" style="margin-top:8px">Berechnen</button>
+          </div>
+          <div id="cxOut" class="glass" style="padding:15px;margin-top:12px">–</div>
+          <hr>
+          <h3>Einzeloperationen</h3>
+          <div class="row">
+            <button class="btn" data-cx="abs">|z|</button>
+            <button class="btn" data-cx="arg">arg(z)</button>
+            <button class="btn" data-cx="conj">konjugiert</button>
+            <button class="btn" data-cx="recip">1/z</button>
+            <button class="btn" data-cx="polar">Polarform</button>
+            <button class="btn" data-cx="sqrt">√z</button>
+            <button class="btn" data-cx="exp">e^z</button>
+            <button class="btn" data-cx="ln">ln(z)</button>
+          </div>
+          <div id="cxSingle" class="glass" style="padding:15px;margin-top:12px">–</div>
+        </div>
+      </section>
+
+      <section id="calculus" class="view" aria-label="Analysis">
+        <div class="card glass">
+          <h2>Analysis</h2>
+          <p class="help">Grenzwerte, Tangenten, Wendepunkte und numerische Verfahren für y = f(x).</p>
+          <div class="row">
+            <input id="calcExpr" class="input" style="flex:1 1 260px" placeholder="sin(x)/x" value="sin(x)/x">
+            <button class="btn" id="limitBtn">Grenzwert</button>
+            <input id="limitAt" class="input" style="width:110px" value="0" placeholder="gegen">
+            <select id="limitDir" style="width:110px"><option value="both">beidseitig</option><option value="+">von rechts</option><option value="-">von links</option></select>
+          </div>
+          <div id="limitOut" class="glass" style="padding:15px;margin-top:12px">–</div>
+          <hr>
+          <div class="row">
+            <span class="badge">Tangente &amp; Normale</span>
+            <input id="tanX" class="input" style="width:110px" value="1" placeholder="x₀">
+            <button class="btn" id="tanBtn">Berechnen</button>
+            <button class="btn" id="tanPlotBtn">Einzeichnen</button>
+          </div>
+          <div id="tanOut" class="glass" style="padding:15px;margin-top:12px">–</div>
+          <hr>
+          <div class="row">
+            <span class="badge">Newton-Iteration</span>
+            <input id="newtX" class="input" style="width:110px" value="2" placeholder="Start x₀">
+            <button class="btn" id="newtonBtn">Nullstelle suchen</button>
+          </div>
+          <div id="newtonOut" class="glass" style="padding:15px;margin-top:12px">–</div>
+        </div>
+      </section>
+
+      <section id="sequences" class="view" aria-label="Folgen und Reihen">
+        <div class="card glass">
+          <h2>Folgen &amp; Reihen</h2>
+          <div class="grid2">
+            <div>
+              <label>Glieder als Formel in n (optional) oder als Liste
+                <input id="seqExpr" class="input" style="margin-top:6px" placeholder="n^2-3  oder  2,5,10,17">
+              </label>
+              <div class="row" style="margin-top:8px">
+                <label>n von<input id="seqFrom" class="input" value="1" style="width:80px"></label>
+                <label>bis<input id="seqTo" class="input" value="10" style="width:80px"></label>
+                <button class="btn" id="seqBtn">Analysieren</button>
+              </div>
+            </div>
+            <div id="seqOut" class="glass" style="padding:15px">–</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="geometry" class="view" aria-label="Geometrie">
+        <div class="card glass">
+          <h2>Geometrie</h2>
+          <p class="help">Flächen, Umfänge, Volumen und Oberflächen — auf Knopfdruck berechnet.</p>
+          <div class="grid3">
+            <div><h3>Kreis</h3>
+              <input id="geoR" class="input" placeholder="Radius r" value="5">
+              <button class="btn" id="geoCircle" style="margin-top:6px">Berechnen</button></div>
+            <div><h3>Rechteck</h3>
+              <input id="geoW" class="input" placeholder="Breite a" value="4">
+              <input id="geoH" class="input" placeholder="Höhe b" value="6" style="margin-top:6px">
+              <button class="btn" id="geoRect" style="margin-top:6px">Berechnen</button></div>
+            <div><h3>Dreieck (a, b, c)</h3>
+              <input id="geoTa" class="input" placeholder="a" value="3">
+              <input id="geoTb" class="input" placeholder="b" value="4" style="margin-top:6px">
+              <input id="geoTc" class="input" placeholder="c" value="5" style="margin-top:6px">
+              <button class="btn" id="geoTri" style="margin-top:6px">Berechnen</button></div>
+          </div>
+          <hr>
+          <div class="grid3">
+            <div><h3>Kugel</h3>
+              <input id="geoSr" class="input" placeholder="Radius r" value="3">
+              <button class="btn" id="geoSphere" style="margin-top:6px">Berechnen</button></div>
+            <div><h3>Zylinder</h3>
+              <input id="geoZr" class="input" placeholder="Radius r" value="2">
+              <input id="geoZh" class="input" placeholder="Höhe h" value="5" style="margin-top:6px">
+              <button class="btn" id="geoCyl" style="margin-top:6px">Berechnen</button></div>
+            <div><h3>Kegel</h3>
+              <input id="geoKr" class="input" placeholder="Radius r" value="2">
+              <input id="geoKh" class="input" placeholder="Höhe h" value="5" style="margin-top:6px">
+              <button class="btn" id="geoCone" style="margin-top:6px">Berechnen</button></div>
+          </div>
+          <div id="geoOut" class="glass" style="padding:15px;margin-top:12px">–</div>
+        </div>
+      </section>
+      <section id="dates" class="view" aria-label="Datum und Zeit">
+        <div class="card glass">
+          <h2>Datum &amp; Zeit</h2>
+          <div class="grid2">
+            <div>
+              <label>Von<input id="dateA" class="input" type="date" style="margin-top:6px"></label>
+              <label style="margin-top:8px">Bis<input id="dateB" class="input" type="date" style="margin-top:6px"></label>
+              <div class="row" style="margin-top:8px">
+                <button class="btn" id="dateDiffBtn">Differenz</button>
+                <button class="btn" id="dateAddBtn">Tage addieren</button>
+                <input id="dateAddDays" class="input" style="width:90px" value="30" placeholder="Tage">
+                <button class="btn" id="dateToday">Heute</button>
+              </div>
+              <div id="dateOut" class="glass" style="padding:15px;margin-top:10px">–</div>
+            </div>
+            <div>
+              <h3>Wochentag &amp; Kalender</h3>
+              <div class="row">
+                <input id="wdDate" class="input" type="date" style="flex:1 1 160px">
+                <button class="btn" id="wdBtn">Prüfen</button>
+              </div>
+              <div id="wdOut" class="glass" style="padding:15px;margin-top:10px">–</div>
+              <h3 style="margin-top:14px">Stoppuhr</h3>
+              <div class="row">
+                <button class="btn" id="swStart">Start</button>
+                <button class="btn" id="swStop">Stopp</button>
+                <button class="btn" id="swReset">Reset</button>
+                <span id="swOut" class="badge" style="font-size:16px">00:00,00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="convert" class="view" aria-label="Erweiterte Umrechnung">
+        <div class="card glass">
+          <h2>Erweiterte Umrechnung</h2>
+          <div class="grid3">
+            <label>Wert<input id="cvtVal" class="input" value="1" style="margin-top:6px"></label>
+            <label>Von<select id="cvtCat" style="margin-top:6px"></select></label>
+            <label>&nbsp;</label>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <select id="cvtFrom" style="flex:1 1 180px"></select>
+            <span class="badge">→</span>
+            <select id="cvtTo" style="flex:1 1 180px"></select>
+            <button class="btn" id="cvtBtn">Umrechnen</button>
+          </div>
+          <div id="cvtOut" class="glass" style="padding:15px;margin-top:10px">–</div>
+          <hr>
+          <h3>Schnellauswahl</h3>
+          <div class="unit-quick" id="cvtQuick"></div>
+        </div>
+      </section>
+
+      <section id="formulas" class="view" aria-label="Formelbibliothek">
+        <div class="card glass">
+          <h2>Formelbibliothek</h2>
+          <p class="help">Häufig genutzte Formeln — Knopf drücken, Formel landet im wissenschaftlichen Rechner.</p>
+          <div class="row" style="margin-bottom:12px">
+            <input id="formulaSearch" class="input" style="flex:1 1 240px" placeholder="Formel suchen (z. B. Kreis, Energie, Zins) …">
+          </div>
+          <div id="formulaList" class="info-cards"></div>
+        </div>
+      </section>
+
+      <section id="constants" class="view" aria-label="Konstanten">
+        <div class="card glass">
+          <h2>Physikalische &amp; mathematische Konstanten</h2>
+          <p class="help">Zum Kopieren anklicken.</p>
+          <div class="row" style="margin-bottom:12px">
+            <input id="constSearch" class="input" style="flex:1 1 240px" placeholder="Konstante suchen …">
+          </div>
+          <div id="constList" class="const-grid"></div>
+        </div>
+      </section>
+
+      <section id="notes" class="view" aria-label="Notizen">
+        <div class="card glass">
+          <h2>Notizen</h2>
+          <p class="help">Lokal gespeichert. Rechenausdrücke in <code>[[ ]]-Klammern werden beim Export ausgewertet</code>.</p>
+          <div class="split">
+            <div>
+              <input id="noteTitle" class="input" placeholder="Titel" style="margin-bottom:8px">
+              <textarea id="noteBody" class="note-area input" placeholder="Notiztext …"></textarea>
+              <div class="row" style="margin-top:8px">
+                <button class="btn" id="noteSave">Speichern</button>
+                <button class="btn" id="noteNew">Neu</button>
+                <button class="btn" id="noteExport">Als Text exportieren</button>
+              </div>
+            </div>
+            <div>
+              <h3>Gespeicherte Notizen</h3>
+              <div id="noteList" class="note-list"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="quiz" class="view" aria-label="Übungsmodus">
+        <div class="card glass">
+          <h2>Übungsmodus</h2>
+          <p class="help">Rechne im Kopf — ELIAN prüft dein Ergebnis.</p>
+          <div class="row" style="margin-bottom:12px">
+            <select id="quizLevel" style="width:auto"><option value="1">Leicht</option><option value="2" selected>Mittel</option><option value="3">Schwer</option></select>
+            <button class="btn" id="quizStart">Neue Aufgabe</button>
+            <span class="badge">Richtig: <b id="quizScore">0</b> / <b id="quizTotal">0</b></span>
+          </div>
+          <div id="quizQ" class="glass" style="padding:20px;text-align:center;font-size:26px;font-weight:750">Auf „Neue Aufgabe“ drücken.</div>
+          <div class="row" style="margin-top:12px;justify-content:center">
+            <input id="quizAns" class="input" style="width:170px;text-align:center;font-size:19px" placeholder="Antwort" inputmode="decimal">
+            <button class="btn" id="quizCheck">Prüfen</button>
+          </div>
+          <div id="quizFeed" class="help" style="text-align:center;margin-top:10px;min-height:20px"></div>
+        </div>
+      </section>
+
+      <section id="history" class="view" aria-label="Verlauf">
+        <div class="card glass">
+          <h2>Verlauf</h2>
+          <div class="hist-toolbar">
+            <input id="histSearch" class="input hist-search" placeholder="Verlauf durchsuchen …">
+            <button class="chip" id="histFavBtn">★ Nur Gemerkte</button>
+            <button class="chip" id="histExportCsv">CSV exportieren</button>
+          </div>
+          <div id="historyList"></div>
+          <button class="btn" id="clearHistory" style="margin-top:10px">Verlauf löschen</button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<div id="modal" class="modal" role="dialog" aria-modal="true">
+  <div class="modal-box glass">
+    <button class="icon close" id="modalClose" aria-label="Schließen">×</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+<div id="toast" class="toast glass" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+/* =====================================================================
+   ELIAN Ultimate Calculator v7.0 - Single-File Offline Edition
+   ===================================================================== */
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const BUILD='7.0';
+const DBKEY='elian_v70_db',OLD_DBKEYS=['elian_v64_db','elian_v63_db','elian_v62_db'];
+const THEMES=['liquid2','pride','premium','rainbow','diamond'];
+const COLORS=['#62a9ff','#6ee7b7','#ffb86c','#ff6b9a','#b69cff','#4dd9d0','#ffd166','#f28cff','#8ee6ff','#c9f36a'];
+const DEFAULT_FEATURES={calculator:true,scientific:true,algebra:true,graph:true,statistics:true,matrix:true,units:true,programmer:true,finance:true,users:true,admin:true,history:true,settings:true,
+  polynomial:true,complex:true,calculus:true,sequences:true,geometry:true,convert:true,dates:true,formulas:true,constants:true,quiz:true,notes:true};
+const pages=[['calculator','🧮 Rechner'],['scientific','∑ Wissenschaft'],['algebra','x² Algebra'],['graph','📈 Funktionen'],
+  ['polynomial','∑ Polynome'],['complex','ℂ Komplex'],['calculus','∂ Analysis'],['sequences','∞ Folgen'],['geometry','△ Geometrie'],
+  ['statistics','σ Statistik'],['matrix','▦ Matrizen'],['units','↔ Einheiten'],['convert','⇄ Umrechnung'],
+  ['programmer','01 Programmierer'],['finance','€ Finanzen'],['dates','📅 Datum'],['formulas','📚 Formeln'],
+  ['constants','🔬 Konstanten'],['quiz','🎯 Übung'],['notes','📝 Notizen'],
+  ['history','↶ Verlauf'],['users','👥 Benutzer'],['admin','🛡 Admin'],['settings','⚙ Einstellungen']];
+let db=loadDB(),session=null,current='',ans=0,memory=0;
+
+/* ---------- storage ---------- */
+function loadDB(){
+  const load=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}};
+  let d=load(DBKEY);
+  if(!d){for(const k of OLD_DBKEYS){const o=load(k);if(o&&o.users){d=o;break}}}
+  const fresh={version:BUILD,loginLog:[],users:[{id:crypto.randomUUID?.()||String(Date.now()),first:'System',last:'Admin',name:'admin',pinHash:'',role:'Admin'}],features:{...DEFAULT_FEATURES},theme:'liquid2',angle:'DEG',vars:{},history:[],graphInput:'y=9x+5\ny=x^2-4'};
+  if(!d||!Array.isArray(d.users)||!d.users.length)return fresh;
+  d.loginLog=Array.isArray(d.loginLog)?d.loginLog:[];
+  d.users=d.users.filter(u=>u&&u.id&&u.name);
+  if(!d.users.length)d.users=fresh.users;
+  d.features={...DEFAULT_FEATURES,...(d.features||{})};
+  d.notes=Array.isArray(d.notes)?d.notes:[];
+  d.favHistory=Array.isArray(d.favHistory)?d.favHistory:[];
+  d.vars=d.vars&&typeof d.vars==='object'?d.vars:{};
+  d.history=Array.isArray(d.history)?d.history:[];
+  d.angle=['DEG','RAD','GON'].includes(d.angle)?d.angle:'DEG';
+  d.theme=THEMES.includes(d.theme)?d.theme:'liquid2';
+  d.graphInput=typeof d.graphInput==='string'?d.graphInput:fresh.graphInput;
+  d.version=BUILD;
+  return d;
+}
+async function hash(s){
+  if(self.crypto&&crypto.subtle&&crypto.subtle.digest){
+    const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));
+    return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+  }
+  return fnv(s);
+}
+function fnv(s){ // Fallback, falls WebCrypto fehlt
+  let h1=0x811c9dc5,h2=0x01000193;
+  s=String(s);
+  for(let i=0;i<s.length;i++){
+    h1=(h1^s.charCodeAt(i))*16777619>>>0;
+    h2=(h2+((s.charCodeAt(i)<<i%7)&0xff))*2654435761>>>0;
+  }
+  return ('00000000'+h1.toString(16)).slice(-8)+('00000000'+h2.toString(16)).slice(-8)+String(s.length);
+}
+async function initAdmin(){if(!db.users[0].pinHash)db.users[0].pinHash=await hash('123456');persist()}
+function persist(){try{localStorage.setItem(DBKEY,JSON.stringify(db))}catch(e){toast('Speichern fehlgeschlagen: '+e.message)}}
+
+/* ---------- UI helpers ---------- */
+function toast(s){const t=$('#toast');t.textContent=s;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2600)}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function fmt(x){
+  if(typeof x!=='number'||Number.isNaN(x))return 'NaN';
+  if(!Number.isFinite(x))return x>0?'∞':(x<0?'-∞':'NaN');
+  if(Math.abs(x)<1e-12)return '0';
+  if(Number.isInteger(x)&&Math.abs(x)<1e21)return String(x);
+  if(Math.abs(x)>=1e21||Math.abs(x)<1e-9)return x.toExponential(8).replace(/e([+-])(\d)$/,'e$10$2');
+  const r=Number(x.toPrecision(13));
+  return String(r);
+}
+function groupNum(s){ // Tausenderpunkte für die Anzeige großer Zahlen
+  return s;
+}
+
+/* ---------- math: exact number formatting ---------- */
+function toFraction(x,tol=1e-12){
+  if(!Number.isFinite(x))return null;
+  if(Number.isInteger(x))return {n:x,d:1};
+  let sign=x<0?-1:1;x=Math.abs(x);
+  let h1=1,h2=0,k1=0,k2=1,b=x;
+  for(let i=0;i<64;i++){
+    const a=Math.floor(b);
+    let hn=a*h1+h2,kn=a*k1+k2;
+    h2=h1;h1=hn;k2=k1;k1=kn;
+    const f=b-a;if(f<tol)break;b=1/f;
+    if(k1>1e12)break;
+  }
+  const n=sign*h1,d=k1;
+  if(d>1e12||Math.abs(n/d-(sign*x))>1e-9)return null;
+  return {n,d};
+}
+function fmtFraction(x){return fmtFractionOpt(x,false)}
+function fmtFractionForced(x){return fmtFractionOpt(x,true)}
+function fmtFractionOpt(x,force){
+  const f=toFraction(x);
+  if(!f)return null;
+  if(f.d===1)return String(f.n);
+  if(!force){
+    // Auto-Hinweis nur, wenn die Dezimaldarstellung nicht exakt/knapp ist
+    const dec=fmt(x),decVal=Number(dec);
+    if(Number.isFinite(decVal)&&Math.abs(decVal*f.d-f.n)<1e-9&&dec.length<=6)return null;
+  }
+  const whole=Math.trunc(f.n/f.d),rem=Math.abs(f.n%f.d);
+  return whole?`${whole} ${rem}/${f.d}`:`${f.n}/${f.d}`;
+}
+
+/* ---------- math: tokenizer + parser (korrekte Präzedenz) ---------- */
+const ID_START=/[A-Za-z_πτφ∞]/,ID_CHAR=/[A-Za-z_0-9πτφ∞]/;
+function normalize(s){
+  let out=String(s)
+    .replace(/[−–—]/g,'-').replace(/[×·✕]/g,'*').replace(/[÷∕]/g,'/')
+    .replace(/√/g,'sqrt').replace(/∛/g,'cbrt')
+    .replace(/²/g,'^2').replace(/³/g,'^3').replace(/⁴/g,'^4')
+    .replace(/π/g,'pi').replace(/τ/g,'tau').replace(/φ/g,'phi')
+    .replace(/\bmod\b/g,'%');
+  // Komma: innerhalb von Klammern Argumenttrenner, außerhalb deutsches Dezimalkomma
+  let res='',depth=0;
+  for(let i=0;i<out.length;i++){
+    const c=out[i];
+    if(c==='(')depth++;
+    else if(c===')')depth=Math.max(0,depth-1);
+    if(c===','&&depth===0&&/\d/.test(out[i-1]||'')&&/\d/.test(out[i+1]||'')){res+='.';continue}
+    res+=c;
+  }
+  return res;
+}
+function tokenize(s){
+  const a=[];let i=0;
+  while(i<s.length){
+    const c=s[i];
+    if(/\s/.test(c)){i++;continue}
+    if(/[0-9.]/.test(c)){
+      const m=s.slice(i).match(/^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?/);
+      if(!m)throw Error('Ungültige Zahl bei "'+s.slice(i,i+8)+'"');
+      // Doppelpunkt wie in 2..5 oder 2.5.5 abfangen
+      if(m[0].includes('.')&&(s[i+m[0].length]==='.'||/\.\d*\./.test(m[0]))){
+        throw Error('Ungültige Zahl: mehrere Dezimalpunkte.');
+      }
+      a.push(['num',+m[0]]);i+=m[0].length;continue;
+    }
+    if(ID_START.test(c)){
+      let j=i+1;while(j<s.length&&ID_CHAR.test(s[j]))j++;
+      a.push(['id',s.slice(i,j)]);i=j;continue;
+    }
+    if('+-*/^%(),!'.includes(c)){a.push([c,c]);i++;continue}
+    throw Error('Ungültiges Zeichen: '+c);
+  }
+  return a;
+}
+function buildEnv(extra={}){
+  return {pi:Math.PI,e:Math.E,tau:2*Math.PI,phi:(1+Math.sqrt(5))/2,ans:ans,...db.vars,...extra};
+}
+function makeFuncs(env){
+  const deg=()=>db.angle==='DEG',gon=()=>db.angle==='GON';
+  const inA=x=>deg()?x*Math.PI/180:gon()?x*Math.PI/200:x;
+  const outA=x=>deg()?x*180/Math.PI:gon()?x*200/Math.PI:x;
+  const need=(n,...a)=>{for(const v of a)if(!Number.isFinite(v))throw Error(n+' benötigt endliche Zahlen.')};
+  return {
+    sin:x=>{need('sin',x);return Math.sin(inA(x))},
+    cos:x=>{need('cos',x);return Math.cos(inA(x))},
+    tan:x=>{need('tan',x);const r=Math.cos(inA(x));if(Math.abs(r)<1e-15)throw Error('tan ist an dieser Stelle nicht definiert.');return Math.tan(inA(x))},
+    cot:x=>{need('cot',x);const t=Math.tan(inA(x));if(Math.abs(t)<1e-15)throw Error('cot ist an dieser Stelle nicht definiert.');return 1/t},
+    sec:x=>{need('sec',x);return 1/Math.cos(inA(x))},
+    csc:x=>{need('csc',x);return 1/Math.sin(inA(x))},
+    asin:x=>{need('asin',x);if(x<-1||x>1)throw Error('asin: Definitionsbereich [-1,1].');return outA(Math.asin(x))},
+    acos:x=>{need('acos',x);if(x<-1||x>1)throw Error('acos: Definitionsbereich [-1,1].');return outA(Math.acos(x))},
+    atan:x=>{need('atan',x);return outA(Math.atan(x))},
+    atan2:(y,x)=>{need('atan2',y,x);return outA(Math.atan2(y,x))},
+    sinh:Math.sinh,cosh:Math.cosh,tanh:Math.tanh,asinh:Math.asinh,acosh:Math.acosh,atanh:Math.atanh,
+    ln:x=>{need('ln',x);if(x<=0)throw Error('ln: nur für x > 0 definiert.');return Math.log(x)},
+    log:(x,b)=>{need('log',x);if(x<=0)throw Error('log: nur für x > 0 definiert.');if(b===undefined)return Math.log10(x);need('log',b);if(b<=0||b===1)throw Error('log: Basis muss > 0 und ≠ 1 sein.');return Math.log(x)/Math.log(b)},
+    log10:Math.log10,log2:Math.log2,exp:Math.exp,sqrt:x=>{need('sqrt',x);if(x<0)throw Error('sqrt: keine reelle Wurzel aus negativer Zahl.');return Math.sqrt(x)},
+    cbrt:Math.cbrt,abs:Math.abs,floor:Math.floor,ceil:Math.ceil,round:(x,n)=>{need('round',x);if(n===undefined)return Math.round(x);need('round',n);const f=10**n;return Math.round(x*f)/f},
+    sign:Math.sign,factorial,gcd:(...a)=>{a.forEach(v=>need('gcd',v));return a.reduce(gcd2)},lcm:(...a)=>{a.forEach(v=>need('lcm',v));return a.reduce(lcm2)},
+    min:(...a)=>{if(!a.length)throw Error('min benötigt mindestens ein Argument.');a.forEach(v=>need('min',v));return Math.min(...a)},
+    max:(...a)=>{if(!a.length)throw Error('max benötigt mindestens ein Argument.');a.forEach(v=>need('max',v));return Math.max(...a)},
+    nCr:(n,r)=>{need('nCr',n,r);if(!Number.isInteger(n)||!Number.isInteger(r)||n<0||r<0||r>n)throw Error('nCr: 0 ≤ r ≤ n, ganzzahlig.');return comb(n,r)},
+    nPr:(n,r)=>{need('nPr',n,r);if(!Number.isInteger(n)||!Number.isInteger(r)||n<0||r<0||r>n)throw Error('nPr: 0 ≤ r ≤ n, ganzzahlig.');return factorial(n)/factorial(n-r)},
+    sum:(...a)=>{a.forEach(v=>need('sum',v));return a.reduce((s,v)=>s+v,0)},
+    mean:(...a)=>{a.forEach(v=>need('mean',v));if(!a.length)throw Error('mean benötigt Werte.');return a.reduce((s,v)=>s+v,0)/a.length},
+    normaldist:(x,mu=0,sigma=1)=>{need('normaldist',x,mu,sigma);if(sigma<=0)throw Error('normaldist: σ muss > 0 sein.');return Math.exp(-.5*((x-mu)/sigma)**2)/(sigma*Math.sqrt(2*Math.PI))},
+    lnorm:Math.log
+  };
+}
+function evalExpr(src,extra={}){
+  const env=buildEnv(extra);
+  const fun=makeFuncs(env);
+  const ts=tokenize(normalize(src));
+  let p=0;
+  const peek=()=>ts[p];
+  const take=()=>ts[p++];
+  const startsValue=t=>!!t&&(t[0]==='num'||t[0]==='id'||t[0]==='('||t[0]==='+'||t[0]==='-');
+  const startsFactor=t=>!!t&&(t[0]==='num'||t[0]==='id'||t[0]==='(');
+  function primary(){
+    const t=peek();
+    if(!t)throw Error('Ausdruck unvollständig.');
+    if(t[0]==='num'){take();return t[1]}
+    if(t[0]==='id'){
+      take();const n=t[1];
+      if(peek()&&peek()[0]==='('){
+        take();const args=[];
+        if(peek()&&peek()[0]!==')'){
+          args.push(expr());
+          while(peek()&&peek()[0]===','){take();args.push(expr())}
+        }
+        if(!peek()||peek()[0]!==')')throw Error('Fehlende schließende Klammer.');
+        take();
+        if(!fun[n])throw Error('Unbekannte Funktion: '+n);
+        const r=fun[n](...args);
+        return r;
+      }
+      if(n==='pi'||n==='tau'||n==='phi'||n==='e')return env[n];
+      if(Object.prototype.hasOwnProperty.call(env,n))return env[n];
+      throw Error('Unbekannte Variable: '+n);
+    }
+    if(t[0]==='('){
+      take();const v=expr();
+      if(!peek()||peek()[0]!==')')throw Error('Fehlende schließende Klammer.');
+      take();return v;
+    }
+    throw Error('Unerwartetes Zeichen: '+(t[1]??t[0]));
+  }
+  function postfix(){
+    let v=primary();
+    while(peek()&&peek()[0]==='!'){
+      take();
+      if(!Number.isInteger(v)||v<0)throw Error('Fakultät: n muss eine ganze Zahl ≥ 0 sein.');
+      v=factorial(v);
+    }
+    return v;
+  }
+  function power(){
+    const base=postfix();
+    if(peek()&&peek()[0]==='^'){
+      take();
+      const exp=unary(); // rechtsassoziativ, erlaubt 2^-3
+      const r=Math.pow(base,exp);
+      if(Number.isNaN(r)&&base<0&&!Number.isInteger(exp))throw Error('Negative Basis mit gebrochenem Exponenten ist nicht reell.');
+      return r;
+    }
+    return base;
+  }
+  function unary(){
+    const t=peek();
+    if(t&&t[0]==='-'){take();return -unary()}
+    if(t&&t[0]==='+'){take();return unary()}
+    return power();
+  }
+  function term(){
+    let v=unary();
+    for(;;){
+      const t=peek();
+      if(!t)break;
+      if(t[0]==='*'){take();v*=unary();continue}
+      if(t[0]==='/'){take();const d=unary();if(d===0)throw Error('Division durch Null.');v/=d;continue}
+      if(t[0]==='%'){take();const d=unary();if(d===0)throw Error('Modulo durch Null.');v%=d;continue}
+      if(startsFactor(t)){v*=unary();continue} // implizite Multiplikation: 2(3), 2pi, 3sin(2)
+      break;
+    }
+    return v;
+  }
+  function expr(){
+    let v=term();
+    while(peek()&&(peek()[0]==='+'||peek()[0]==='-')){
+      const o=take()[0];
+      const b=term();
+      v=o==='+'?v+b:v-b;
+    }
+    return v;
+  }
+  if(!ts.length)throw Error('Leerer Ausdruck.');
+  const r=expr();
+  if(p<ts.length)throw Error('Unerwarteter Rest im Ausdruck: '+(ts[p][1]??ts[p][0]));
+  return r;
+}
+function factorial(n){
+  if(!Number.isInteger(n)||n<0||n>170)throw Error('Fakultät: n muss eine ganze Zahl von 0 bis 170 sein.');
+  let r=1;for(let i=2;i<=n;i++)r*=i;return r;
+}
+function gcd2(a,b){a=Math.abs(a);b=Math.abs(b);while(b){const t=a%b;a=b;b=t}return a}
+function lcm2(a,b){const g=gcd2(a,b);return g?Math.abs(a*b)/g:0}
+function comb(n,r){
+  if(r>n-r)r=n-r;
+  let out=1;
+  for(let i=1;i<=r;i++){out=out*(n-r+i)/i}
+  return Math.round(out);
+}
+function safeNum(s,env={}){
+  const v=evalExpr(s,env);
+  if(typeof v!=='number'||Number.isNaN(v))throw Error('Kein reeller Zahlenwert.');
+  if(!Number.isFinite(v))throw Error('Kein endlicher Wert.');
+  return v;
+}
+/* =====================================================================
+   Funktionsplotter
+   ===================================================================== */
+function parseFunction(line){
+  const raw=line.trim();
+  const point=raw.match(/^(?:([A-Za-z_]\w*)\s*=\s*)?\(\s*([^,]+?)\s*,\s*([^)]+?)\s*\)$/);
+  if(point)return{type:'point',label:point[1]||'',x:safeNum(point[2]),y:safeNum(point[3]),raw,color:null,visible:true};
+  const vertical=raw.match(/^x\s*=\s*([^=<>]+)$/i);
+  if(vertical&&!/[<>=]/.test(vertical[1]))return{type:'vertical',x:safeNum(vertical[1]),raw,color:null,visible:true};
+  const ineq=raw.match(/^y\s*(<=|>=|<|>)\s*(.+)$/i);
+  if(ineq)return{type:'inequality',op:ineq[1],expr:ineq[2],raw,color:null,visible:true};
+  const polar=raw.match(/^r\s*=\s*([^=<>]+)$/i);
+  if(polar)return{type:'polar',expr:polar[1],raw,color:null,visible:true};
+  const param=raw.match(/^x\s*=\s*(.+?)\s*,\s*y\s*=\s*(.+)$/i);
+  if(param)return{type:'param',xExpr:param[1],yExpr:param[2],raw,color:null,visible:true};
+  const imp=raw.match(/^([^=]+)=([^=]+)$/);
+  if(imp){
+    const lhs=imp[1].trim(),rhs=imp[2].trim();
+    if(/^y$/i.test(lhs))return{type:'function',expr:rhs,raw,color:null,visible:true};
+    if(/^f\s*\(\s*x\s*\)$/i.test(lhs)||/^f$/i.test(lhs))return{type:'function',expr:rhs,raw,color:null,visible:true};
+    if(/^x$/i.test(lhs))return{type:'vertical',x:safeNum(rhs),raw,color:null,visible:true};
+    return{type:'implicit',lhs,rhs,raw,color:null,visible:true};
+  }
+  return{type:'function',expr:raw,raw,color:null,visible:true};
+}
+const RESERVED_IDS=['x','y','t','r','pi','e','tau','phi','ans','sin','cos','tan','cot','sec','csc','asin','acos','atan','atan2','sinh','cosh','tanh','asinh','acosh','atanh','ln','log','log10','log2','exp','sqrt','cbrt','abs','floor','ceil','round','sign','factorial','gcd','lcm','min','max','nCr','nPr','sum','mean','normaldist','mod'];
+const graph={xMin:-10,xMax:10,yMin:-7,yMax:7,objects:[],params:{},drag:false,pointers:new Map(),pinch:null,gridStepX:1,gridStepY:1,curveStep:.02,sampleMax:6000,zoomFactor:1.25};
+
+function getCtx(){
+  const c=$('#plot'),d=Math.max(1,Math.min(2,devicePixelRatio||1)),r=c.getBoundingClientRect();
+  const w=Math.max(320,Math.floor(r.width||900)),h=Math.max(280,Math.floor(r.height||500));
+  if(c.width!==Math.floor(w*d)||c.height!==Math.floor(h*d)){c.width=Math.floor(w*d);c.height=Math.floor(h*d)}
+  const ctx=c.getContext('2d');
+  ctx.setTransform(d,0,0,d,0,0);
+  return{ctx,w,h};
+}
+function parseGraph(){
+  const lines=$('#graphInput').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  const objs=[];
+  for(const line of lines){
+    try{const o=parseFunction(line);o.color=COLORS[objs.length%COLORS.length];objs.push(o)}
+    catch(e){objs.push({type:'error',raw:line,error:e.message,color:'#ff6b7d',visible:true})}
+  }
+  graph.objects=objs;
+  detectParams();renderObjects();refreshCalcFunc();drawGraph();analyzeGraph();
+}
+function detectParams(){
+  const ids=new Set();
+  for(const o of graph.objects){
+    const s=[o.expr,o.xExpr,o.yExpr,o.lhs,o.rhs].filter(Boolean).join(' ');
+    for(const m of s.matchAll(/\b([A-Za-z_]\w*)\b/g)){
+      const n=m[1];
+      if(!RESERVED_IDS.includes(n)&&!Object.prototype.hasOwnProperty.call(db.vars,n))ids.add(n);
+    }
+  }
+  graph.params={};
+  ids.forEach(n=>graph.params[n]=db.vars[n]??1);
+  renderSliders();
+}
+function evalGraph(o,x,y,t){
+  const env={x,y,t,...graph.params};
+  if(o.type==='function')return safeNum(o.expr,env);
+  if(o.type==='implicit')return safeNum(o.lhs,env)-safeNum(o.rhs,env);
+  if(o.type==='inequality')return safeNum(o.expr,env);
+  return NaN;
+}
+function xyToPx(x,y,w,h){return[(x-graph.xMin)/(graph.xMax-graph.xMin)*w,h-(y-graph.yMin)/(graph.yMax-graph.yMin)*h]}
+function pxToXY(px,py,w,h){return[graph.xMin+px/w*(graph.xMax-graph.xMin),graph.yMax-py/h*(graph.yMax-graph.yMin)]}
+function niceStep(span){
+  const raw=span/10,p=10**Math.floor(Math.log10(raw)),q=raw/p;
+  return(q<=1?1:q<=2?2:q<=5?5:10)*p;
+}
+function drawGrid(ctx,w,h){
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle='rgba(2,8,15,.18)';ctx.fillRect(0,0,w,h);
+  const sx=Number(graph.gridStepX)>0?Number(graph.gridStepX):niceStep(graph.xMax-graph.xMin);
+  const sy=Number(graph.gridStepY)>0?Number(graph.gridStepY):niceStep(graph.yMax-graph.yMin);
+  const [ax]=xyToPx(0,0,w,h),[,ay]=xyToPx(0,0,w,h);
+  ctx.lineWidth=1;ctx.strokeStyle='rgba(255,255,255,.075)';
+  ctx.beginPath();
+  for(let x=Math.ceil(graph.xMin/sx)*sx;x<=graph.xMax+1e-9;x+=sx){const [px]=xyToPx(x,0,w,h);ctx.moveTo(px,0);ctx.lineTo(px,h)}
+  for(let y=Math.ceil(graph.yMin/sy)*sy;y<=graph.yMax+1e-9;y+=sy){const [,py]=xyToPx(0,y,w,h);ctx.moveTo(0,py);ctx.lineTo(w,py)}
+  ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,.45)';ctx.lineWidth=1.5;
+  ctx.beginPath();
+  if(ax>=0&&ax<=w){ctx.moveTo(ax,0);ctx.lineTo(ax,h)}
+  if(ay>=0&&ay<=h){ctx.moveTo(0,ay);ctx.lineTo(w,ay)}
+  ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,.72)';ctx.font='12px system-ui';
+  ctx.textAlign='center';
+  for(let x=Math.ceil(graph.xMin/sx)*sx;x<=graph.xMax+1e-9;x+=sx){
+    if(Math.abs(x)<1e-12)continue;
+    const [px]=xyToPx(x,0,w,h);
+    if(px>20&&px<w-20)ctx.fillText(fmt(x),px,Math.min(h-8,Math.max(14,ay+16)));
+  }
+  ctx.textAlign='right';
+  for(let y=Math.ceil(graph.yMin/sy)*sy;y<=graph.yMax+1e-9;y+=sy){
+    if(Math.abs(y)<1e-12)continue;
+    const [,py]=xyToPx(0,y,w,h);
+    if(py>14&&py<h-14)ctx.fillText(fmt(y),Math.min(w-8,Math.max(28,ax-8)),py+4);
+  }
+  ctx.font='bold 13px system-ui';ctx.textAlign='left';
+  ctx.fillText('x',w-18,Math.min(h-10,Math.max(16,ay-8)));
+  ctx.textAlign='center';
+  ctx.fillText('y',Math.min(w-10,Math.max(10,ax+16)),16);
+}
+function sampleFunction(o,w,h){
+  const pts=[],span=graph.xMax-graph.xMin;
+  const requested=Number(graph.curveStep);
+  let N=Number.isFinite(requested)&&requested>0?Math.ceil(span/requested):Math.floor(w*2);
+  N=Math.max(120,Math.min(Number(graph.sampleMax)||6000,N));
+  const ySpan=Math.max(1,graph.yMax-graph.yMin);
+  let last=null;
+  for(let i=0;i<=N;i++){
+    const x=graph.xMin+span*i/N;
+    try{
+      const y=evalGraph(o,x,0,0);
+      if(!Number.isFinite(y)||Math.abs(y)>1e10){last=null;continue}
+      const [px,py]=xyToPx(x,y,w,h);
+      if(last){
+        const jump=Math.hypot(px-last[0],py-last[1]);
+        const yJump=Math.abs(y-last[3]);
+        if(jump>Math.max(w,h)*.10||yJump>ySpan*.35)pts.push(null);
+      }
+      pts.push([px,py,x,y]);last=[px,py,x,y];
+    }catch{last=null}
+  }
+  return pts;
+}
+function strokePath(ctx,pts){
+  ctx.beginPath();
+  let open=false;
+  for(const p of pts){
+    if(!p||!p.length){open=false;continue}
+    if(!open){ctx.moveTo(p[0],p[1]);open=true}else ctx.lineTo(p[0],p[1]);
+  }
+  ctx.stroke();
+}
+function drawFunction(ctx,o,w,h){
+  ctx.strokeStyle=o.color;ctx.lineWidth=2.2;ctx.lineJoin='round';ctx.lineCap='round';
+  strokePath(ctx,sampleFunction(o,w,h));
+}
+function drawParametric(ctx,o,w,h){
+  const pts=[];
+  const tSpan=o.type==='polar'?2*Math.PI:8*Math.PI;
+  const N=1600;
+  for(let i=0;i<=N;i++){
+    const t=-tSpan/2+tSpan*i/N;
+    try{
+      let x,y;
+      if(o.type==='polar'){const r=safeNum(o.expr,{t,...graph.params});x=r*Math.cos(t);y=r*Math.sin(t)}
+      else{x=safeNum(o.xExpr,{t,...graph.params});y=safeNum(o.yExpr,{t,...graph.params})}
+      if(!Number.isFinite(x)||!Number.isFinite(y)){pts.push(null);continue}
+      const p=xyToPx(x,y,w,h);
+      if(pts.length&&pts[pts.length-1]&&Math.hypot(p[0]-pts[pts.length-1][0],p[1]-pts[pts.length-1][1])>Math.max(w,h)*.2)pts.push(null);
+      pts.push(p);
+    }catch{pts.push(null)}
+  }
+  ctx.strokeStyle=o.color;ctx.lineWidth=2.2;ctx.lineJoin='round';
+  strokePath(ctx,pts);
+}
+function drawImplicit(ctx,o,w,h){
+  const cols=Math.min(200,Math.max(80,Math.floor(w/4))),rows=Math.min(150,Math.max(60,Math.floor(h/4)));
+  const dx=(graph.xMax-graph.xMin)/cols,dy=(graph.yMax-graph.yMin)/rows;
+  ctx.strokeStyle=o.color;ctx.lineWidth=1.8;
+  ctx.beginPath();
+  for(let j=0;j<rows;j++){
+    for(let i=0;i<cols;i++){
+      const x=graph.xMin+i*dx,y=graph.yMin+j*dy;
+      let f00,f10,f01,f11;
+      try{f00=evalGraph(o,x,y,0);f10=evalGraph(o,x+dx,y,0);f01=evalGraph(o,x,y+dy,0);f11=evalGraph(o,x+dx,y+dy,0)}
+      catch{continue}
+      if(![f00,f10,f01,f11].every(Number.isFinite))continue;
+      const mn=Math.min(f00,f10,f01,f11),mx=Math.max(f00,f10,f01,f11);
+      if(mn<=0&&mx>=0){
+        // Bilinear interpoliertes Segment innerhalb der Zelle
+        const [x1,y1]=xyToPx(x,y,w,h),[x2,y2]=xyToPx(x+dx,y,w,h),[x3,y3]=xyToPx(x,y+dy,w,h);
+        const lerp=(a,b,fa,fb)=>{const d=fb-fa;if(Math.abs(d)<1e-15)return (a+b)/2;return a+(b-a)*(-fa/d)};
+        ctx.moveTo(lerp(x1[0],x2[0],f00,f10),lerp(x1[1],x2[1],f00,f10));
+        ctx.lineTo(lerp(x1[0],x3[0],f00,f01),lerp(x1[1],x3[1],f00,f01));
+      }
+    }
+  }
+  ctx.stroke();
+}
+function drawIneq(ctx,o,w,h){
+  const N=Math.min(900,Math.max(300,Math.floor(w)));
+  ctx.fillStyle=o.color+'33';
+  ctx.beginPath();
+  const below=o.op.startsWith('<');
+  ctx.moveTo(0,below?h:0);
+  for(let i=0;i<=N;i++){
+    const x=graph.xMin+(graph.xMax-graph.xMin)*i/N;
+    let boundary;
+    try{boundary=evalGraph(o,x,0,0)}catch{continue}
+    if(!Number.isFinite(boundary))continue;
+    const yy=below?Math.min(graph.yMax,boundary):Math.max(graph.yMin,boundary);
+    const [px,py]=xyToPx(x,yy,w,h);
+    ctx.lineTo(px,py);
+  }
+  ctx.lineTo(w,below?h:0);
+  ctx.closePath();ctx.fill();
+  ctx.strokeStyle=o.color;ctx.lineWidth=2;ctx.setLineDash([]);
+  drawFunction(ctx,{...o,type:'function',expr:o.expr},w,h);
+}
+function drawGraph(){
+  const{ctx,w,h}=getCtx();
+  drawGrid(ctx,w,h);
+  for(const o of graph.objects){
+    if(!o.visible||o.type==='error')continue;
+    if(o.type==='point'){
+      const[px,py]=xyToPx(o.x,o.y,w,h);
+      if(px<-40||px>w+40||py<-40||py>h+40)continue;
+      ctx.fillStyle=o.color;ctx.beginPath();ctx.arc(px,py,5,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=1.2;ctx.stroke();
+      if(o.label){ctx.font='bold 12px system-ui';ctx.fillStyle=o.color;ctx.fillText(o.label,px+8,py-8)}
+      continue;
+    }
+    if(o.type==='vertical'){
+      const[px]=xyToPx(o.x,0,w,h);
+      ctx.strokeStyle=o.color;ctx.lineWidth=2;ctx.setLineDash([7,5]);
+      ctx.beginPath();ctx.moveTo(px,0);ctx.lineTo(px,h);ctx.stroke();ctx.setLineDash([]);
+      continue;
+    }
+    if(o.type==='implicit'){drawImplicit(ctx,o,w,h);continue}
+    if(o.type==='inequality'){drawIneq(ctx,o,w,h);continue}
+    if(o.type==='polar'||o.type==='param'){drawParametric(ctx,o,w,h);continue}
+    drawFunction(ctx,o,w,h);
+  }
+  for(const o of graph.objects)if(o.visible&&o.type==='function')drawAnalysisMarkers(ctx,o,w,h);
+}
+function findRoots(o){
+  const out=[],N=800;
+  let lastX=null,lastY=null;
+  for(let i=0;i<=N;i++){
+    const x=graph.xMin+(graph.xMax-graph.xMin)*i/N;
+    let y;
+    try{y=evalGraph(o,x,0,0)}catch{lastX=lastY=null;continue}
+    if(!Number.isFinite(y)){lastX=lastY=null;continue}
+    if(lastY!==null&&y*lastY<0){
+      let a=lastX,b=x,fa=lastY;
+      for(let k=0;k<60;k++){const m=(a+b)/2;let fm;try{fm=evalGraph(o,m,0,0)}catch{break}if(!Number.isFinite(fm))break;if(fa*fm<=0)b=m;else{a=m;fa=fm}}
+      const r=(a+b)/2;
+      if(!out.some(z=>Math.abs(z-r)<1e-7))out.push(r);
+    }
+    if(Math.abs(y)<1e-9)out.push(x);
+    lastX=x;lastY=y;
+  }
+  return out;
+}
+function analyzeFunction(o){
+  const roots=findRoots(o),ext=[],infl=[];
+  const N=700,dx=(graph.xMax-graph.xMin)/N;
+  const vals=[];
+  for(let i=0;i<=N;i++){
+    const x=graph.xMin+i*dx;
+    let y;
+    try{y=evalGraph(o,x,0,0)}catch{y=NaN}
+    vals.push([x,Number.isFinite(y)?y:NaN]);
+  }
+  for(let i=2;i<vals.length-2;i++){
+    const[a,b,c,d,e]=[vals[i-2][1],vals[i-1][1],vals[i][1],vals[i+1][1],vals[i+2][1]];
+    if(![a,b,c,d,e].every(Number.isFinite))continue;
+    const s1=b-a,s2=c-b,s3=d-c,s4=e-d;
+    if(s1>0&&s2>0&&s3<0&&s4<0)ext.push(['Hochpunkt',vals[i][0],c]);
+    if(s1<0&&s2<0&&s3>0&&s4>0)ext.push(['Tiefpunkt',vals[i][0],c]);
+    const cur=s3-s2,prev=s2-s1;
+    if(cur*prev<0&&s2!==0&&s3!==0)infl.push([vals[i][0],c]);
+  }
+  return{roots:[...new Set(roots.map(x=>+x.toFixed(8)))],ext:ext.slice(0,30),infl:infl.slice(0,30)};
+}
+function drawAnalysisMarkers(ctx,o,w,h){
+  if(o.type!=='function'||!o.visible)return;
+  let a;
+  try{a=analyzeFunction(o)}catch{return}
+  const marks=[];
+  for(const r of a.roots)if(r>=graph.xMin&&r<=graph.xMax)marks.push({x:r,y:0,label:'Nullstelle'});
+  try{
+    const y0=evalGraph(o,0,0,0);
+    if(Number.isFinite(y0)&&0>=graph.xMin&&0<=graph.xMax&&y0>=graph.yMin&&y0<=graph.yMax)marks.push({x:0,y:y0,label:'y-Achsenabschnitt'});
+  }catch{}
+  for(const e of a.ext)if(e[1]>=graph.xMin&&e[1]<=graph.xMax&&e[2]>=graph.yMin&&e[2]<=graph.yMax)marks.push({x:e[1],y:e[2],label:e[0]});
+  ctx.save();
+  for(const m of marks){
+    const[px,py]=xyToPx(m.x,m.y,w,h);
+    ctx.fillStyle=o.color;ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=1.2;
+    ctx.beginPath();ctx.arc(px,py,4.5,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.font='11px system-ui';ctx.fillStyle='rgba(255,255,255,.82)';ctx.textAlign='left';
+    ctx.fillText('('+fmt(m.x)+' | '+fmt(m.y)+')',px+7,py-7);
+  }
+  ctx.restore();
+}
+function analyzeGraph(){
+  const funcs=graph.objects.filter(o=>o.visible&&o.type==='function');
+  const rows=[];
+  for(const o of funcs){
+    let a;
+    try{a=analyzeFunction(o)}catch{continue}
+    rows.push(`<h4 style="color:${o.color};margin:10px 0 4px">${esc(o.raw)}</h4>`+
+      `<div>Nullstellen: ${a.roots.length?a.roots.map(fmt).join(', '):'keine im Bereich'}</div>`+
+      `<div>Extrema: ${a.ext.length?a.ext.map(x=>x[0]+' ('+fmt(x[1])+', '+fmt(x[2])+')').join('; '):'keine erkannt'}</div>`+
+      `<div>Wendepunkte: ${a.infl.length?a.infl.map(x=>'('+fmt(x[0])+', '+fmt(x[1])+')').join('; '):'keine erkannt'}</div>`);
+  }
+  $('#analysis').innerHTML=rows.join('')||'Keine analysierbaren Funktionen.';
+}
+function renderObjects(){
+  const el=$('#objects');
+  el.innerHTML=graph.objects.map((o,i)=>
+    `<div class="object"><span class="swatch" style="background:${esc(o.color)}"></span>`+
+    `<input type="checkbox" data-vis="${i}" ${o.visible?'checked':''} aria-label="Sichtbar">`+
+    `<input type="color" data-col="${i}" value="${esc(o.color)}" aria-label="Farbe">`+
+    `<code title="${esc(o.raw)}">${esc(o.raw)}</code>`+
+    `<span class="kind badge">${esc(o.type)}</span>`+
+    `<button class="icon" data-edit-obj="${i}" title="Bearbeiten">✎</button></div>`
+  ).join('')||'<span class="help">Keine Objekte.</span>';
+  $$('[data-vis]').forEach(e=>e.onchange=()=>{graph.objects[+e.dataset.vis].visible=e.checked;drawGraph()});
+  $$('[data-col]').forEach(e=>e.oninput=()=>{graph.objects[+e.dataset.col].color=e.value;drawGraph()});
+  $$('[data-edit-obj]').forEach(e=>e.onclick=()=>openGraphEditor(+e.dataset.editObj));
+}
+function openGraphEditor(i){
+  const o=graph.objects[i];
+  if(!o)return;
+  openModal(
+    `<h2>Objekt bearbeiten</h2><p class="help">Dieses Fenster bleibt offen, bis du es mit × schließt.</p>`+
+    `<div class="glass" style="padding:12px;margin:10px 0"><b>${esc(o.raw)}</b><div class="help" style="margin-top:5px">Typ: ${esc(o.type)}</div></div>`+
+    (o.type==='error'?`<p class="err">Fehler: ${esc(o.error)}</p>`:'')+
+    `<label style="display:block">Farbe<input id="editColor" type="color" value="${o.color}" style="display:block;width:70px;height:42px;margin-top:7px"></label>`+
+    `<div class="row" style="margin-top:12px"><button class="btn" id="editVisible">${o.visible?'Ausblenden':'Einblenden'}</button><button class="btn" id="editDelete">Objekt löschen</button></div>`
+  );
+  $('#editColor').oninput=()=>{o.color=$('#editColor').value;drawGraph();renderObjects()};
+  $('#editVisible').onclick=()=>{o.visible=!o.visible;drawGraph();renderObjects();analyzeGraph();openGraphEditor(i)};
+  $('#editDelete').onclick=()=>{
+    graph.objects.splice(i,1);
+    $('#modal').classList.remove('open');
+    $('#graphInput').value=graph.objects.map(x=>x.raw).join('\n');
+    db.graphInput=$('#graphInput').value;persist();
+    drawGraph();renderObjects();analyzeGraph();
+  };
+}
+function renderSliders(){
+  const el=$('#sliders'),ks=Object.keys(graph.params);
+  if(!ks.length){el.textContent='Keine freien Parameter. Beispiel: y=a*x^2+b*x+c';return}
+  el.innerHTML=ks.map(k=>
+    `<label style="display:block;margin:9px 0"><b>${esc(k)}</b> <span id="pv_${esc(k)}">${fmt(graph.params[k])}</span>`+
+    `<input type="range" min="-20" max="20" step="0.1" value="${graph.params[k]}" data-param="${esc(k)}"></label>`
+  ).join('');
+  $$('[data-param]').forEach(e=>e.oninput=()=>{
+    graph.params[e.dataset.param]=+e.value;
+    const lbl=$('#pv_'+e.dataset.param);if(lbl)lbl.textContent=fmt(+e.value);
+    drawGraph();analyzeGraph();
+  });
+}
+function fitGraph(){
+  const pts=[];
+  for(const o of graph.objects)if(o.type==='point'&&Number.isFinite(o.x)&&Number.isFinite(o.y))pts.push([o.x,o.y]);
+  for(const o of graph.objects){
+    if(!o.visible||o.type!=='function')continue;
+    for(let i=0;i<=200;i++){
+      const x=graph.xMin+(graph.xMax-graph.xMin)*i/200;
+      try{
+        const y=evalGraph(o,x,0,0);
+        if(Number.isFinite(y)&&Math.abs(y)<1e6)pts.push([x,Math.max(graph.yMin-1,Math.min(graph.yMax+1,y))]);
+      }catch{}
+    }
+  }
+  if(pts.length){
+    const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+    const sx=Math.max(1,(Math.max(...xs)-Math.min(...xs))*.15),sy=Math.max(1,(Math.max(...ys)-Math.min(...ys))*.15);
+    graph.xMin=Math.min(...xs)-sx;graph.xMax=Math.max(...xs)+sx;
+    graph.yMin=Math.min(...ys)-sy;graph.yMax=Math.max(...ys)+sy;
+  }else{graph.xMin=-10;graph.xMax=10;graph.yMin=-7;graph.yMax=7}
+  graph.gridStepX=niceStep(graph.xMax-graph.xMin);graph.gridStepY=niceStep(graph.yMax-graph.yMin);
+  setBoundsUI();drawGraph();analyzeGraph();
+  $('#plotStatus').textContent='Ansicht: '+fmt(graph.xMin)+' … '+fmt(graph.xMax)+' / '+fmt(graph.yMin)+' … '+fmt(graph.yMax);
+}
+function setBoundsUI(){
+  $('#xmin').value=fmt(graph.xMin);$('#xmax').value=fmt(graph.xMax);
+  $('#ymin').value=fmt(graph.yMin);$('#ymax').value=fmt(graph.yMax);
+  $('#gridStepX').value=fmt(graph.gridStepX);$('#gridStepY').value=fmt(graph.gridStepY);
+  $('#curveStep').value=fmt(graph.curveStep);$('#sampleMax').value=String(graph.sampleMax);
+  $('#zoomFactor').value=fmt(graph.zoomFactor);
+}
+function readBounds(){
+  const a=['xmin','xmax','ymin','ymax'].map(id=>+$('#'+id).value);
+  if(a.every(Number.isFinite)&&a[0]<a[1]&&a[2]<a[3]){
+    graph.xMin=a[0];graph.xMax=a[1];graph.yMin=a[2];graph.yMax=a[3];
+    drawGraph();analyzeGraph();
+  }else toast('Ungültiger Bereich: x min < x max und y min < y max erforderlich.');
+}
+function readPlotSettings(){
+  const gx=+$('#gridStepX').value,gy=+$('#gridStepY').value,cs=+$('#curveStep').value;
+  const sm=Math.round(+$('#sampleMax').value),zf=+$('#zoomFactor').value;
+  if(gx>0&&gy>0){graph.gridStepX=gx;graph.gridStepY=gy}
+  if(cs>0)graph.curveStep=cs;
+  if(Number.isFinite(sm)&&sm>=100)graph.sampleMax=Math.min(20000,sm);
+  if(zf>1&&zf<=5)graph.zoomFactor=zf;
+  drawGraph();
+}
+function numericalIntegral(o,a,b,n=2000){
+  if(!Number.isFinite(a)||!Number.isFinite(b))throw Error('Integrationsgrenzen müssen Zahlen sein.');
+  if(a===b)return 0;
+  const h=(b-a)/n;
+  let s=0,count=0;
+  for(let i=0;i<=n;i++){
+    const x=a+i*h;
+    let y;
+    try{y=evalGraph(o,x,0,0)}catch{y=NaN}
+    if(!Number.isFinite(y))continue;
+    const wgt=i===0||i===n?1:(i%2?4:2);
+    s+=wgt*y;count++;
+  }
+  if(count<3)throw Error('Funktion im Intervall nicht auswertbar.');
+  return s*h/3;
+}
+function numericalDerivative(o,x){
+  if(!Number.isFinite(x))throw Error('Ableitungspunkt muss eine Zahl sein.');
+  const h=Math.max(1e-7,Math.abs(x)*1e-6);
+  let fp,fn;
+  try{fp=evalGraph(o,x+h,0,0)}catch{fp=NaN}
+  try{fn=evalGraph(o,x-h,0,0)}catch{fn=NaN}
+  if(!Number.isFinite(fp)||!Number.isFinite(fn)){
+    try{return (evalGraph(o,x+h,0,0)-evalGraph(o,x,0,0))/h}catch{throw Error('Ableitung an dieser Stelle nicht bestimmbar.')}
+  }
+  return (fp-fn)/(2*h);
+}
+function makeTable(){
+  const start=+$('#tableStart').value,step=+$('#tableStep').value;
+  let count=Math.round(+$('#tableCount').value);
+  if(!Number.isFinite(start)||!Number.isFinite(step))return $('#tableOut').textContent='Start und Schritt müssen Zahlen sein.';
+  count=Math.min(500,Math.max(1,Number.isFinite(count)?count:11));
+  const funcs=graph.objects.filter(o=>o.type==='function'&&o.visible);
+  if(!funcs.length)return $('#tableOut').textContent='Keine sichtbare y=f(x)-Funktion.';
+  let h='<table class="table"><thead><tr><th>x</th>'+funcs.map(o=>`<th>${esc(o.raw)}</th>`).join('')+'</tr></thead><tbody>';
+  for(let i=0;i<count;i++){
+    const x=start+i*step;
+    h+='<tr><td>'+fmt(x)+'</td>'+funcs.map(o=>{
+      try{const v=evalGraph(o,x,0,0);return '<td>'+(Number.isFinite(v)?fmt(v):'–')+'</td>'}
+      catch{return '<td>–</td>'}
+    }).join('')+'</tr>';
+  }
+  $('#tableOut').innerHTML=h+'</tbody></table>';
+}
+function exportCanvas(type){
+  const c=$('#plot');
+  if(type==='png'){
+    const a=document.createElement('a');
+    a.download='ELIAN-Graph.png';a.href=c.toDataURL('image/png');a.click();
+    toast('PNG exportiert');
+  }else{
+    const url=c.toDataURL('image/png');
+    const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${c.width}" height="${c.height}" viewBox="0 0 ${c.width} ${c.height}">`+
+      `<rect width="100%" height="100%" fill="#07101b"/>`+
+      `<image width="${c.width}" height="${c.height}" href="${url}"/>`+
+      `<text x="20" y="30" fill="#aebdce" font-family="system-ui" font-size="20">ELIAN Ultimate Calculator v${BUILD}</text></svg>`;
+    const a=document.createElement('a');
+    a.download='ELIAN-Graph.svg';a.href=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    toast('SVG exportiert');
+  }
+}
+function refreshCalcFunc(){
+  const f=graph.objects.filter(o=>o.type==='function'&&o.visible);
+  $('#calcFunc').innerHTML=f.map((o,i)=>`<option value="${i}">${esc(o.raw)}</option>`).join('')||'<option value="">Keine Funktion</option>';
+}
+$('#plotBtn').onclick=()=>{db.graphInput=$('#graphInput').value;persist();parseGraph();$('#plotStatus').textContent='Geplottet.'};
+$('#fitBtn').onclick=fitGraph;
+$('#resetBtn').onclick=()=>{Object.assign(graph,{xMin:-10,xMax:10,yMin:-7,yMax:7,gridStepX:1,gridStepY:1,curveStep:.02});setBoundsUI();drawGraph();analyzeGraph()};
+['xmin','xmax','ymin','ymax'].forEach(id=>$('#'+id).addEventListener('change',readBounds));
+['gridStepX','gridStepY','curveStep','sampleMax','zoomFactor'].forEach(id=>$('#'+id).addEventListener('change',readPlotSettings));
+$('#addPoint').onclick=()=>{
+  const x=prompt('x =','0'),y=prompt('y =','0'),l=prompt('Bezeichnung (optional)','');
+  if(x===null||y===null)return;
+  if(!Number.isFinite(+x)||!Number.isFinite(+y))return toast('x und y müssen Zahlen sein.');
+  const line=(l?l+'=':'')+'('+x+','+y+')';
+  $('#graphInput').value+=($('#graphInput').value.trim()?'\n':'')+line;
+  db.graphInput=$('#graphInput').value;persist();parseGraph();
+};
+$('#makeTable').onclick=makeTable;
+$('#exportPng').onclick=()=>exportCanvas('png');
+$('#exportSvg').onclick=()=>exportCanvas('svg');
+$('#copyPlot').onclick=async()=>{
+  try{
+    const c=$('#plot');
+    const blob=await new Promise(r=>c.toBlob(r,'image/png'));
+    await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
+    toast('Graph kopiert');
+  }catch{toast('Zwischenablage wird von diesem Browser nicht unterstützt.')}
+};
+$$('[data-plotpreset]').forEach(b=>b.onclick=()=>{
+  const cfg={fast:[.08,4000],normal:[.02,6000],high:[.005,12000],ultra:[.001,20000]}[b.dataset.plotpreset];
+  if(!cfg)return;
+  $('#curveStep').value=cfg[0];$('#sampleMax').value=cfg[1];
+  graph.curveStep=cfg[0];graph.sampleMax=cfg[1];
+  drawGraph();
+  $('#plotStatus').textContent='Preset: '+b.dataset.plotpreset+' · Δx='+cfg[0]+' · max '+cfg[1]+' Punkte';
+});
+$('#derivativeBtn').onclick=()=>{
+  const fs=graph.objects.filter(o=>o.type==='function'&&o.visible),o=fs[+$('#calcFunc').value];
+  if(!o)return $('#calcOut').textContent='Keine Funktion ausgewählt.';
+  const x=+$('#intA').value;
+  try{
+    const d=numericalDerivative(o,x);
+    $('#calcOut').innerHTML=`f'(${fmt(x)}) ≈ <b>${fmt(d)}</b><br><span class="help">Zentraler Differenzenquotient an der gewählten Stelle.</span>`;
+  }catch(e){$('#calcOut').textContent=e.message}
+};
+$('#integralBtn').onclick=()=>{
+  const fs=graph.objects.filter(o=>o.type==='function'&&o.visible),o=fs[+$('#calcFunc').value];
+  if(!o)return $('#calcOut').textContent='Keine Funktion ausgewählt.';
+  const a=+$('#intA').value,b=+$('#intB').value;
+  try{
+    const v=numericalIntegral(o,a,b);
+    $('#calcOut').innerHTML=`∫[${fmt(a)}, ${fmt(b)}] f(x) dx ≈ <b>${fmt(v)}</b><br><span class="help">Simpson-Regel mit 2000 Intervallen.</span>`;
+  }catch(e){$('#calcOut').textContent=e.message}
+};
+/* Graph interaction: wheel / drag / pinch / tooltip */
+const pc=$('#plot');
+function zoomAt(clientX,clientY,factor){
+  const r=pc.getBoundingClientRect();
+  if(!r.width||!r.height)return;
+  const[mx,my]=pxToXY(clientX-r.left,clientY-r.top,r.width,r.height);
+  const nx=(graph.xMax-graph.xMin)*factor,ny=(graph.yMax-graph.yMin)*factor;
+  const rx=(clientX-r.left)/r.width,ry=(clientY-r.top)/r.height;
+  graph.xMin=mx-nx*rx;graph.xMax=mx+nx*(1-rx);
+  graph.yMax=my+ny*ry;graph.yMin=my-ny*(1-ry);
+  setBoundsUI();drawGraph();
+}
+function pointerPair(){return [...graph.pointers.values()].slice(0,2)}
+function pinchUpdate(){
+  const ps=pointerPair();
+  if(ps.length<2){graph.pinch=null;return}
+  const a=ps[0],b=ps[1],cx=(a.x+b.x)/2,cy=(a.y+b.y)/2;
+  const dist=Math.hypot(a.x-b.x,a.y-b.y);
+  if(!graph.pinch){graph.pinch={dist,cx,cy};return}
+  const factor=graph.pinch.dist/Math.max(1,dist);
+  if(Math.abs(factor-1)>.002){zoomAt(cx,cy,Math.max(.55,Math.min(1.8,factor)));graph.pinch={dist,cx,cy}}
+}
+pc.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const factor=e.ctrlKey?(e.deltaY<0?.9:1.1):(e.deltaY<0?1/graph.zoomFactor:graph.zoomFactor);
+  zoomAt(e.clientX,e.clientY,factor);
+},{passive:false});
+pc.addEventListener('pointerdown',e=>{
+  e.preventDefault();
+  graph.pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  try{pc.setPointerCapture(e.pointerId)}catch{}
+  if(graph.pointers.size===1){graph.drag=true;graph.lx=e.clientX;graph.ly=e.clientY}
+  else if(graph.pointers.size===2){graph.drag=false;pinchUpdate()}
+});
+pc.addEventListener('pointermove',e=>{
+  e.preventDefault();
+  if(graph.pointers.has(e.pointerId))graph.pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  const r=pc.getBoundingClientRect();
+  if(graph.pointers.size>=2){pinchUpdate();return}
+  if(graph.drag){
+    if(!r.width||!r.height)return;
+    const dx=(e.clientX-graph.lx)/r.width*(graph.xMax-graph.xMin);
+    const dy=(e.clientY-graph.ly)/r.height*(graph.yMax-graph.yMin);
+    graph.lx=e.clientX;graph.ly=e.clientY;
+    graph.xMin-=dx;graph.xMax-=dx;graph.yMin+=dy;graph.yMax+=dy;
+    setBoundsUI();drawGraph();
+  }else{
+    const[x,y]=pxToXY(e.clientX-r.left,e.clientY-r.top,r.width,r.height);
+    const t=$('#plotTip');
+    t.style.display='block';
+    t.style.left=(e.clientX-r.left+12)+'px';
+    t.style.top=(e.clientY-r.top+12)+'px';
+    t.textContent='x = '+fmt(x)+' · y = '+fmt(y);
+  }
+});
+['pointerup','pointercancel','pointerleave'].forEach(ev=>pc.addEventListener(ev,e=>{
+  graph.pointers.delete(e.pointerId);
+  if(graph.pointers.size===0){graph.drag=false;graph.pinch=null}
+  else if(graph.pointers.size===1){const p=pointerPair()[0];graph.drag=true;graph.lx=p.x;graph.ly=p.y;graph.pinch=null}
+  try{pc.releasePointerCapture?.(e.pointerId)}catch{}
+  if(ev==='pointerleave')$('#plotTip').style.display='none';
+}));
+pc.addEventListener('dblclick',e=>zoomAt(e.clientX,e.clientY,1/(graph.zoomFactor*graph.zoomFactor)));
+pc.addEventListener('contextmenu',e=>e.preventDefault());
+let resizeRaf=null;
+window.addEventListener('resize',()=>{
+  if(!$('#graph').classList.contains('active'))return;
+  if(resizeRaf)cancelAnimationFrame(resizeRaf);
+  resizeRaf=requestAnimationFrame(()=>{resizeRaf=null;drawGraph()});
+});
+/* =====================================================================
+   Rechner
+   ===================================================================== */
+function calculate(s){
+  const m=String(s).match(/^\s*([A-Za-z_]\w*)\s*=\s*(.+)$/);
+  if(m&&!/[+\-*/^%(),!]/.test(m[2])){
+    const v=evalExpr(m[2]);
+    db.vars[m[1]]=v;persist();
+    return v;
+  }
+  return evalExpr(s);
+}
+const keyDefs=[
+  ['MC','mem'],['MR','mem'],['M+','mem'],['M-','mem'],['(',''],[')',''],
+  ['sin(','op'],['cos(','op'],['tan(','op'],['√(','op'],['ln(','op'],['log('],
+  ['7',''],['8',''],['9',''],['/','op'],['⌫','danger'],['C','danger'],
+  ['4',''],['5',''],['6',''],['*','op'],['^','op'],['%',''],
+  ['1',''],['2',''],['3',''],['-','op'],['π',''],['!',''],
+  ['0',''],['.',''],['ANS',''],['+','op'],['e',''],['=','equals']
+];
+$('#keys').innerHTML=keyDefs.map(([k,cls])=>`<button class="key ${cls}">${k}</button>`).join('');
+function renderCalc(){
+  $('#expr').textContent=current||'';
+  $('#result').textContent=fmt(ans);
+  $('#memVal').textContent=fmt(memory);
+  $('#angleBadge').textContent=db.angle;
+  $('#angleBtn').textContent='Winkel: '+db.angle;
+}
+$('#keys').onclick=e=>{
+  const b=e.target.closest('.key');
+  if(!b)return;
+  const k=b.textContent;
+  if(k==='='){
+    if(!current.trim())return;
+    try{
+      ans=calculate(current);
+      addHist(current,fmt(ans));
+      $('#calcHint').textContent='= '+fmt(ans);
+      current='';
+    }catch(err){
+      $('#calcHint').innerHTML='<span class="err">'+esc(err.message)+'</span>';
+      current='';
+    }
+  }else if(k==='C'){current='';ans=0;$('#calcHint').textContent='Tippe einen Ausdruck oder nutze die Tasten.'}
+  else if(k==='⌫')current=current.slice(0,-1);
+  else if(k==='ANS')current+=fmt(ans);
+  else if(k==='π')current+='pi';
+  else if(k==='M+'){memory+=ans;toast('Speicher: '+fmt(memory))}
+  else if(k==='M-'){memory-=ans;toast('Speicher: '+fmt(memory))}
+  else if(k==='MC'){memory=0;toast('Speicher gelöscht')}
+  else if(k==='MR')current+=fmt(memory);
+  else current+=k;
+  renderCalc();
+};
+document.addEventListener('keydown',e=>{
+  if($('#lock').classList.contains('hidden')===false)return;
+  if($('#modal').classList.contains('open')){if(e.key==='Escape')$('#modal').classList.remove('open');return}
+  const tag=(e.target.tagName||'').toLowerCase();
+  if(tag==='input'||tag==='textarea'||tag==='select')return;
+  if(e.key==='Escape'){current='';renderCalc();return}
+  if($('.view.active')?.id!=='calculator')return;
+  if(/^[0-9]$/.test(e.key)||'+-*/().%^!'.includes(e.key)){current+=e.key;renderCalc();e.preventDefault()}
+  else if(e.key==='Enter'){e.preventDefault();$('#keys .key:last-child').click()}
+  else if(e.key==='Backspace'){current=current.slice(0,-1);renderCalc()}
+});
+
+/* =====================================================================
+   Wissenschaft / Algebra
+   ===================================================================== */
+$('#sciBtn').onclick=()=>{
+  try{
+    const r=calculate($('#sciInput').value);
+    const fr=fmtFraction(r);
+    $('#sciOut').innerHTML='<span class="ok">= '+fmt(r)+'</span>'+(fr&&fr!==fmt(r)?'<br><span class="help">≈ '+esc(fr)+'</span>':'');
+    addHist($('#sciInput').value,fmt(r));
+  }catch(e){$('#sciOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+$('#fractionBtn').onclick=()=>{
+  try{
+    const r=evalExpr($('#sciInput').value);
+    const fr=fmtFractionForced(r);
+    $('#sciOut').innerHTML=fr?`<span class="ok">= ${esc(fr)}</span><br><span class="help">Dezimal: ${fmt(r)}</span>`:'<span class="help">Keine sinnvolle Bruchdarstellung für '+fmt(r)+'.</span>';
+  }catch(e){$('#sciOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+$('#ansBtn').onclick=()=>{$('#sciInput').value+=fmt(ans)};
+$('#angleBtn').onclick=()=>{
+  db.angle=db.angle==='DEG'?'RAD':db.angle==='RAD'?'GON':'DEG';
+  persist();renderCalc();
+  if($('#graph').classList.contains('active')){parseGraph()}
+};
+function solveEquation(s){
+  const parts=String(s).split('=');
+  if(parts.length!==2)throw Error('Bitte genau ein = verwenden.');
+  if(!parts[0].trim()||!parts[1].trim())throw Error('Beide Seiten müssen einen Ausdruck enthalten.');
+  const f=x=>safeNum(parts[0],{x})-safeNum(parts[1],{x});
+  const roots=[];
+  const lo=-100,hi=100,N=2000;
+  let px=lo,py;
+  try{py=f(px)}catch{py=NaN}
+  for(let i=1;i<=N;i++){
+    const x=lo+(hi-lo)*i/N;
+    let y;
+    try{y=f(x)}catch{px=x;py=NaN;continue}
+    if(Number.isFinite(py)&&Number.isFinite(y)&&py*y<0){
+      let a=px,b=x,fa=py;
+      for(let k=0;k<80;k++){
+        const m=(a+b)/2;
+        let fm;try{fm=f(m)}catch{break}
+        if(!Number.isFinite(fm))break;
+        if(fa*fm<=0)b=m;else{a=m;fa=fm}
+      }
+      const r=(a+b)/2;
+      if(!roots.some(z=>Math.abs(z-r)<1e-9))roots.push(r);
+    }
+    if(Number.isFinite(y)&&Math.abs(y)<1e-10&&!roots.some(z=>Math.abs(z-x)<1e-9))roots.push(x);
+    px=x;py=y;
+  }
+  return [...new Set(roots.map(x=>+x.toPrecision(10)))];
+}
+$('#solveEq').onclick=()=>{
+  try{
+    const r=solveEquation($('#algEq').value);
+    $('#algOut').innerHTML=r.length
+      ?r.map((x,i)=>`x${r.length>1?'₍'+(i+1)+'₎':''} = <b>${fmt(x)}</b>`).join('<br>')
+      :'Keine reelle Lösung im Suchbereich [-100, 100].';
+  }catch(e){$('#algOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+function parseLgs(lines){
+  const eqs=String(lines).split(/\n+/).map(x=>x.trim()).filter(Boolean);
+  if(!eqs.length)throw Error('Keine Gleichungen eingegeben.');
+  const names=[...new Set(eqs.flatMap(s=>[...s.matchAll(/\b([a-zA-Z])\b/g)].map(m=>m[1])).filter(x=>x!=='e'))];
+  if(!names.length)names=['x'];
+  const A=[];
+  for(const eq of eqs){
+    const idx=eq.indexOf('=');
+    if(idx<0)throw Error('Jede Zeile braucht ein = (Zeile: "'+eq+'").');
+    const L=eq.slice(0,idx),R=eq.slice(idx+1);
+    if(!L.trim()||!R.trim())throw Error('Leere Seite in: "'+eq+'".');
+    const zeros=Object.fromEntries(names.map(n=>[n,0]));
+    const row=names.map(n=>safeNum(L,{...zeros,[n]:1})-safeNum(L,zeros));
+    const rhs=safeNum(R,zeros)-safeNum(L,zeros);
+    A.push([...row,rhs]);
+  }
+  return gauss(A,names);
+}
+function gauss(A,names){
+  const m=A.length,n=names.length;
+  let r=0;
+  for(let c=0;c<n&&r<m;c++){
+    let p=r;
+    for(let i=r+1;i<m;i++)if(Math.abs(A[i][c])>Math.abs(A[p][c]))p=i;
+    if(Math.abs(A[p][c])<1e-10)continue;
+    [A[p],A[r]]=[A[r],A[p]];
+    const d=A[r][c];
+    for(let j=c;j<=n;j++)A[r][j]/=d;
+    for(let i=0;i<m;i++){
+      if(i===r)continue;
+      const q=A[i][c];
+      if(Math.abs(q)<1e-14)continue;
+      for(let j=c;j<=n;j++)A[i][j]-=q*A[r][j];
+    }
+    r++;
+  }
+  for(let i=0;i<m;i++){
+    if(A[i].slice(0,n).every(v=>Math.abs(v)<1e-9)&&Math.abs(A[i][n])>1e-9)throw Error('Widersprüchliches LGS – keine Lösung.');
+  }
+  const out={};
+  for(let i=0;i<Math.min(r,n);i++){
+    const c=A[i].findIndex((v,j)=>j<n&&Math.abs(v)>1e-8);
+    if(c>=0)out[names[c]]=A[i][n];
+  }
+  if(Object.keys(out).length<n)out['_hinweis']='Unendlich viele Lösungen (freie Variable).';
+  return out;
+}
+$('#solveLgs').onclick=()=>{
+  try{
+    const o=parseLgs($('#linsys').value);
+    const hint=o['_hinweis'];
+    delete o['_hinweis'];
+    $('#lgsOut').innerHTML=(Object.entries(o).map(([k,v])=>`${esc(k)} = <b>${fmt(v)}</b>`).join('<br>')||'Keine eindeutige Lösung.')+(hint?'<br><span class="help">'+esc(hint)+'</span>':'');
+  }catch(e){$('#lgsOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+$('#setVar').onclick=()=>{
+  try{
+    const m=$('#varInput').value.match(/^\s*([A-Za-z_]\w*)\s*=\s*(.+)$/);
+    if(!m)throw Error('Format: a=5');
+    db.vars[m[1]]=safeNum(m[2]);persist();
+    $('#varOut').innerHTML=esc(m[1])+' = <b>'+fmt(db.vars[m[1]])+'</b>';
+  }catch(e){$('#varOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+
+/* =====================================================================
+   Statistik
+   ===================================================================== */
+function stat(){
+  const a=$('#statData').value.split(/[\s,;]+/).map(Number).filter(Number.isFinite);
+  if(!a.length){$('#statOut').textContent='Keine gültigen Zahlen erkannt.';if($('#statChart'))$('#statChart').innerHTML='';return}
+  const sorted=[...a].sort((x,y)=>x-y);
+  const n=sorted.length;
+  const mean=a.reduce((s,x)=>s+x,0)/n;
+  const med=n%2?sorted[(n-1)/2]:(sorted[n/2-1]+sorted[n/2])/2;
+  const varP=a.reduce((s,x)=>s+(x-mean)**2,0)/n;
+  const varS=n>1?a.reduce((s,x)=>s+(x-mean)**2,0)/(n-1):0;
+  const q=p=>{
+    const pos=(n-1)*p,lo=Math.floor(pos),hi=Math.ceil(pos);
+    return sorted[lo]+(sorted[hi]-sorted[lo])*(pos-lo);
+  };
+  const mode=(()=>{const c=new Map();for(const v of a)c.set(v,(c.get(v)||0)+1);let best=a[0],bc=1;for(const[v,k]of c)if(k>bc){bc=k;best=v}return bc>1?fmt(best)+' ('+bc+'×)':'–'})();
+  $('#statOut').innerHTML=
+    `<div class="glass" style="padding:14px;display:grid;gap:6px;font-size:13.5px">
+      <div><b>n</b> = ${n} · <b>Summe</b> = ${fmt(a.reduce((s,x)=>s+x,0))} · <b>Mittelwert</b> = ${fmt(mean)}</div>
+      <div><b>Median</b> = ${fmt(med)} · <b>Modus</b> = ${mode} · <b>Spannweite</b> = ${fmt(sorted[n-1]-sorted[0])}</div>
+      <div><b>Min</b> = ${fmt(sorted[0])} · <b>Max</b> = ${fmt(sorted[n-1])} · <b>Q1</b> = ${fmt(q(.25))} · <b>Q3</b> = ${fmt(q(.75))}</div>
+      <div><b>Varianz</b> (Pop.) = ${fmt(varP)} · <b>σ</b> = ${fmt(Math.sqrt(varP))} · <b>s²</b> (Stichpr.) = ${fmt(varS)} · <b>s</b> = ${fmt(Math.sqrt(varS))}</div>
+    </div>`;
+}
+$('#statBtn').onclick=()=>stat();
+$('#normBtn').onclick=()=>{
+  const x=+$('#normX').value,mu=Number.isFinite(+$('#normMu').value)?+$('#normMu').value:0;
+  const s=Number.isFinite(+$('#normSigma').value)&&+$('#normSigma').value>0?+$('#normSigma').value:1;
+  if(!Number.isFinite(x))return $('#normOut').textContent='x muss eine Zahl sein.';
+  $('#normOut').innerHTML='φ('+fmt(x)+') = <b>'+fmt(Math.exp(-.5*((x-mu)/s)**2)/(s*Math.sqrt(2*Math.PI)))+'</b>';
+};
+$('#combBtn').onclick=()=>{
+  const n=+$('#combN').value,r=+$('#combR').value;
+  try{
+    if(!Number.isInteger(n)||!Number.isInteger(r)||n<0||r<0||r>n)throw Error('Bedingung: 0 ≤ r ≤ n, ganzzahlig.');
+    $('#combOut').innerHTML=`nCr = <b>${fmt(comb(n,r))}</b> · nPr = <b>${fmt(factorial(n)/factorial(n-r))}</b>`;
+  }catch(e){$('#combOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+$('#randMake').onclick=()=>{
+  let a=+$('#randMin').value,b=+$('#randMax').value;
+  let n=Math.round(+$('#randN').value);
+  if(!Number.isFinite(a)||!Number.isFinite(b))return $('#randOut').textContent='Min und Max müssen Zahlen sein.';
+  if(a>b)[a,b]=[b,a];
+  n=Math.min(1000,Math.max(1,Number.isFinite(n)?n:10));
+  const arr=Array.from({length:n},()=>Math.floor(Math.random()*(b-a+1))+a);
+  $('#randOut').textContent=arr.join(', ');
+  $('#statData').value=arr.join(', ');
+};
+$('#randBtn').onclick=()=>$('#randMake').click();
+
+/* =====================================================================
+   Matrizen
+   ===================================================================== */
+function mat(s){
+  const rows=String(s).trim().split(/\n+/).map(r=>r.trim()).filter(Boolean);
+  if(!rows.length)throw Error('Keine Matrix eingegeben.');
+  const a=rows.map(r=>{
+    const vals=r.split(/[\s,;]+/).filter(Boolean).map(Number);
+    if(!vals.length||vals.some(v=>!Number.isFinite(v)))throw Error('Ungültiger Wert in: "'+r+'".');
+    return vals;
+  });
+  const w=a[0].length;
+  if(a.some(r=>r.length!==w))throw Error('Alle Zeilen müssen gleich viele Spalten haben.');
+  return a;
+}
+function mmul(a,b){
+  if(a[0].length!==b.length)throw Error('Dimensionen passen nicht: '+a.length+'×'+a[0].length+' · '+b.length+'×'+b[0].length+'.');
+  return a.map(r=>b[0].map((_,j)=>r.reduce((s,_,k)=>s+r[k]*b[k][j],0)));
+}
+function det(a){
+  if(a.length!==a[0].length)throw Error('determinante benötigt eine quadratische Matrix.');
+  const n=a.length;
+  if(n===1)return a[0][0];
+  if(n===2)return a[0][0]*a[1][1]-a[0][1]*a[1][0];
+  if(n>10)throw Error('Determinante nur bis 10×10 (exakt) unterstützt.');
+  return a[0].reduce((s,v,j)=>s+(j%2?-1:1)*v*det(a.slice(1).map(r=>r.filter((_,k)=>k!==j))),0);
+}
+function inv(a){
+  if(a.length!==a[0].length)throw Error('Inverse benötigt eine quadratische Matrix.');
+  const n=a.length;
+  const m=a.map((r,i)=>r.concat(r.map((_,j)=>i===j?1:0)));
+  for(let i=0;i<n;i++){
+    let p=i;
+    for(let k=i+1;k<n;k++)if(Math.abs(m[k][i])>Math.abs(m[p][i]))p=k;
+    if(Math.abs(m[p][i])<1e-12)throw Error('Matrix ist singulär – nicht invertierbar.');
+    [m[i],m[p]]=[m[p],m[i]];
+    const d=m[i][i];
+    m[i]=m[i].map(v=>v/d);
+    for(let k=0;k<n;k++){
+      if(k===i)continue;
+      const q=m[k][i];
+      if(Math.abs(q)<1e-15)continue;
+      m[k]=m[k].map((v,j)=>v-q*m[i][j]);
+    }
+  }
+  return m.map(r=>r.slice(n));
+}
+function rankOf(a){
+  const m=a.map(r=>[...r]);
+  const rows=m.length,cols=m[0].length;
+  let r=0;
+  for(let c=0;c<cols&&r<rows;c++){
+    let p=r;
+    for(let i=r+1;i<rows;i++)if(Math.abs(m[i][c])>Math.abs(m[p][c]))p=i;
+    if(Math.abs(m[p][c])<1e-10)continue;
+    [m[p],m[r]]=[m[r],m[p]];
+    const d=m[r][c];
+    m[r]=m[r].map(v=>v/d);
+    for(let i=0;i<rows;i++){
+      if(i===r)continue;
+      const q=m[i][c];
+      if(Math.abs(q)<1e-14)continue;
+      m[i]=m[i].map((v,j)=>v-q*m[r][j]);
+    }
+    r++;
+  }
+  return r;
+}
+function mhtml(a){return '<pre style="margin:0;font-size:13.5px;line-height:1.6;overflow:auto">'+a.map(r=>r.map(fmt).join('\t')).join('\n')+'</pre>'}
+$$('[data-mat]').forEach(b=>b.onclick=()=>{
+  try{
+    const A=mat($('#matA').value);
+    const needB=b.dataset.mat==='add'||b.dataset.mat==='mul';
+    const B=needB?mat($('#matB').value):null;
+    let out;
+    switch(b.dataset.mat){
+      case 'add':{
+        if(A.length!==B.length||A[0].length!==B[0].length)throw Error('Addition erfordert gleiche Dimensionen.');
+        out=A.map((r,i)=>r.map((v,j)=>v+B[i][j]));break;
+      }
+      case 'mul':out=mmul(A,B);break;
+      case 'det':out=det(A);break;
+      case 'inv':out=inv(A);break;
+      case 'transpose':out=A[0].map((_,j)=>A.map(r=>r[j]));break;
+      case 'rank':out='Rang(A) = '+rankOf(A);break;
+      case 'trace':{
+        if(A.length!==A[0].length)throw Error('Spur benötigt eine quadratische Matrix.');
+        out='Spur(A) = '+fmt(A.reduce((s,r,i)=>s+r[i],0));break;
+      }
+    }
+    $('#matOut').innerHTML=typeof out==='number'?'<b>'+fmt(out)+'</b>':(typeof out==='string'?'<b>'+esc(out)+'</b>':mhtml(out));
+  }catch(e){$('#matOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+});
+
+/* =====================================================================
+   Einheiten
+   ===================================================================== */
+const units={
+  Länge:{mm:.001,cm:.01,dm:.1,m:1,km:1000,Zoll:.0254,ft:.3048,yd:.9144,Meile:1609.344,sm:1852},
+  Fläche:{'mm²':1e-6,'cm²':1e-4,'dm²':.01,'m²':1,a:100,ha:1e4,'km²':1e6},
+  Volumen:{ml:1e-6,cl:1e-5,l:.001,'m³':1,'cm³':1e-6,Gal:0.003785411784},
+  Masse:{mg:1e-6,g:.001,kg:1,t:1000,oz:.028349523125,lb:.45359237},
+  Zeit:{ms:.001,s:1,min:60,h:3600,Tag:86400,Woche:604800},
+  Geschwindigkeit:{'m/s':1,'km/h':1/3.6,mph:.44704,kn:.514444},
+  Daten:{bit:1,Byte:8,KB:8000,MB:8e6,GB:8e9,TB:8e12,KiB:8192,MiB:8388608,GiB:8589934592},
+  Temperatur:{'°C':'C','°F':'F','K':'K'},
+  Druck:{Pa:1,hPa:100,kPa:1000,bar:1e5,atm:101325,psi:6894.757293168},
+  Energie:{J:1,kJ:1000,Wh:3600,kWh:3.6e6,kcal:4184},
+  Winkel:{Rad:'rad',Grad:'deg',Gon:'gon'}
+};
+const TEMP={C:{C:v=>v,F:v=>v*9/5+32,K:v=>v+273.15},F:{C:v=>(v-32)*5/9,F:v=>v,K:v=>(v-32)*5/9+273.15},K:{C:v=>v-273.15,F:v=>(v-273.15)*9/5+32,K:v=>v}};
+const ANG={rad:{rad:v=>v,deg:v=>v*180/Math.PI,gon:v=>v*200/Math.PI},deg:{rad:v=>v*Math.PI/180,deg:v=>v,gon:v=>v*10/9},gon:{rad:v=>v*Math.PI/200,deg:v=>v*.9,gon:v=>v}};
+function fillUnits(){
+  const o=Object.entries(units).flatMap(([t,u])=>Object.keys(u).map(x=>`<option value="${t}|${x}">${t}: ${x}</option>`));
+  $('#unitFrom').innerHTML=o.join('');
+  $('#unitTo').innerHTML=o.join('');
+  $('#unitFrom').value='Länge|m';
+  $('#unitTo').value='Länge|km';
+}
+fillUnits();
+function convertUnits(){
+  const v=+$('#unitVal').value;
+  if(!Number.isFinite(v))return $('#unitOut').innerHTML='<span class="err">Wert muss eine Zahl sein.</span>';
+  const[t,u]=$('#unitFrom').value.split('|');
+  const[t2,u2]=$('#unitTo').value.split('|');
+  if(t!==t2)return $('#unitOut').innerHTML='<span class="err">Unterschiedliche Einheitentypen: '+esc(t)+' → '+esc(t2)+'.</span>';
+  let r;
+  if(t==='Temperatur')r=TEMP[units[t][u]][units[t][u2]](v);
+  else if(t==='Winkel')r=ANG[units[t][u]][units[t][u2]](v);
+  else r=v*units[t][u]/units[t2][u2];
+  $('#unitOut').innerHTML=`<b>${fmt(v)} ${esc(u)}</b> = <b>${fmt(r)} ${esc(u2)}</b>`;
+}
+$('#unitBtn').onclick=convertUnits;
+$('#unitSwap').onclick=()=>{const a=$('#unitFrom').value;$('#unitFrom').value=$('#unitTo').value;$('#unitTo').value=a;convertUnits()};
+
+/* =====================================================================
+   Programmierer
+   ===================================================================== */
+function renderBits(){
+  let v;
+  try{v=parseInt($('#progVal').value,+$('#progBase').value)}catch{v=NaN}
+  if(!Number.isFinite(v))v=0;
+  $('#bits').innerHTML=Array.from({length:32},(_,i)=>{
+    const bit=31-i,on=(v>>>i)&1;
+    return `<button class="icon ${on?'on':'off'}" data-bit="${i}" title="Bit ${bit}">${on}</button>`;
+  }).join('');
+  $$('[data-bit]').forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.bit;
+    let cur;
+    try{cur=parseInt($('#progVal').value,+$('#progBase').value)}catch{cur=0}
+    if(!Number.isFinite(cur))cur=0;
+    cur^=(1<<i);
+    $('#progVal').value=cur;
+    $('#progBtn').click();
+  });
+}
+$('#progBtn').onclick=()=>{
+  const base=+$('#progBase').value;
+  const raw=$('#progVal').value.trim();
+  if(!raw)return $('#progOut').innerHTML='<span class="err">Kein Wert eingegeben.</span>';
+  const v=parseInt(raw,base);
+  if(!Number.isFinite(v))return $('#progOut').innerHTML=`<span class="err">"${esc(raw)}" ist im gewählten Zahlensystem ungültig.</span>`;
+  const u32=v>>>0,s32=v|0;
+  $('#progOut').innerHTML=
+    `<div>Binär: <b>${u32.toString(2).padStart(32,'0').replace(/(.{4})(?=.)/g,'$1 ')}</b></div>`+
+    `<div>Oktal: <b>${u32.toString(8)}</b></div>`+
+    `<div>Dezimal: <b>${u32}</b> (signed ${s32})</div>`+
+    `<div>Hex: <b>0x${u32.toString(16).toUpperCase().padStart(8,'0')}</b></div>`+
+    `<div class="help" style="margin-top:6px">Popcount: ${u32.toString(2).split('').filter(c=>c==='1').length} gesetzte Bits</div>`;
+  renderBits();
+  $('#bitOut').innerHTML='Wert: <b>'+u32+'</b> · Bits antippen zum Umschalten.';
+};
+renderBits();
+
+/* =====================================================================
+   Finanzen
+   ===================================================================== */
+$('#loanBtn').onclick=()=>{
+  const P=+$('#loanP').value;
+  const rateY=+$('#loanRate').value;
+  const years=Math.round(+$('#loanYears').value);
+  if(!Number.isFinite(P)||P<=0)return $('#loanOut').innerHTML='<span class="err">Kreditbetrag muss > 0 sein.</span>';
+  if(!Number.isFinite(rateY)||rateY<0)return $('#loanOut').innerHTML='<span class="err">Zinssatz muss ≥ 0 sein.</span>';
+  if(!Number.isFinite(years)||years<=0)return $('#loanOut').innerHTML='<span class="err">Laufzeit muss ≥ 1 Jahr sein.</span>';
+  const n=years*12,rate=rateY/100/12;
+  const pay=rate?P*rate/(1-Math.pow(1+rate,-n)):P/n;
+  let b=P,totalInterest=0;
+  let h=`<table class="table"><thead><tr><th>Monat</th><th>Rate</th><th>Zins</th><th>Tilgung</th><th>Rest</th></tr></thead><tbody>`;
+  for(let i=1;i<=n;i++){
+    const interest=b*rate;
+    let principal=pay-interest;
+    if(principal>b){principal=b}
+    b=Math.max(0,b-principal);
+    totalInterest+=interest;
+    h+=`<tr><td>${i}</td><td>${fmt(pay)}</td><td>${fmt(interest)}</td><td>${fmt(principal)}</td><td>${fmt(b)}</td></tr>`;
+  }
+  h+='</tbody></table>';
+  $('#loanOut').innerHTML=
+    `<div class="row" style="margin-bottom:10px">
+      <span class="badge">Monatsrate: <b>${fmt(pay)}</b></span>
+      <span class="badge">Gesamtzinsen: <b>${fmt(totalInterest)}</b></span>
+      <span class="badge">Gesamtbelastung: <b>${fmt(P+totalInterest)}</b></span>
+    </div>`+h;
+};
+
+/* =====================================================================
+   Verlauf / Navigation / Modal
+   ===================================================================== */
+function addHist(e,r){
+  db.history.unshift({e,r,t:new Date().toLocaleString('de-DE')});
+  db.history=db.history.slice(0,150);
+  persist();
+}
+function renderHistory(){
+  $('#historyList').innerHTML=db.history.length
+    ?db.history.map((h,i)=>`<div class="card glass" style="padding:12px;margin:7px 0"><div>${esc(h.e)}</div><b>= ${esc(h.r)}</b><div class="help">${esc(h.t)}</div></div>`).join('')
+    :'<span class="help">Leer.</span>';
+}
+$('#clearHistory').onclick=()=>{db.history=[];persist();renderHistory();toast('Verlauf gelöscht')};
+function exportHistoryCsv(){
+  if(!db.history.length)return toast('Verlauf ist leer.');
+  const rows=[['Ausdruck','Ergebnis','Zeit']].concat(db.history.map(h=>[h.e,h.r,h.t]));
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\r\n');
+  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.download='ELIAN-Verlauf.csv';
+  a.href=URL.createObjectURL(blob);
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  toast('CSV exportiert');
+}
+function nav(){
+  const n=$('#nav');
+  n.innerHTML=pages
+    .filter(([id])=>db.features[id]!==false&&((id!=='users'&&id!=='admin')||session?.role==='Admin'))
+    .map(([id,name])=>`<button data-page="${id}">${name}</button>`).join('');
+  $$('[data-page]').forEach(b=>b.onclick=()=>show(b.dataset.page));
+  const active=$('.view.active')?.id;
+  if(active)$$('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===active));
+}
+function show(id){
+  if(db.features[id]===false)return toast('Dieses Modul wurde vom Admin deaktiviert.');
+  if((id==='users'||id==='admin')&&session?.role!=='Admin')return toast('Dieser Bereich ist nur für Admins verfügbar.');
+  $$('.view').forEach(v=>v.classList.toggle('active',v.id===id));
+  $$('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===id));
+  $('#pageTitle').textContent=pages.find(p=>p[0]===id)?.[1]||id;
+  $('#side').classList.remove('open');
+  if(id==='graph'){
+    if(!$('#graphInput').value)$('#graphInput').value=db.graphInput||'y=9x+5';
+    requestAnimationFrame(()=>parseGraph());
+  }
+  if(id==='history')renderHistory();
+  if(id==='convert')cvtFillUnits();
+  if(id==='formulas')renderFormulas($('#formulaSearch').value);
+  if(id==='constants')renderConstants($('#constSearch').value);
+  if(id==='notes')renderNotes();
+  if(id==='matrix')renderMatGrid();
+  if(id==='users')renderUsers();
+  if(id==='admin'){renderFeatures();renderDiagnostics();renderLoginLog()}
+}
+function openModal(h){$('#modalBody').innerHTML=h;$('#modal').classList.add('open')}
+$('#modalClose').onclick=()=>$('#modal').classList.remove('open');
+$('#modal').onclick=e=>{if(e.target.id==='modal')$('#modal').classList.remove('open')};
+$('#menuBtn').onclick=()=>$('#side').classList.toggle('open');
+$('#logoutBtn').onclick=()=>{session=null;current='';ans=0;memory=0;$('#lock').classList.remove('hidden')};
+
+/* =====================================================================
+   Benutzer / Auth
+   ===================================================================== */
+async function renderUsers(){
+  if(session?.role!=='Admin')return;
+  let h='';
+  for(const u of db.users){
+    h+=`<div class="feature"><div><b>${esc(u.first)} ${esc(u.last)}</b><div class="help">@${esc(u.name)} · ${esc(u.role)}</div></div>`+
+       `<div class="row"><button class="btn" data-edit="${esc(u.id)}">Bearbeiten</button>`+
+       `<button class="btn" data-del="${esc(u.id)}">Löschen</button></div></div>`;
+  }
+  $('#userList').innerHTML=h;
+  $$('[data-del]').forEach(b=>b.onclick=()=>{
+    if(db.users.length<=1)return toast('Der letzte Benutzer kann nicht gelöscht werden.');
+    db.users=db.users.filter(u=>u.id!==b.dataset.del);
+    persist();renderUsers();toast('Benutzer gelöscht');
+  });
+  $$('[data-edit]').forEach(b=>b.onclick=async()=>{
+    const u=db.users.find(x=>x.id===b.dataset.edit);
+    if(!u)return;
+    const role=prompt('Rolle (Gast, Normal, Admin):',u.role);
+    if(role===null)return;
+    const pin=prompt('Neue 6-stellige PIN, leer = unverändert:','');
+    if(!['Gast','Normal','Admin'].includes(role))return toast('Ungültige Rolle.');
+    if(pin&&!/^\d{6}$/.test(pin))return toast('PIN muss genau 6 Ziffern haben.');
+    u.role=role;
+    if(pin)u.pinHash=await hash(pin);
+    persist();renderUsers();toast('Benutzer aktualisiert');
+  });
+}
+$('#createUser').onclick=async()=>{
+  const first=$('#newFirst').value.trim(),last=$('#newLast').value.trim();
+  const name=$('#newName').value.trim(),pin=$('#newPin').value,role=$('#newRole').value;
+  if(!first||!last)return toast('Vor- und Nachname erforderlich.');
+  if(!/^[A-Za-z0-9_.-]{3,24}$/.test(name))return toast('Benutzername: 3–24 Zeichen (Buchstaben, Ziffern, _ . -).');
+  if(!/^\d{6}$/.test(pin))return toast('PIN muss genau 6 Ziffern haben.');
+  if(db.users.some(u=>u.name.toLowerCase()===name.toLowerCase()))return toast('Benutzername existiert bereits.');
+  db.users.push({id:crypto.randomUUID?.()||String(Date.now()),first,last,name,pinHash:await hash(pin),role});
+  persist();
+  ['newFirst','newLast','newName','newPin'].forEach(id=>$('#'+id).value='');
+  renderUsers();toast('Benutzer erstellt');
+};
+function addLoginLog(entry){
+  db.loginLog=Array.isArray(db.loginLog)?db.loginLog:[];
+  db.loginLog.unshift({...entry,time:new Date().toLocaleString('de-DE')});
+  db.loginLog=db.loginLog.slice(0,500);
+  persist();renderLoginLog();
+}
+function renderLoginLog(){
+  const el=$('#loginLog');
+  if(!el)return;
+  const rows=(db.loginLog||[]).map(x=>
+    `<tr><td>${esc(x.time||'')}</td><td>${esc(x.name||'')}</td><td>${esc(x.role||'')}</td>`+
+    `<td>${esc(x.kind||'')}</td><td class="${x.ok?'ok':'err'}">${x.ok?'Erfolg':'Fehlgeschlagen'}</td></tr>`
+  ).join('');
+  el.innerHTML='<table class="table"><thead><tr><th>Zeit</th><th>Name</th><th>Rolle</th><th>Art</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table>';
+}
+function enterApp(user,kind){
+  session=user;
+  addLoginLog({name:user.first+' '+user.last,role:user.role,kind,ok:true});
+  $('#lock').classList.add('hidden');
+  $('#who').textContent=user.first+' '+user.last;
+  $('#roleBadge').textContent=user.role;
+  nav();show('calculator');
+}
+async function login(){
+  const name=$('#loginUser').value.trim(),pin=$('#loginPin').value;
+  const fail=msg=>{addLoginLog({name:name||'–',role:'–',kind:'Konto',ok:false});$('#loginMsg').textContent=msg};
+  if(!/^\d{6}$/.test(pin))return fail('PIN muss genau 6 Ziffern haben.');
+  if(!name)return fail('Bitte Benutzernamen eingeben.');
+  const u=db.users.find(x=>x.name.toLowerCase()===name.toLowerCase());
+  if(!u)return fail('Benutzer nicht gefunden.');
+  if(!u.pinHash)u.pinHash=await hash('123456');
+  if(await hash(pin)!==u.pinHash)return fail('Falsche PIN.');
+  $('#loginMsg').textContent='';
+  enterApp(u,'Konto');
+}
+$('#loginBtn').onclick=login;
+$('#loginPin').addEventListener('keydown',e=>{if(e.key==='Enter')login()});
+$('#loginUser').addEventListener('keydown',e=>{if(e.key==='Enter')$('#loginPin').focus()});
+$('#accountModeBtn').onclick=()=>{$('#accountLogin').style.display='block';$('#guestLogin').style.display='none';$('#loginMsg').textContent=''};
+$('#guestModeBtn').onclick=()=>{$('#accountLogin').style.display='none';$('#guestLogin').style.display='block';$('#loginMsg').textContent=''};
+$('#guestBtn').onclick=()=>{
+  const first=$('#guestFirst').value.trim(),last=$('#guestLast').value.trim();
+  if(!first||!last){
+    addLoginLog({name:'Gast',role:'Gast',kind:'Gast',ok:false});
+    return $('#loginMsg').textContent='Bitte Vor- und Nachnamen eingeben.';
+  }
+  $('#loginMsg').textContent='';
+  enterApp({id:'guest-'+Date.now(),first,last,name:'Gast',role:'Gast',guest:true},'Gast');
+  toast('Gastmodus gestartet');
+};
+
+/* =====================================================================
+   Admin / Diagnose / Themes / Import-Export
+   ===================================================================== */
+function renderFeatures(){
+  if(session?.role!=='Admin')return;
+  $('#featureList').innerHTML=pages.map(([id,n])=>
+    `<label class="feature"><span>${n}</span><input class="toggle" type="checkbox" data-feature="${id}" ${db.features[id]!==false?'checked':''}></label>`
+  ).join('');
+  $$('[data-feature]').forEach(x=>x.onchange=()=>{db.features[x.dataset.feature]=x.checked});
+}
+$('#saveFeatures').onclick=()=>{persist();nav();toast('Moduleinstellungen gespeichert')};
+$('#resetFeatures').onclick=()=>{db.features={...DEFAULT_FEATURES};persist();renderFeatures();nav();toast('Werkseinstellungen wiederhergestellt')};
+function renderDiagnostics(){
+  const el=$('#integrity');
+  if(!el)return;
+  let bytes=0;
+  try{bytes=new Blob([localStorage.getItem(DBKEY)||'']).size}catch{}
+  const feats=Object.values(db.features).filter(Boolean).length;
+  el.innerHTML=
+    `Build: <b>v${BUILD}</b> · Single-File Offline Edition<br>`+
+    `Speicherschlüssel: ${esc(DBKEY)} · Datenmenge: ${fmt(bytes)} Byte<br>`+
+    `Benutzer: ${db.users.length} · Aktive Module: ${feats}/${pages.length} · Verlauf: ${db.history.length} · Logins: ${db.loginLog.length}<br>`+
+    `Winkelmodus: ${db.angle} · Design: ${esc(db.theme)} · Variablen: ${Object.keys(db.vars).length}<br>`+
+    `Krypto: ${(self.crypto&&crypto.subtle)?'WebCrypto SHA-256':'Fallback-Hash (unsicherer Kontext)'}<br>`+
+    `Netzwerk: keine Verbindung, keine Lizenzprüfung, keine automatische Aktualisierung.`;
+}
+$('#refreshDiagnostics').onclick=()=>{renderDiagnostics();toast('Diagnose aktualisiert')};
+$('#wipeLocalData').onclick=()=>{
+  if(!confirm('Wirklich ALLE lokalen Daten löschen (Benutzer, Verlauf, Variablen, Einstellungen)?'))return;
+  try{localStorage.removeItem(DBKEY)}catch{}
+  location.reload();
+};
+$('#refreshLoginLog').onclick=renderLoginLog;
+$('#clearLoginLog').onclick=()=>{
+  if(session?.role!=='Admin')return;
+  db.loginLog=[];persist();renderLoginLog();toast('Login-Protokoll gelöscht');
+};
+function applyTheme(t){
+  if(!THEMES.includes(t))t='liquid2';
+  db.theme=t;
+  document.body.className='theme-'+t;
+  $$('[data-theme]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.theme===t)));
+  persist();
+}
+$$('[data-theme]').forEach(b=>b.onclick=()=>applyTheme(b.dataset.theme));
+$('#themeCycle').onclick=()=>applyTheme(THEMES[(THEMES.indexOf(db.theme)+1)%THEMES.length]);
+$('#exportData').onclick=()=>{
+  const blob=new Blob([JSON.stringify({...db,users:db.users.map(u=>({...u,pinHash:undefined}))},null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.download='ELIAN-v7.0-Sitzung.json';
+  a.href=URL.createObjectURL(blob);
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  toast('Sitzung exportiert (PIN-Hashes ausgeschlossen)');
+};
+$('#importData').onclick=()=>{
+  const i=document.createElement('input');
+  i.type='file';i.accept='.json,application/json';
+  i.onchange=async()=>{
+    try{
+      const o=JSON.parse(await i.files[0].text());
+      if(!o||typeof o!=='object')throw new Error('Kein Objekt');
+      if(o.theme&&THEMES.includes(o.theme))db.theme=o.theme;
+      if(o.features)db.features={...DEFAULT_FEATURES,...o.features};
+      if(o.vars&&typeof o.vars==='object')db.vars=o.vars;
+      if(Array.isArray(o.history))db.history=o.history.slice(0,150);
+      if(typeof o.graphInput==='string')db.graphInput=o.graphInput;
+      if(o.angle&&['DEG','RAD','GON'].includes(o.angle))db.angle=o.angle;
+      persist();location.reload();
+    }catch{toast('Import fehlgeschlagen – ungültige Datei.')}
+  };
+  i.click();
+};
+$('#helpBtn').onclick=()=>openModal(
+  '<h2>Tastenkürzel &amp; Hilfe</h2>'+
+  '<p><kbd>Enter</kbd> berechnen · <kbd>Esc</kbd> Eingabe leeren / Dialog schließen · <kbd>Backspace</kbd> löschen · '+
+  '<kbd>0–9</kbd> <kbd>+ − * / ( ) . % ^ !</kbd> direkt im Rechner tippen.</p>'+
+  '<p><b>Rechenregeln (v6.4 korrigiert):</b> Punkt vor Strich, Klammern zuerst, Potenzen rechtsassoziativ '+
+  '(<code>2^3^2</code> = 512), unäres Minus bindet schwächer als die Potenz (<code>-2^2</code> = −4), '+
+  'implizite Multiplikation (<code>2(3)</code> = 6, <code>2pi</code> = 6,283…).</p>'+
+  '<h3>Plotter</h3><p>Eine Zeile pro Objekt: <code>y=9x+5</code>, <code>A=(2,4)</code>, <code>x=3</code>, '+
+  '<code>x^2+y^2=25</code>, <code>y&lt;=2x+1</code>, <code>r=2+sin(3t)</code>, <code>x=cos(t), y=sin(t)</code>. '+
+  'Mausrad zoomen, Ziehen verschieben, Doppelklick hineinzoomen.</p>'+
+  '<h3>Funktionen</h3><p><code>sin cos tan cot sec csc asin acos atan atan2 sinh cosh tanh asinh acosh atanh</code>, '+
+  '<code>ln log(x,b) log2 log10 exp sqrt cbrt abs floor ceil round sign</code>, <code>factorial gcd lcm min max nCr nPr sum mean</code>. '+
+  'Konstanten: <code>pi e tau phi</code>, letztes Ergebnis: <code>ans</code>.</p>'+
+  '<h3>Befehlspalette</h3><p><kbd>Strg</kbd>+<kbd>K</kbd> oder <kbd>/</kbd> öffnet die Befehlspalette. '+
+  'Pfeiltasten zum Navigieren, <kbd>Enter</kbd> zum Ausführen, <kbd>Esc</kbd> zum Schließen.</p>'+
+  '<h3>Neu in v7.0</h3><p>Polynome (Ableiten, Integrieren, Nullstellen, Faktorisierung), komplexe Zahlen, '+
+  'Analysis mit Grenzwerten, Tangenten und Newton-Iteration, Folgen &amp; Reihen, Geometrie, Datum &amp; Zeit mit Stoppuhr, '+
+  'erweiterte Umrechnung (Temperatur, Winkel, Datenrate, Leistung, Drehmoment …), Formelbibliothek, Konstanten, '+
+  'Übungsmodus, Notizen, Bruchrechnung, Matrix-Raster, Verteilungsdiagramm, Regression &amp; Korrelation sowie '+
+  'Verlaufssuche mit Merkfunktion und CSV-Export.</p>'
+);
+$('#shortcuts').onclick=()=>$('#helpBtn').click();
+$('#infoBtn').onclick=()=>openModal(
+  '<h2>ELIAN Ultimate Calculator · Version '+BUILD+'</h2>'+
+  '<p><b>ELIAN Ultimate Calculator</b> ist ein vollständig lokaler Offline-Rechner in einer einzigen HTML-Datei. '+
+  'Keine Serververbindung, keine Lizenzprüfung, keine automatische Aktualisierung.</p><ul>'+
+  '<li>Wissenschaftlicher Rechner mit korrekter Operatorreihenfolge, trigonometrischen, logarithmischen, hyperbolischen und statistischen Funktionen</li>'+
+  '<li>Algebra: Gleichungslöser (numerisch, Bisektion) und lineare Gleichungssysteme (Gauß-Jordan)</li>'+
+  '<li>Funktionsplotter: Punkte, Geraden, implizite Gleichungen, Ungleichungen, Polar- und Parameterkurven</li>'+
+  '<li>Nullstellen-, Extrempunkt- und Wendepunktanalyse, numerische Ableitung und Integrale (Simpson)</li>'+
+  '<li>Wertetabellen, Zoom, Verschieben, Parameter-Slider, PNG-/SVG-Export</li>'+
+  '<li>Statistik inkl. Quartilen und Modalwert, Kombinatorik, Zufallsgenerator</li>'+
+  '<li>Matrizen: Addition, Multiplikation, Determinante, Inverse, Rang, Spur, Transponierte</li>'+
+  '<li>Einheiten in 10 Kategorien inkl. Temperatur und Winkel, Programmierer-Rechner mit Bit-Toggle</li>'+
+  '<li>Finanzen: monatlicher Tilgungsplan mit Zins- und Gesamtbelastung</li>'+
+  '<li>Fünf Designs, lokale Benutzerkonten mit Gast-, Normal- und Admin-Rolle</li></ul>'+
+  '<h3>Neu in v7.0</h3><ul>'+
+  '<li>Polynom-Werkzeug: Ableitung, Integral, Nullstellen, Faktorisierung</li>'+
+  '<li>Komplexe Zahlen: Grundrechenarten, Polarform, √z, e^z, ln(z)</li>'+
+  '<li>Analysis: Grenzwerte numerisch, Tangente/Normale, Newton-Iteration</li>'+
+  '<li>Folgen &amp; Reihen: arithmetisch/geometrisch/quadratisch erkennen</li>'+
+  '<li>Geometrie: Kreis, Rechteck, Dreieck, Kugel, Zylinder, Kegel</li>'+
+  '<li>Datum &amp; Zeit: Differenz, Arbeitstage, Wochentag, Schaltjahr, Stoppuhr</li>'+
+  '<li>Erweiterte Umrechnung: 9 Kategorien inkl. Temperatur, Winkel, Leistung</li>'+
+  '<li>Formelbibliothek (28 Formeln) und Konstanten-Tabelle (25 Werte)</li>'+
+  '<li>Übungsmodus mit drei Schwierigkeitsstufen</li>'+
+  '<li>Notizen mit Formelauswertung beim Export</li>'+
+  '<li>Bruchrechnung, Matrix-Raster bis 8×8, Verteilungsdiagramm</li>'+
+  '<li>Regression &amp; Korrelation (linear und quadratisch)</li>'+
+  '<li>Befehlspalette (Strg+K), Verlaufssuche, Merkfunktion, CSV-Export</li></ul>'+
+  '<p class="help">Build: v'+BUILD+' · Single-File Offline Edition · Alle Daten bleiben im Browser dieses Geräts.</p>'
+);
+$('#easter').onclick=()=>openModal('<h2>✨ ELIAN EASTER EGG</h2><p>Du hast den geheimen Knopf gefunden.</p><p style="font-size:32px">∫ ∑ π √ ∞ → ELIAN</p><p class="help">Offline. Lokal. Präzise.</p>');
+
+
+/* =====================================================================
+   v7.0 — Neue Module
+   ===================================================================== */
+
+/* ---------- Polynome ---------- */
+function parsePoly(s){
+  const parts=String(s).trim().split(/[\s,;]+/).filter(Boolean).map(Number);
+  if(!parts.length)throw Error('Keine Koeffizienten erkannt.');
+  if(parts.some(v=>!Number.isFinite(v)))throw Error('Alle Koeffizienten müssen Zahlen sein.');
+  while(parts.length>1&&parts[0]===0)parts.shift();
+  return parts;
+}
+function polyStr(c,x='x'){
+  const deg=c.length-1;
+  return c.map((v,i)=>{
+    const p=deg-i;
+    if(v===0)return '';
+    const sign=v<0?'−':'+';
+    const mag=Math.abs(v);
+    const num=mag===1&&p>0?'':fmt(mag);
+    const varPart=p===0?'':(p===1?x:x+'^'+p);
+    return (i===0?(v<0?'−':''):' '+sign+' ')+num+varPart;
+  }).filter(Boolean).join('')||'0';
+}
+function polyEval(c,x){
+  let r=0;
+  for(const v of c)r=r*x+v;
+  return r;
+}
+function polyDeriv(c){
+  const deg=c.length-1;
+  if(deg===0)return [0];
+  return c.slice(0,-1).map((v,i)=>v*(deg-i));
+}
+function polyInteg(c){
+  const deg=c.length-1;
+  return c.map((v,i)=>v/(deg-i+1)).concat([0]);
+}
+function polyRoots(c){
+  const deg=c.length-1;
+  if(deg<1)return [];
+  if(deg===1)return [-c[1]/c[0]];
+  if(deg===2){
+    const[a,b,cc]=c;
+    const d=b*b-4*a*cc;
+    if(d<-1e-12)return [];
+    if(Math.abs(d)<1e-12)return [-b/(2*a)];
+    const sq=Math.sqrt(d);
+    return[(-b+sq)/(2*a),(-b-sq)/(2*a)];
+  }
+  // Numerisch: Vorzeichenwechsel im Fenster
+  const roots=[];
+  const lo=-50,hi=50,N=4000;
+  const f=x=>polyEval(c,x);
+  let px=lo,py=f(lo);
+  for(let i=1;i<=N;i++){
+    const x=lo+(hi-lo)*i/N;
+    const y=f(x);
+    if(Number.isFinite(py)&&Number.isFinite(y)&&py*y<0){
+      let a=px,b=x,fa=py;
+      for(let k=0;k<80;k++){
+        const m=(a+b)/2,fm=f(m);
+        if(!Number.isFinite(fm))break;
+        if(fa*fm<=0)b=m;else{a=m;fa=fm}
+      }
+      const r=(a+b)/2;
+      if(!roots.some(z=>Math.abs(z-r)<1e-8))roots.push(r);
+    }
+    if(Math.abs(y)<1e-10&&!roots.some(z=>Math.abs(z-x)<1e-8))roots.push(x);
+    px=x;py=y;
+  }
+  return roots;
+}
+function polyFactor(c){
+  const deg=c.length-1;
+  const out=[];
+  const lead=c[0];
+  if(deg<1)return 'Ein konstantes Polynom lässt sich nicht weiter faktorisieren.';
+  const rat=rationalRoots(c);
+  let cur=[...c];
+  for(const r of rat){
+    while(cur.length>1&&Math.abs(polyEval(cur,r))<1e-9){
+      cur=divLinear(cur,r);
+      out.push(r);
+    }
+  }
+  if(!out.length)return 'Keine rationalen Nullstellen gefunden (Grad '+deg+').';
+  let s='';
+  for(const r of out)s+='(x '+ (r<0?'+':'−')+' '+fmt(Math.abs(r))+')';
+  if(cur.length>1){
+    const rest=polyStr(cur);
+    if(cur.length===3){
+      const d=cur[1]*cur[1]-4*cur[0]*cur[2];
+      if(d<0)s+='('+rest+')  [keine weiteren reellen Nullstellen]';
+      else s+='('+rest+')';
+    }else s+='('+rest+')';
+  }
+  return s+' = 0';
+}
+function rationalRoots(c){
+  const a0=c[c.length-1],an=c[0];
+  if(a0===0)return [0];
+  const out=[];
+  const divs=n=>{const r=[];for(let i=1;i<=Math.abs(n);i++)if(n%i===0)r.push(i);return r};
+  const P=divs(Math.abs(a0)),Q=divs(Math.abs(an));
+  for(const p of P)for(const q of Q){
+    for(const s of[1,-1]){
+      const r=s*p/q;
+      if(Math.abs(polyEval(c,r))<1e-9&&!out.some(z=>Math.abs(z-r)<1e-9))out.push(r);
+    }
+  }
+  return out;
+}
+function divLinear(c,r){
+  const n=c.length-1;
+  const q=new Array(n);
+  q[0]=c[0];
+  for(let i=1;i<n;i++)q[i]=c[i]+q[i-1]*r;
+  return q;
+}
+$('#polyEvalBtn').onclick=()=>{
+  try{
+    const c=parsePoly($('#polyCoeffs').value);
+    const x=+$('#polyX').value;
+    if(!Number.isFinite(x))throw Error('x muss eine Zahl sein.');
+    const v=polyEval(c,x);
+    $('#polyOut').innerHTML=`p(${fmt(x)}) = <b>${fmt(v)}</b><br><span class="help">${esc(polyStr(c))}</span>`;
+  }catch(e){$('#polyOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+$('#polyDerivBtn').onclick=()=>{
+  try{
+    const c=parsePoly($('#polyCoeffs').value);
+    const d=polyDeriv(c);
+    $('#polyOut').innerHTML=`p(x) = ${esc(polyStr(c))}<br>p′(x) = <b>${esc(polyStr(d))}</b>`;
+  }catch(e){$('#polyOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+$('#polyIntegBtn').onclick=()=>{
+  try{
+    const c=parsePoly($('#polyCoeffs').value);
+    const i=polyInteg(c);
+    $('#polyOut').innerHTML=`p(x) = ${esc(polyStr(c))}<br>∫p(x)dx = <b>${esc(polyStr(i))} + C</b>`;
+  }catch(e){$('#polyOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+$('#polyRootsBtn').onclick=()=>{
+  try{
+    const c=parsePoly($('#polyCoeffs').value);
+    const r=polyRoots(c);
+    $('#polyOut').innerHTML=`${esc(polyStr(c))} = 0<br>`+(r.length
+      ?'Nullstellen: <b>'+r.map(fmt).join(', ')+'</b>'
+      :'Keine reellen Nullstellen im Bereich [−50, 50].');
+  }catch(e){$('#polyOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+$('#polyFactorBtn').onclick=()=>{
+  try{
+    const c=parsePoly($('#polyCoeffs').value);
+    $('#polyOut').innerHTML=esc(polyFactor(c));
+  }catch(e){$('#polyOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+$('#polyPlotBtn').onclick=()=>{
+  try{
+    const c=parsePoly($('#polyCoeffs').value);
+    $('#graphInput').value='y='+polyStr(c).replace(/−/g,'-').replace(/\s+/g,'');
+    db.graphInput=$('#graphInput').value;persist();
+    show('graph');
+    toast('Polynom im Plotter');
+  }catch(e){toast(e.message)}
+};
+$('#polyClear').onclick=()=>{$('#polyCoeffs').value='';$('#polyOut').textContent='–'};
+
+/* ---------- Komplexe Zahlen ---------- */
+function cxFmt(z){
+  if(!z||typeof z!=='object')return 'NaN';
+  const a=z.re,b=z.im;
+  const re=fmt(a).replace(/^-/,'−');
+  if(Math.abs(b)<1e-12)return re;
+  const im=fmt(Math.abs(b));
+  return re+(b<0?' − ':' + ')+im+'i';
+}
+function cxAdd(a,b){return{re:a.re+b.re,im:a.im+b.im}}
+function cxSub(a,b){return{re:a.re-b.re,im:a.im-b.im}}
+function cxMul(a,b){return{re:a.re*b.re-a.im*b.im,im:a.re*b.im+a.im*b.re}}
+function cxDiv(a,b){
+  const d=b.re*b.re+b.im*b.im;
+  if(d===0)throw Error('Division durch Null (komplex).');
+  return{re:(a.re*b.re+a.im*b.im)/d,im:(a.im*b.re-a.re*b.im)/d};
+}
+function cxPow(a,n){
+  if(Number.isInteger(n)&&n>=0){
+    let r={re:1,im:0};
+    for(let i=0;i<n;i++)r=cxMul(r,a);
+    return r;
+  }
+  const r=Math.hypot(a.re,a.im),th=Math.atan2(a.im,a.re);
+  const rn=Math.pow(r,n),tn=th*n;
+  return{re:rn*Math.cos(tn),im:rn*Math.sin(tn)};
+}
+function cxAbs(a){return Math.hypot(a.re,a.im)}
+function cxArg(a){return Math.atan2(a.im,a.re)*180/Math.PI}
+function cxConj(a){return{re:a.re,im:-a.im}}
+function cxRecip(a){
+  const d=a.re*a.re+a.im*a.im;
+  if(d===0)throw Error('Kehrwert von 0 nicht definiert.');
+  return{re:a.re/d,im:-a.im/d};
+}
+function cxSqrt(a){
+  const r=Math.hypot(a.re,a.im);
+  const re=Math.sqrt((r+a.re)/2);
+  const im=Math.sign(a.im||1)*Math.sqrt((r-a.re)/2);
+  return{re,im};
+}
+function cxExp(a){
+  const e=Math.exp(a.re);
+  return{re:e*Math.cos(a.im),im:e*Math.sin(a.im)};
+}
+function cxLn(a){
+  const r=Math.hypot(a.re,a.im);
+  if(r===0)throw Error('ln(0) nicht definiert.');
+  return{re:Math.log(r),im:Math.atan2(a.im,a.re)};
+}
+function readCx(idRe,idIm){
+  const re=+$('#'+idRe).value,im=+$('#'+idIm).value;
+  if(!Number.isFinite(re)||!Number.isFinite(im))throw Error('Real- und Imaginärteil müssen Zahlen sein.');
+  return{re,im};
+}
+$('#cxCalc').onclick=()=>{
+  try{
+    const a=readCx('cxA','cxB'),b=readCx('cxC','cxD');
+    const op=$('#cxOp').value;
+    let r;
+    if(op==='+')r=cxAdd(a,b);
+    else if(op==='-')r=cxSub(a,b);
+    else if(op==='*')r=cxMul(a,b);
+    else if(op==='/')r=cxDiv(a,b);
+    else if(op==='^')r=cxPow(a,b.re);
+    else throw Error('Unbekannte Operation.');
+    $('#cxOut').innerHTML=`(${cxFmt(a)}) ${esc(op)} (${cxFmt(b)}) = <b>${esc(cxFmt(r))}</b>`+
+      (cxAbs(r)>0?`<br><span class="help">|z| = ${fmt(cxAbs(r))} · arg(z) = ${fmt(cxArg(r))}°</span>`:'');
+  }catch(e){$('#cxOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+$$('[data-cx]').forEach(b=>b.onclick=()=>{
+  try{
+    const a=readCx('cxA','cxB');
+    const op=b.dataset.cx;
+    let html='';
+    if(op==='abs')html=`|z| = <b>${fmt(cxAbs(a))}</b>`;
+    else if(op==='arg')html=`arg(z) = <b>${fmt(cxArg(a))}°</b> = ${fmt(cxArg(a)*Math.PI/180)} rad`;
+    else if(op==='conj')html=`z̄ = <b>${esc(cxFmt(cxConj(a)))}</b>`;
+    else if(op==='recip')html=`1/z = <b>${esc(cxFmt(cxRecip(a)))}</b>`;
+    else if(op==='polar')html=`z = <b>${fmt(cxAbs(a))} · (cos ${fmt(cxArg(a))}° + i·sin ${fmt(cxArg(a))}°)</b> = <b>${fmt(cxAbs(a))}·e^(i·${fmt(cxArg(a))}°)</b>`;
+    else if(op==='sqrt')html=`√z = <b>${esc(cxFmt(cxSqrt(a)))}</b>`;
+    else if(op==='exp')html=`e^z = <b>${esc(cxFmt(cxExp(a)))}</b>`;
+    else if(op==='ln')html=`ln(z) = <b>${esc(cxFmt(cxLn(a)))}</b>`;
+    $('#cxSingle').innerHTML=html;
+  }catch(e){$('#cxSingle').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+});
+
+/* ---------- Analysis: Grenzwerte, Tangente, Newton ---------- */
+function evalCalcExpr(src,x){
+  return safeNum(src,{x});
+}
+function numericLimit(src,at,dir){
+  const f=x=>{try{const v=evalCalcExpr(src,x);return Number.isFinite(v)?v:NaN}catch{return NaN}};
+  const eps=[1e-2,1e-3,1e-4,1e-5,1e-6,1e-7,1e-8];
+  // Einen Zweig numerisch bestimmen
+  const branch=s=>{
+    const vals=[];
+    for(const e of eps){
+      const v=f(s<0?at-e:at+e);
+      if(!Number.isFinite(v))return{ok:false,val:NaN,huge:false};
+      vals.push(v);
+    }
+    const huge=vals.some(v=>Math.abs(v)>1e6);
+    const last=vals[vals.length-1];
+    // Konvergenz nur an den feinsten Stufen prüfen — die groben
+    // ersten Schritte liegen naturgemäß noch weit vom Grenzwert entfernt.
+    const fine=vals.slice(-3);
+    const spread=Math.max(...fine)-Math.min(...fine);
+    // Bei Divergenz oder verbleibender Streuung kein Grenzwert
+    if(huge)return{ok:false,val:last,huge:true};
+    if(spread>Math.max(1e-4,Math.abs(last)*1e-3))return{ok:false,val:last,huge:false};
+    return{ok:true,val:last,huge:false};
+  };
+  if(dir==='-'||dir==='+'){
+    const r=branch(dir==='-'?-1:1);
+    return{ok:r.ok,val:r.val};
+  }
+  // Beidseitig: beide Zweige müssen existieren UND übereinstimmen
+  const L=branch(-1),R=branch(1);
+  if(!L.ok||!R.ok)return{ok:false,val:L.ok?L.val:(R.ok?R.val:NaN)};
+  // Sprungstelle oder Polstelle: links und rechts unterscheiden sich
+  const diff=Math.abs(L.val-R.val);
+  const scale=Math.max(Math.abs(L.val),Math.abs(R.val),1);
+  if(diff>Math.max(1e-6,scale*1e-3))return{ok:false,val:L.val};
+  return{ok:true,val:(L.val+R.val)/2};
+}
+$('#limitBtn').onclick=()=>{
+  try{
+    const src=$('#calcExpr').value;
+    if(!src.trim())throw Error('Bitte einen Ausdruck eingeben.');
+    const at=+$('#limitAt').value;
+    if(!Number.isFinite(at))throw Error('Grenzpunkt muss eine Zahl sein.');
+    const dir=$('#limitDir').value;
+    // Erst direkt prüfen — aber nur wenn der Wert endlich ist
+    let direct;
+    try{direct=evalCalcExpr(src,at)}catch{direct=NaN}
+    if(Number.isFinite(direct)){
+      $('#limitOut').innerHTML=`lim<sub>x→${fmt(at)}</sub> ${esc(src)} = <b>${fmt(direct)}</b><br><span class="help">Direkt eingesetzt — der Grenzwert existiert.</span>`;
+      return;
+    }
+    const r=numericLimit(src,at,dir);
+    $('#limitOut').innerHTML=r.ok
+      ?`lim<sub>x→${fmt(at)}</sub> ${esc(src)} = <b>${fmt(r.val)}</b><br><span class="help">Direkt eingesetzt — der Grenzwert existiert.</span>`
+      :`<span class="warning">Der Grenzwert existiert nicht oder ist nicht bestimmbar.</span><br><span class="help">Die Funktionswerte streben gegen ${fmt(r.val)} oder divergieren (mögliche Polstelle).</span>`;
+  }catch(e){$('#limitOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+$('#tanBtn').onclick=()=>{
+  try{
+    const src=$('#calcExpr').value;
+    if(!src.trim())throw Error('Bitte einen Ausdruck eingeben.');
+    const x0=+$('#tanX').value;
+    if(!Number.isFinite(x0))throw Error('x₀ muss eine Zahl sein.');
+    const obj={type:'function',expr:src};
+    const y0=evalCalcExpr(src,x0);
+    const m=numericalDerivative(obj,x0);
+    const b=y0-m*x0;
+    const mr=fmt(m),br=fmt(b);
+    const bStr=Math.abs(b)<1e-12?'':(b<0?' − '+fmt(Math.abs(b)):' + '+fmt(Math.abs(b)));
+    const nm=-1/m,nb=y0-nm*x0;
+    const nbStr=Math.abs(nb)<1e-12?'':(nb<0?' − '+fmt(Math.abs(nb)):' + '+fmt(Math.abs(nb)));
+    $('#tanOut').innerHTML=
+      `f(${fmt(x0)}) = <b>${fmt(y0)}</b> · Steigung f′(${fmt(x0)}) ≈ <b>${mr}</b><br>`+
+      `Tangente: <b>y = ${mr}x${bStr}</b><br>`+
+      `Normale: <b>y = ${fmt(nm)}x${nbStr}</b>`;
+  }catch(e){$('#tanOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+$('#tanPlotBtn').onclick=()=>{
+  try{
+    const src=$('#calcExpr').value;
+    const x0=+$('#tanX').value;
+    const obj={type:'function',expr:src};
+    const y0=evalCalcExpr(src,x0);
+    const m=numericalDerivative(obj,x0);
+    const b=y0-m*x0;
+    $('#graphInput').value='y='+src.replace(/\s+/g,'')+'\ny='+fmt(m)+'*x+'+fmt(b);
+    db.graphInput=$('#graphInput').value;persist();
+    show('graph');
+    toast('Funktion und Tangente geplottet');
+  }catch(e){toast(e.message)}
+};
+$('#newtonBtn').onclick=()=>{
+  try{
+    const src=$('#calcExpr').value;
+    if(!src.trim())throw Error('Bitte einen Ausdruck eingeben.');
+    let x=+$('#newtX').value;
+    if(!Number.isFinite(x))throw Error('Startwert muss eine Zahl sein.');
+    const obj={type:'function',expr:src};
+    const steps=[];
+    let ok=false;
+    for(let i=0;i<50;i++){
+      const fx=evalCalcExpr(src,x);
+      const d=numericalDerivative(obj,x);
+      steps.push([i,x,fx,d]);
+      if(Math.abs(fx)<1e-12){ok=true;break}
+      if(!Number.isFinite(d)||Math.abs(d)<1e-14)break;
+      const nx=x-fx/d;
+      if(!Number.isFinite(nx))break;
+      if(Math.abs(nx-x)<1e-13){x=nx;ok=true;break}
+      x=nx;
+    }
+    const rows=steps.slice(0,10).map(s=>`<tr><td>${s[0]}</td><td>${fmt(s[1])}</td><td>${fmt(s[2])}</td><td>${fmt(s[3])}</td></tr>`).join('');
+    $('#newtonOut').innerHTML=
+      (ok?`Nullstelle gefunden: <b>x ≈ ${fmt(x)}</b>`:`<span class="warning">Keine Konvergenz — anderen Startwert versuchen.</span>`)+
+      `<div class="table-wrap" style="margin-top:10px"><table class="table"><thead><tr><th>i</th><th>x</th><th>f(x)</th><th>f′(x)</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }catch(e){$('#newtonOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+
+/* ---------- Folgen & Reihen ---------- */
+function parseSeq(s){
+  const t=String(s).trim();
+  if(!t)throw Error('Bitte eine Formel in n oder eine Liste eingeben.');
+  if(/[a-zA-Z]/.test(t))return{type:'formula',expr:t};
+  const nums=t.split(/[\s,;]+/).filter(Boolean).map(Number);
+  if(!nums.length||nums.some(v=>!Number.isFinite(v)))throw Error('Ungültige Zahlenfolge.');
+  return{type:'list',vals:nums};
+}
+$('#seqBtn').onclick=()=>{
+  try{
+    const seq=parseSeq($('#seqExpr').value);
+    const from=Math.round(+$('#seqFrom').value),to=Math.round(+$('#seqTo').value);
+    if(!Number.isFinite(from)||!Number.isFinite(to))throw Error('n von/bis müssen Zahlen sein.');
+    if(to<from)throw Error('„bis“ muss größer als „von“ sein.');
+    if(to-from>2000)throw Error('Maximal 2000 Glieder.');
+    let vals=[];
+    if(seq.type==='list'){
+      vals=seq.vals;
+      if(vals.length<2)throw Error('Mindestens zwei Glieder für eine Analyse.');
+    }else{
+      for(let n=from;n<=to;n++){
+        try{vals.push(safeNum(seq.expr,{n}))}catch{throw Error('Glied '+n+' nicht auswertbar.')}
+      }
+    }
+    const n=vals.length;
+    const sum=vals.reduce((s,v)=>s+v,0);
+    const diffs=[];
+    for(let i=1;i<n;i++)diffs.push(vals[i]-vals[i-1]);
+    const quot=[];
+    for(let i=1;i<n;i++)quot.push(vals[i-1]!==0?vals[i]/vals[i-1]:NaN);
+    const allEqual=a=>a.length>1&&a.every(v=>Math.abs(v-a[0])<1e-9);
+    const allFinite=a=>a.every(Number.isFinite);
+    let kind='unbekannt';
+    if(allEqual(diffs)&&allFinite(diffs))kind='arithmetisch (Differenz '+fmt(diffs[0])+')';
+    else if(allFinite(quot)&&allEqual(quot))kind='geometrisch (Quotient '+fmt(quot[0])+')';
+    else{
+      const d2=[];
+      for(let i=1;i<diffs.length;i++)d2.push(diffs[i]-diffs[i-1]);
+      if(d2.length&&allEqual(d2))kind='quadratisch (2. Differenz '+fmt(d2[0])+')';
+      else kind='kein einfaches Muster erkannt';
+    }
+    const mono=v=>{
+      let up=true,dn=true;
+      for(let i=1;i<n;i++){if(v[i]<v[i-1])up=false;if(v[i]>v[i-1])dn=false}
+      return up?'streng monoton steigend':dn?'streng monoton fallend':'nicht monoton';
+    };
+    $('#seqOut').innerHTML=
+      `<div>Glieder: <b>${n}</b></div>`+
+      `<div>Summe: <b>${fmt(sum)}</b></div>`+
+      `<div>Muster: <b>${esc(kind)}</b></div>`+
+      `<div>Monotonie: ${esc(mono(vals))}</div>`+
+      `<div>Min: ${fmt(Math.min(...vals))} · Max: ${fmt(Math.max(...vals))}</div>`+
+      (kind.startsWith('arithmetisch')?`<div>geschlossene Summe a₁ + (n−1)d: <b>${fmt(vals[0]+(n-1)*diffs[0])}</b></div>`:'')+
+      `<div class="help" style="margin-top:8px">Glieder: ${vals.slice(0,14).map(fmt).join(', ')}${n>14?', …':''}</div>`;
+  }catch(e){$('#seqOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+
+/* ---------- Geometrie ---------- */
+function geoBox(title,lines){
+  return `<h3>${esc(title)}</h3>`+lines.map(l=>`<div>${l[0]}: <b>${l[1]}</b></div>`).join('');
+}
+$('#geoCircle').onclick=()=>{
+  const r=+$('#geoR').value;
+  if(!Number.isFinite(r)||r<=0)return $('#geoOut').innerHTML='<span class="err">Radius muss > 0 sein.</span>';
+  $('#geoOut').innerHTML=geoBox('Kreis',[
+    ['Umfang','2πr = '+fmt(2*Math.PI*r)],
+    ['Fläche','πr² = '+fmt(Math.PI*r*r)],
+    ['Durchmesser',fmt(2*r)]
+  ]);
+};
+$('#geoRect').onclick=()=>{
+  const a=+$('#geoW').value,b=+$('#geoH').value;
+  if(!Number.isFinite(a)||!Number.isFinite(b)||a<=0||b<=0)return $('#geoOut').innerHTML='<span class="err">Breite und Höhe müssen > 0 sein.</span>';
+  $('#geoOut').innerHTML=geoBox('Rechteck',[
+    ['Umfang','2(a+b) = '+fmt(2*(a+b))],
+    ['Fläche','a·b = '+fmt(a*b)],
+    ['Diagonale','√(a²+b²) = '+fmt(Math.hypot(a,b))]
+  ]);
+};
+$('#geoTri').onclick=()=>{
+  const a=+$('#geoTa').value,b=+$('#geoTb').value,c=+$('#geoTc').value;
+  if(![a,b,c].every(Number.isFinite)||a<=0||b<=0||c<=0)return $('#geoOut').innerHTML='<span class="err">Alle Seiten müssen > 0 sein.</span>';
+  if(a+b<=c||a+c<=b||b+c<=a)return $('#geoOut').innerHTML='<span class="err">Die Dreiecksungleichung ist verletzt — kein Dreieck möglich.</span>';
+  const s=(a+b+c)/2;
+  const area=Math.sqrt(s*(s-a)*(s-b)*(s-c));
+  const angA=Math.acos((b*b+c*c-a*a)/(2*b*c))*180/Math.PI;
+  const angB=Math.acos((a*a+c*c-b*b)/(2*a*c))*180/Math.PI;
+  const angC=180-angA-angB;
+  $('#geoOut').innerHTML=geoBox('Dreieck',[
+    ['Umfang',fmt(a+b+c)],
+    ['Fläche (Heron)','√(s(s−a)(s−b)(s−c)) = '+fmt(area)],
+    ['Höhe zu a',fmt(2*area/a)],
+    ['Winkel α',fmt(angA)+'°'],
+    ['Winkel β',fmt(angB)+'°'],
+    ['Winkel γ',fmt(angC)+'°'],
+    ['Typ',(a===b&&b===c)?'gleichseitig':(a===b||b===c||a===c)?'gleichschenklig':'ungleichseitig']
+  ]);
+};
+$('#geoSphere').onclick=()=>{
+  const r=+$('#geoSr').value;
+  if(!Number.isFinite(r)||r<=0)return $('#geoOut').innerHTML='<span class="err">Radius muss > 0 sein.</span>';
+  $('#geoOut').innerHTML=geoBox('Kugel',[
+    ['Volumen','4/3·πr³ = '+fmt(4/3*Math.PI*r**3)],
+    ['Oberfläche','4πr² = '+fmt(4*Math.PI*r*r)],
+    ['Umfang (Großkreis)',fmt(2*Math.PI*r)]
+  ]);
+};
+$('#geoCyl').onclick=()=>{
+  const r=+$('#geoZr').value,h=+$('#geoZh').value;
+  if(!Number.isFinite(r)||!Number.isFinite(h)||r<=0||h<=0)return $('#geoOut').innerHTML='<span class="err">Radius und Höhe müssen > 0 sein.</span>';
+  $('#geoOut').innerHTML=geoBox('Zylinder',[
+    ['Volumen','πr²h = '+fmt(Math.PI*r*r*h)],
+    ['Oberfläche','2πr(r+h) = '+fmt(2*Math.PI*r*(r+h))],
+    ['Mantel','2πrh = '+fmt(2*Math.PI*r*h)]
+  ]);
+};
+$('#geoCone').onclick=()=>{
+  const r=+$('#geoKr').value,h=+$('#geoKh').value;
+  if(!Number.isFinite(r)||!Number.isFinite(h)||r<=0||h<=0)return $('#geoOut').innerHTML='<span class="err">Radius und Höhe müssen > 0 sein.</span>';
+  const s=Math.hypot(r,h);
+  $('#geoOut').innerHTML=geoBox('Kegel',[
+    ['Volumen','1/3·πr²h = '+fmt(1/3*Math.PI*r*r*h)],
+    ['Oberfläche','πr(r+s) = '+fmt(Math.PI*r*(r+s))],
+    ['Mantel','πrs = '+fmt(Math.PI*r*s)],
+    ['Seitenlänge s',fmt(s)]
+  ]);
+};
+
+/* ---------- Datum & Zeit ---------- */
+const MONTHS_DE=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const DAYS_DE=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+function isoToday(){
+  const d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function parseDate(v){
+  if(!v)throw Error('Bitte ein Datum wählen.');
+  const m=v.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m)throw Error('Datumsformat JJJJ-MM-TT erwartet.');
+  const d=new Date(+m[1],+m[2]-1,+m[3]);
+  if(Number.isNaN(d.getTime()))throw Error('Ungültiges Datum.');
+  return d;
+}
+function fmtDate(d){return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear()}
+$('#dateA').value=isoToday();
+$('#dateB').value=isoToday();
+$('#wdDate').value=isoToday();
+$('#dateToday').onclick=()=>{
+  $('#dateA').value=isoToday();
+  $('#dateB').value=isoToday();
+  $('#wdDate').value=isoToday();
+  $('#dateOut').textContent='–';
+};
+$('#dateDiffBtn').onclick=()=>{
+  try{
+    const a=parseDate($('#dateA').value),b=parseDate($('#dateB').value);
+    const ms=b-a;
+    const days=Math.round(ms/86400000);
+    if(days<0)throw Error('Das Enddatum liegt vor dem Startdatum.');
+    // Arbeitstage zählen (Mo–Fr)
+    let work=0;
+    const cur=new Date(a);
+    while(cur<=b){
+      const dw=cur.getDay();
+      if(dw!==0&&dw!==6)work++;
+      cur.setDate(cur.getDate()+1);
+    }
+    const weeks=Math.floor(days/7);
+    const months=(b.getFullYear()-a.getFullYear())*12+(b.getMonth()-a.getMonth());
+    $('#dateOut').innerHTML=
+      `<div>${fmtDate(a)} → ${fmtDate(b)}</div>`+
+      `<div><b>${days}</b> Tage</div>`+
+      `<div>${weeks} Wochen + ${days%7} Tage</div>`+
+      `<div>ca. <b>${months}</b> Monate</div>`+
+      `<div>Arbeitstage (Mo–Fr): <b>${work}</b></div>`+
+      `<div>Wochenenden: <b>${days-work}</b></div>`;
+  }catch(e){$('#dateOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+$('#dateAddBtn').onclick=()=>{
+  try{
+    const a=parseDate($('#dateA').value);
+    const d=Math.round(+$('#dateAddDays').value);
+    if(!Number.isFinite(d))throw Error('Tage müssen eine Zahl sein.');
+    const r=new Date(a);
+    r.setDate(r.getDate()+d);
+    $('#dateOut').innerHTML=
+      `${fmtDate(a)} ${d>=0?'+':'−'} ${Math.abs(d)} Tage = <b>${fmtDate(r)}</b><br>`+
+      `<span class="help">${DAYS_DE[r.getDay()]}, ${MONTHS_DE[r.getMonth()]} ${r.getFullYear()} · Kalenderwoche ${isoWeek(r)}</span>`;
+  }catch(e){$('#dateOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+function isoWeek(d){
+  const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  const day=t.getUTCDay()||7;
+  t.setUTCDate(t.getUTCDate()+4-day);
+  const y0=new Date(Date.UTC(t.getUTCFullYear(),0,1));
+  return Math.ceil(((t-y0)/86400000+1)/7);
+}
+function isLeap(y){return (y%4===0&&y%100!==0)||y%400===0}
+$('#wdBtn').onclick=()=>{
+  try{
+    const d=parseDate($('#wdDate').value);
+    $('#wdOut').innerHTML=
+      `<div>${fmtDate(d)} ist ein <b>${DAYS_DE[d.getDay()]}</b></div>`+
+      `<div>Tag ${Math.round((d-new Date(d.getFullYear(),0,0))/86400000)} von ${d.getFullYear()}</div>`+
+      `<div>Kalenderwoche: <b>${isoWeek(d)}</b></div>`+
+      `<div>${d.getFullYear()} ist ${isLeap(d.getFullYear())?'ein Schaltjahr':'kein Schaltjahr'}</div>`+
+      `<div>Quartal: Q${Math.floor(d.getMonth()/3)+1}</div>`;
+  }catch(e){$('#wdOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+/* Stoppuhr */
+let swT0=null,swEl=0,swTimer=null;
+function swFmt(ms){
+  const m=Math.floor(ms/60000),s=Math.floor(ms%60000/1000),cs=Math.floor(ms%1000/10);
+  return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')+','+String(cs).padStart(2,'0');
+}
+$('#swStart').onclick=()=>{
+  if(swTimer)return;
+  swT0=Date.now()-swEl;
+  swTimer=setInterval(()=>{$('#swOut').textContent=swFmt(Date.now()-swT0)},33);
+};
+$('#swStop').onclick=()=>{
+  if(!swTimer)return;
+  swEl=Date.now()-swT0;
+  clearInterval(swTimer);swTimer=null;
+};
+$('#swReset').onclick=()=>{
+  if(swTimer){clearInterval(swTimer);swTimer=null}
+  swT0=null;swEl=0;$('#swOut').textContent='00:00,00';
+};
+
+/* ---------- Erweiterte Umrechnung ---------- */
+const cvtUnits={
+  'Temperatur':{'°C':'C','°F':'F','K':'K'},
+  'Winkel':{'Grad':'deg','Radiant':'rad','Gon':'gon'},
+  'Datenrate':{'bit/s':1,'kbit/s':1e3,'Mbit/s':1e6,'Gbit/s':1e9,'Byte/s':8,'KiB/s':8192,'MiB/s':8388608},
+  'Frequenz':{'Hz':1,'kHz':1e3,'MHz':1e6,'GHz':1e9,'rpm':1/60},
+  'Leistung':{'W':1,'kW':1e3,'MW':1e6,'PS':735.49875,'hp':745.699872},
+  'Drehmoment':{'Nm':1,'kNm':1000,'lbf·ft':1.355817948},
+  'Brennstoff':{'l/100km':1,'mpg (US)':235.2145833,'mpg (UK)':282.4809363},
+  'Kochmaße':{'TL':1,'EL':3,'ml':5,'Tasse':240},
+  'Schuhgröße':{'EU':1,'US (H)':1,'US (D)':1,'UK':1,'cm':1}
+};
+function cvtFill(){
+  $('#cvtCat').innerHTML=Object.keys(cvtUnits).map(c=>`<option value="${c}">${c}</option>`).join('');
+  cvtFillUnits();
+}
+function cvtFillUnits(){
+  const cat=$('#cvtCat').value;
+  const keys=Object.keys(cvtUnits[cat]);
+  $('#cvtFrom').innerHTML=keys.map(k=>`<option value="${k}">${k}</option>`).join('');
+  $('#cvtTo').innerHTML=keys.map(k=>`<option value="${k}">${k}</option>`).join('');
+  if(keys.length>1)$('#cvtTo').value=keys[1];
+}
+cvtFill();
+$('#cvtCat').onchange=cvtFillUnits;
+$('#cvtBtn').onclick=()=>{
+  try{
+    const cat=$('#cvtCat').value,u=$('#cvtFrom').value,u2=$('#cvtTo').value;
+    const v=+$('#cvtVal').value;
+    if(!Number.isFinite(v))throw Error('Wert muss eine Zahl sein.');
+    let r;
+    if(cat==='Temperatur')r=TEMP[cvtUnits[cat][u]][cvtUnits[cat][u2]](v);
+    else if(cat==='Winkel')r=ANG[cvtUnits[cat][u]][cvtUnits[cat][u2]](v);
+    else if(cat==='Schuhgröße'){
+      const toCm={EU:v=>v+1.5,'US (H)':v=>(v+66)/1.5,'US (D)':v=>(v+65)/1.5,UK:v=>v+2,cm:v=>v};
+      const fromCm={EU:c=>c-1.5,'US (H)':c=>c*1.5-66,'US (D)':c=>c*1.5-65,UK:c=>c-2,cm:c=>c};
+      r=fromCm[u2](toCm[u](v));
+    }else if(cat==='Brennstoff'){
+      r=v*cvtUnits[cat][u2]/cvtUnits[cat][u];
+    }else r=v*cvtUnits[cat][u]/cvtUnits[cat][u2];
+    $('#cvtOut').innerHTML=`<b>${fmt(v)} ${esc(u)}</b> = <b>${fmt(r)} ${esc(u2)}</b>`;
+  }catch(e){$('#cvtOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+// Schnellauswahl
+const quickPairs=[
+  ['Temperatur','°C','°F'],['Temperatur','°C','K'],['Winkel','Grad','Radiant'],
+  ['Datenrate','Mbit/s','MiB/s'],['Leistung','PS','kW'],['Frequenz','rpm','Hz'],
+  ['Drehmoment','Nm','lbf·ft'],['Kochmaße','Tasse','ml']
+];
+$('#cvtQuick').innerHTML=quickPairs.map(([c,a,b])=>
+  `<button class="chip" data-q="${c}|${a}|${b}">${esc(a)} → ${esc(b)}</button>`).join('');
+$$('[data-q]').forEach(b=>b.onclick=()=>{
+  const[c,a,bb]=b.dataset.q.split('|');
+  $('#cvtCat').value=c;cvtFillUnits();
+  $('#cvtFrom').value=a;$('#cvtTo').value=bb;
+  $('#cvtBtn').click();
+});
+
+/* ---------- Formelbibliothek ---------- */
+const FORMULAS=[
+  {n:'Kreisumfang',f:'2*pi*r',v:'r',d:'U = 2πr'},
+  {n:'Kreisfläche',f:'pi*r^2',v:'r',d:'A = πr²'},
+  {n:'Kugelvolumen',f:'4/3*pi*r^3',v:'r',d:'V = 4/3·πr³'},
+  {n:'Kugeloberfläche',f:'4*pi*r^2',v:'r',d:'O = 4πr²'},
+  {n:'Zylindervolumen',f:'pi*r^2*h',v:'r,h',d:'V = πr²h'},
+  {n:'Kegelvolumen',f:'1/3*pi*r^2*h',v:'r,h',d:'V = 1/3·πr²h'},
+  {n:'Pythagoras',f:'sqrt(a^2+b^2)',v:'a,b',d:'c = √(a²+b²)'},
+  {n:'Sinus-Satz',f:'a/sin(alpha)',v:'a,alpha',d:'a/sin α = b/sin β'},
+  {n:'Kosinussatz',f:'sqrt(a^2+b^2-2*a*b*cos(gamma))',v:'a,b,gamma',d:'c² = a²+b²−2ab·cos γ'},
+  {n:'Geschwindigkeit',f:'s/t',v:'s,t',d:'v = s/t'},
+  {n:'Beschleunigung',f:'(v-u)/t',v:'v,u,t',d:'a = Δv/Δt'},
+  {n:'Wurfweite',f:'v0^2*sin(2*alpha)/9.80665',v:'v0,alpha',d:'s = v₀²·sin(2α)/g'},
+  {n:'Kinetische Energie',f:'1/2*m*v^2',v:'m,v',d:'E = ½mv²'},
+  {n:'Potentielle Energie',f:'m*9.80665*h',v:'m,h',d:'E = mgh'},
+  {n:'Newtons 2. Gesetz',f:'m*a',v:'m,a',d:'F = ma'},
+  {n:'Gravitationskraft',f:'6.674e-11*m1*m2/r^2',v:'m1,m2,r',d:'F = G·m₁m₂/r²'},
+  {n:'Ohmsches Gesetz',f:'U/R',v:'U,R',d:'I = U/R'},
+  {n:'Elektrische Leistung',f:'U*I',v:'U,I',d:'P = UI'},
+  {n:'Lorentzkraft',f:'q*v*B*sin(alpha)',v:'q,v,B,alpha',d:'F = qvB·sin α'},
+  {n:'Zinseszins',f:'K*(1+p/100)^n',v:'K,p,n',d:'Kₙ = K₀·(1+p)ⁿ'},
+  {n:'Tilgungsrate',f:'K*(p/100)/(1-(1+p/100)^(-n))',v:'K,p,n',d:'Annuität'},
+  {n:'Mittlere Geschwindigkeit',f:'2*v1*v2/(v1+v2)',v:'v1,v2',d:'harmonisches Mittel'},
+  {n:'Relativistische Masse',f:'m0/sqrt(1-v^2/299792458^2)',v:'m0,v',d:'m = m₀/√(1−v²/c²)'},
+  {n:'De-Broglie-Wellenlänge',f:'6.62607015e-34/(m*v)',v:'m,v',d:'λ = h/(mv)'},
+  {n:'Halbsatz von Steiner',f:'A*(B+1)',v:'A,B',d:'Prozentrechnung'},
+  {n:'Sinus-Satz Fläche',f:'1/2*a*b*sin(gamma)',v:'a,b,gamma',d:'A = ½ab·sin γ'},
+  {n:'Rechteckdiagonale',f:'sqrt(a^2+b^2)',v:'a,b',d:'d = √(a²+b²)'},
+  {n:'Torusvolumen',f:'2*pi^2*R*r^2',v:'R,r',d:'V = 2π²Rr²'}
+];
+function renderFormulas(filter){
+  const f=String(filter||'').toLowerCase().trim();
+  const list=FORMULAS.filter(x=>!f||x.n.toLowerCase().includes(f)||x.d.toLowerCase().includes(f));
+  $('#formulaList').innerHTML=list.length
+    ? list.map((x,i)=>{
+        const idx=FORMULAS.indexOf(x);
+        return `<div class="info-card"><h4>${esc(x.n)}</h4><p>${esc(x.d)}</p>`+
+          `<button class="btn" data-formula="${idx}" style="margin-top:8px;font-size:12px">Übernehmen</button></div>`;
+      }).join('')
+    :'<span class="help">Keine Formel gefunden.</span>';
+  $$('[data-formula]').forEach(b=>b.onclick=()=>{
+    const x=FORMULAS[+b.dataset.formula];
+    $('#sciInput').value=x.f;
+    show('scientific');
+    toast('Formel „'+x.n+'“ übernommen');
+  });
+}
+renderFormulas('');
+$('#formulaSearch').addEventListener('input',e=>renderFormulas(e.target.value));
+
+/* ---------- Konstanten ---------- */
+const CONSTANTS=[
+  {n:'Lichtgeschwindigkeit c',v:'299792458',u:'m/s'},
+  {n:'Plancksches Wirkungsquantum h',v:'6.62607015e-34',u:'J·s'},
+  {n:'Reduziertes Plancksches ħ',v:'1.054571817e-34',u:'J·s'},
+  {n:'Gravitationskonstante G',v:'6.6743e-11',u:'m³/(kg·s²)'},
+  {n:'Elementarladung e',v:'1.602176634e-19',u:'C'},
+  {n:'Elektronenmasse mₑ',v:'9.1093837015e-31',u:'kg'},
+  {n:'Protonenmasse mₚ',v:'1.67262192369e-27',u:'kg'},
+  {n:'Neutronenmasse mₙ',v:'1.67492749804e-27',u:'kg'},
+  {n:'Avogadro-Konstante Nᴀ',v:'6.02214076e23',u:'1/mol'},
+  {n:'Boltzmann-Konstante kʙ',v:'1.380649e-23',u:'J/K'},
+  {n:'Universelle Gaskonstante R',v:'8.314462618',u:'J/(mol·K)'},
+  {n:'Erdbeschleunigung g',v:'9.80665',u:'m/s²'},
+  {n:'Molare Gaskonstante',v:'8.314462618',u:'J/(mol·K)'},
+  {n:'Permittivität ε₀',v:'8.8541878128e-12',u:'F/m'},
+  {n:'Permeabilität μ₀',v:'1.25663706212e-6',u:'H/m'},
+  {n:'Feinstrukturkonstante α',v:'0.0072973525693',u:'–'},
+  {n:'π',v:'3.14159265358979',u:'–'},
+  {n:'e (Eulersche Zahl)',v:'2.71828182845905',u:'–'},
+  {n:'Goldener Schnitt φ',v:'1.61803398874989',u:'–'},
+  {n:'√2',v:'1.41421356237310',u:'–'},
+  {n:'Eulersche γ',v:'0.57721566490153',u:'–'},
+  {n:'Apérysche Konstante ζ(3)',v:'1.20205690315959',u:'–'},
+  {n:'Lichtjahr',v:'9.4607304725808e15',u:'m'},
+  {n:'Astronomische Einheit',v:'1.495978707e11',u:'m'},
+  {n:'Parsec',v:'3.0856775814913673e16',u:'m'}
+];
+function renderConstants(filter){
+  const f=String(filter||'').toLowerCase().trim();
+  const list=CONSTANTS.filter(x=>!f||x.n.toLowerCase().includes(f));
+  $('#constList').innerHTML=list.length
+    ? list.map((x,i)=>{
+        const idx=CONSTANTS.indexOf(x);
+        return `<div class="const-item"><b>${esc(x.n)}</b><code>${esc(x.v)} ${esc(x.u)}</code>`+
+          `<button class="btn" data-const="${idx}" style="padding:4px 9px;font-size:11px">⊕</button></div>`;
+      }).join('')
+    :'<span class="help">Keine Konstante gefunden.</span>';
+  $$('[data-const]').forEach(b=>b.onclick=async()=>{
+    const x=CONSTANTS[+b.dataset.const];
+    try{
+      await navigator.clipboard.writeText(x.v);
+      toast(x.n+' kopiert');
+    }catch{$('#sciInput').value=x.v;toast(x.n+' im Rechner eingesetzt')}
+  });
+}
+renderConstants('');
+$('#constSearch').addEventListener('input',e=>renderConstants(e.target.value));
+
+/* ---------- Notizen ---------- */
+db.notes=Array.isArray(db.notes)?db.notes:[];
+let noteEditId=null;
+function renderNotes(){
+  $('#noteList').innerHTML=db.notes.length
+    ? db.notes.map(n=>
+        `<div class="note-item"><div class="nt"><b>${esc(n.title||'Ohne Titel')}</b>`+
+        `<small>${esc((n.body||'').slice(0,60))}${(n.body||'').length>60?'…':''}</small>`+
+        `<div class="help" style="font-size:10.5px;margin-top:4px">${esc(n.t||'')}</div></div>`+
+        `<div class="row"><button class="btn" data-note-open="${esc(n.id)}" style="padding:5px 9px;font-size:11px">Öffnen</button>`+
+        `<button class="btn" data-note-del="${esc(n.id)}" style="padding:5px 9px;font-size:11px">×</button></div></div>`
+      ).join('')
+    :'<span class="help">Noch keine Notizen.</span>';
+  $$('[data-note-open]').forEach(b=>b.onclick=()=>{
+    const n=db.notes.find(x=>x.id===b.dataset.noteOpen);
+    if(!n)return;
+    noteEditId=n.id;
+    $('#noteTitle').value=n.title||'';
+    $('#noteBody').value=n.body||'';
+  });
+  $$('[data-note-del]').forEach(b=>b.onclick=()=>{
+    db.notes=db.notes.filter(x=>x.id!==b.dataset.noteDel);
+    if(noteEditId===b.dataset.noteDel){noteEditId=null;$('#noteTitle').value='';$('#noteBody').value=''}
+    persist();renderNotes();
+  });
+}
+$('#noteSave').onclick=()=>{
+  const title=$('#noteTitle').value.trim(),body=$('#noteBody').value;
+  if(!title&&!body)return toast('Notiz ist leer.');
+  if(noteEditId){
+    const n=db.notes.find(x=>x.id===noteEditId);
+    if(n){n.title=title;n.body=body;n.t=new Date().toLocaleString('de-DE')}
+  }else{
+    db.notes.unshift({id:crypto.randomUUID?.()||String(Date.now()),title,body,t:new Date().toLocaleString('de-DE')});
+    noteEditId=db.notes[0].id;
+  }
+  persist();renderNotes();toast('Notiz gespeichert');
+};
+$('#noteNew').onclick=()=>{noteEditId=null;$('#noteTitle').value='';$('#noteBody').value=''};
+$('#noteExport').onclick=()=>{
+  const title=$('#noteTitle').value.trim()||'Notiz';
+  const body=$('#noteBody').value;
+  const evaluated=body.replace(/\[\[(.+?)\]\]/g,(m,expr)=>{
+    try{return fmt(evalExpr(expr))}catch{return '['+expr+' – Fehler]'}
+  });
+  const blob=new Blob([title+'\n\n'+evaluated],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a');
+  a.download=title.replace(/[^\w\d-]+/g,'_')+'.txt';
+  a.href=URL.createObjectURL(blob);
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+};
+renderNotes();
+
+/* ---------- Übungsmodus ---------- */
+let quizCur=null,quizRight=0,quizCount=0;
+function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+$('#quizStart').onclick=()=>{
+  const lvl=+$('#quizLevel').value;
+  const kinds=lvl===1?['add','sub','mul','sq']:lvl===2?['add','sub','mul','div','sq','pct','gcd']:['mul','div','pow','sqrt','pct','mix','fact'];
+  const kind=kinds[rnd(0,kinds.length-1)];
+  let q='',ans=0;
+  const lim=lvl===1?12:lvl===2?30:120;
+  if(kind==='add'){const a=rnd(2,lim),b=rnd(2,lim);q=a+' + '+b;ans=a+b}
+  else if(kind==='sub'){const a=rnd(3,lim+10),b=rnd(1,a-1);q=a+' − '+b;ans=a-b}
+  else if(kind==='mul'){const a=rnd(2,lvl===3?25:12),b=rnd(2,lvl===3?25:12);q=a+' × '+b;ans=a*b}
+  else if(kind==='div'){const b=rnd(2,lvl===3?15:9),ans0=rnd(2,lvl===3?15:9);const a=b*ans0;q=a+' ÷ '+b;ans=ans0}
+  else if(kind==='sq'){const a=rnd(2,lvl===3?30:15);q=a+'²';ans=a*a}
+  else if(kind==='pow'){const a=rnd(2,6),b=rnd(2,4);q=a+'^'+b;ans=a**b}
+  else if(kind==='sqrt'){const a=rnd(2,20);q='√'+a*a;ans=a}
+  else if(kind==='pct'){const p=rnd(1,9)*10,x=rnd(2,20)*5;q=p+'% von '+x;ans=p/100*x}
+  else if(kind==='gcd'){const a=rnd(4,60),b=rnd(4,60);q='ggT('+a+', '+b+')';ans=gcd2(a,b)}
+  else if(kind==='fact'){const a=rnd(2,lvl===3?8:6);q=a+'!';ans=factorial(a)}
+  else{const a=rnd(2,20),b=rnd(2,20);q=a+' + '+b+' × 2';ans=a+b*2}
+  quizCur={q,ans};
+  $('#quizQ').textContent=q+' = ?';
+  $('#quizAns').value='';
+  $('#quizFeed').textContent='';
+  $('#quizAns').focus();
+};
+$('#quizCheck').onclick=checkQuiz;
+$('#quizAns').addEventListener('keydown',e=>{if(e.key==='Enter')checkQuiz()});
+function checkQuiz(){
+  if(!quizCur)return $('#quizFeed').innerHTML='<span class="warning">Erst eine Aufgabe starten.</span>';
+  const raw=$('#quizAns').value.trim().replace(',','.');
+  const v=Number(raw);
+  if(!raw||!Number.isFinite(v))return $('#quizFeed').innerHTML='<span class="warning">Bitte eine Zahl eingeben.</span>';
+  quizCount++;
+  if(Math.abs(v-quizCur.ans)<1e-9){
+    quizRight++;
+    $('#quizFeed').innerHTML='<span class="ok">Richtig! '+esc(quizCur.q)+' = '+fmt(quizCur.ans)+'</span>';
+    setTimeout(()=>$('#quizStart').click(),1200);
+  }else{
+    $('#quizFeed').innerHTML=`<span class="err">Leider falsch. ${esc(quizCur.q)} = ${fmt(quizCur.ans)}</span>`;
+  }
+  $('#quizScore').textContent=quizRight;
+  $('#quizTotal').textContent=quizCount;
+}
+
+/* ---------- Command-Palette ---------- */
+const CMDS=[
+  ...pages.map(([id,name])=>({t:name,i:'📄',a:()=>show(id),h:'Modul'})),
+  {t:'Design wechseln',i:'◐',a:()=>$('#themeCycle').click(),h:'Design'},
+  ...THEMES.map(t=>({t:'Design: '+t,i:'🎨',a:()=>applyTheme(t),h:'Design'})),
+  {t:'Hilfe & Tastenkürzel',i:'?',a:()=>$('#helpBtn').click(),h:'Hilfe'},
+  {t:'Über ELIAN',i:'ⓘ',a:()=>$('#infoBtn').click(),h:'Hilfe'},
+  {t:'Winkelmodus umschalten',i:'∠',a:()=>$('#angleBtn').click(),h:'Rechner'},
+  {t:'Als Bruch darstellen',i:'½',a:()=>$('#fractionBtn').click(),h:'Rechner'},
+  {t:'Graph plotten',i:'📈',a:()=>$('#plotBtn').click(),h:'Graph'},
+  {t:'Ansicht anpassen',i:'⤢',a:()=>$('#fitBtn').click(),h:'Graph'},
+  {t:'PNG exportieren',i:'🖼',a:()=>exportCanvas('png'),h:'Graph'},
+  {t:'SVG exportieren',i:'📐',a:()=>exportCanvas('svg'),h:'Graph'},
+  {t:'Wertetabelle erstellen',i:'▦',a:()=>$('#makeTable').click(),h:'Graph'},
+  {t:'Integral berechnen',i:'∫',a:()=>$('#integralBtn').click(),h:'Graph'},
+  {t:'Ableitung anzeigen',i:'∂',a:()=>$('#derivativeBtn').click(),h:'Graph'},
+  {t:'Sitzung exportieren',i:'💾',a:()=>$('#exportData').click(),h:'Daten'},
+  {t:'Sitzung importieren',i:'📥',a:()=>$('#importData').click(),h:'Daten'},
+  {t:'Verlauf löschen',i:'🗑',a:()=>$('#clearHistory').click(),h:'Daten'},
+  {t:'Neue Übungsaufgabe',i:'🎯',a:()=>{$('#quizStart').click();show('quiz')},h:'Lernen'},
+  {t:'Grenzwert berechnen',i:'lim',a:()=>show('calculus'),h:'Analysis'},
+  {t:'Newton-Iteration',i:'∫',a:()=>show('calculus'),h:'Analysis'},
+  {t:'Komplexe Zahlen',i:'ℂ',a:()=>show('complex'),h:'Mathe'},
+  {t:'Polynom-Werkzeug',i:'∑',a:()=>show('polynomial'),h:'Mathe'},
+  {t:'Folgen & Reihen',i:'∞',a:()=>show('sequences'),h:'Mathe'},
+  {t:'Geometrie',i:'△',a:()=>show('geometry'),h:'Mathe'},
+  {t:'Datum & Zeit',i:'📅',a:()=>show('dates'),h:'Werkzeug'},
+  {t:'Erweiterte Umrechnung',i:'⇄',a:()=>show('convert'),h:'Werkzeug'},
+  {t:'Formelbibliothek',i:'📚',a:()=>show('formulas'),h:'Werkzeug'},
+  {t:'Konstanten',i:'🔬',a:()=>show('constants'),h:'Werkzeug'},
+  {t:'Notizen',i:'📝',a:()=>show('notes'),h:'Werkzeug'},
+  {t:'Abmelden',i:'⏻',a:()=>$('#logoutBtn').click(),h:'Sitzung'}
+];
+let cmdSel=0,cmdShown=[];
+function cmdkOpen(){
+  $('#cmdk').classList.add('open');
+  $('#cmdkInput').value='';
+  cmdkFilter('');
+  setTimeout(()=>$('#cmdkInput').focus(),30);
+}
+function cmdkClose(){$('#cmdk').classList.remove('open')}
+function cmdkFilter(q){
+  const f=String(q).toLowerCase().trim();
+  cmdShown=CMDS.filter(c=>!f||c.t.toLowerCase().includes(f)||(c.h||'').toLowerCase().includes(f)).slice(0,40);
+  cmdSel=0;
+  $('#cmdkList').innerHTML=cmdShown.length
+    ? cmdShown.map((c,i)=>`<button class="cmdk-item ${i===0?'sel':''}" data-cmd="${i}"><span class="ico">${esc(c.i)}</span><span>${esc(c.t)}</span><span class="hint">${esc(c.h||'')}</span></button>`).join('')
+    :'<div class="cmdk-empty">Kein Treffer.</div>';
+  $$('[data-cmd]').forEach(b=>{
+    b.onclick=()=>{cmdkClose();const c=cmdShown[+b.dataset.cmd];if(c)c.a()};
+  });
+}
+$('#cmdkInput').addEventListener('input',e=>cmdkFilter(e.target.value));
+$('#cmdkInput').addEventListener('keydown',e=>{
+  if(e.key==='Escape'){cmdkClose();return}
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+    e.preventDefault();
+    if(!cmdShown.length)return;
+    cmdSel=(cmdSel+(e.key==='ArrowDown'?1:-1)+cmdShown.length)%cmdShown.length;
+    $$('[data-cmd]').forEach((b,i)=>b.classList.toggle('sel',i===cmdSel));
+    const el=$$('[data-cmd]')[cmdSel];
+    if(el&&el.scrollIntoView)el.scrollIntoView({block:'nearest'});
+  }
+  if(e.key==='Enter'){
+    e.preventDefault();
+    const c=cmdShown[cmdSel];
+    cmdkClose();
+    if(c)c.a();
+  }
+});
+$('#cmdk').addEventListener('click',e=>{if(e.target.id==='cmdk')cmdkClose()});
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){
+    e.preventDefault();
+    $('#cmdk').classList.contains('open')?cmdkClose():cmdkOpen();
+    return;
+  }
+  if(e.key==='Escape'&&$('#cmdk').classList.contains('open')){
+    e.preventDefault();cmdkClose();return;
+  }
+  if(e.key==='/'&&!$('#cmdk').classList.contains('open')){
+    const tag=(e.target.tagName||'').toLowerCase();
+    if(tag!=='input'&&tag!=='textarea'){e.preventDefault();cmdkOpen()}
+  }
+});
+
+/* ---------- Historien-Suche & Filter ---------- */
+function renderHistory(){
+  const q=$('#histSearch')?$('#histSearch').value.toLowerCase().trim():'';
+  const favOnly=$('#histFavBtn')?$('#histFavBtn').classList.contains('on'):false;
+  db.favHistory=Array.isArray(db.favHistory)?db.favHistory:[];
+  let items=db.history;
+  if(q)items=items.filter(h=>(h.e||'').toLowerCase().includes(q)||(h.r||'').toLowerCase().includes(q));
+  if(favOnly)items=items.filter(h=>db.favHistory.includes(h.e+'='+h.r));
+  $('#historyList').innerHTML=items.length
+    ? items.map(h=>{
+        const key=h.e+'='+h.r;
+        const fav=db.favHistory.includes(key);
+        return `<div class="card glass hist-item" style="padding:12px;margin:7px 0">`+
+          `<button class="icon" data-hfav="${esc(key)}" title="Merken" style="padding:5px 8px">${fav?'★':'☆'}</button>`+
+          `<span class="he">${esc(h.e)}</span><b class="hr">= ${esc(h.r)}</b>`+
+          `<span class="help">${esc(h.t)}</span>`+
+          `<button class="icon" data-huse="${esc(h.e)}" title="Erneut verwenden" style="padding:5px 8px">↻</button></div>`;
+      }).join('')
+    :'<span class="help">'+(q||favOnly?'Keine Treffer.':'Leer.')+'</span>';
+  $$('[data-hfav]').forEach(b=>b.onclick=()=>{
+    const k=b.dataset.hfav;
+    const i=db.favHistory.indexOf(k);
+    if(i>=0)db.favHistory.splice(i,1);else db.favHistory.push(k);
+    persist();renderHistory();
+  });
+  $$('[data-huse]').forEach(b=>b.onclick=()=>{
+    $('#sciInput').value=b.dataset.huse;
+    show('scientific');
+  });
+}
+
+/* ---------- Bruchrechner ---------- */
+function fracCalc(a,b,op,c,d){
+  if(b===0||d===0)throw Error('Nenner dürfen nicht 0 sein.');
+  let n,dd;
+  if(op==='+'){n=a*d+c*b;dd=b*d}
+  else if(op==='-'){n=a*d-c*b;dd=b*d}
+  else if(op==='*'){n=a*c;dd=b*d}
+  else{n=a*d;dd=b*c}
+  if(dd<0){n=-n;dd=-dd}
+  const g=gcd2(Math.abs(n),Math.abs(dd));
+  return{n:n/g,d:dd/g};
+}
+$('#frCalc').onclick=()=>{
+  try{
+    const a=+$('#frA').value,b=+$('#frB').value,c=+$('#frC').value,d=+$('#frD').value;
+    if(![a,b,c,d].every(Number.isFinite))throw Error('Alle Felder müssen ganze Zahlen sein.');
+    if(![a,b,c,d].every(Number.isInteger))throw Error('Brüche benötigen ganze Zahlen.');
+    const op=$('#frOp').value;
+    const r=fracCalc(a,b,op,c,d);
+    const dec=r.n/r.d;
+    $('#frOut').innerHTML=
+      `<span style="font-size:19px"><b>${a}/${b}</b> ${esc(op)} <b>${c}/${d}</b> = <b>${r.n}/${r.d}</b></span>`+
+      (r.d!==1?`<br><span class="help">= ${fmt(dec)}${Math.abs(Math.trunc(dec))>=1?' = '+Math.trunc(dec)+' '+Math.abs(r.n%r.d)+'/'+r.d:''}</span>`:'');
+  }catch(e){$('#frOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+
+/* ---------- Matrix-Raster ---------- */
+let matGridData=[];
+function renderMatGrid(){
+  const rows=Math.min(8,Math.max(1,Math.round(+$('#matRows').value)||2));
+  const cols=Math.min(8,Math.max(1,Math.round(+$('#matCols').value)||2));
+  $('#matRows').value=rows;$('#matCols').value=cols;
+  matGridData=matGridData.length===rows&&matGridData[0]?.length===cols
+    ? matGridData
+    : Array.from({length:rows},()=>Array.from({length:cols},()=>0));
+  $('#matGrid').innerHTML=`<table class="table" style="width:auto"><tbody>`+
+    matGridData.map((r,i)=>'<tr>'+r.map((v,j)=>
+      `<td><input class="input" data-mg="${i},${j}" value="${fmt(v)}" style="width:76px;text-align:center"></td>`
+    ).join('')+'</tr>').join('')+'</tbody></table>';
+  $$('[data-mg]').forEach(e=>e.addEventListener('input',()=>{
+    const[i,j]=e.dataset.mg.split(',').map(Number);
+    matGridData[i][j]=+e.value||0;
+  }));
+}
+$('#matResize').onclick=renderMatGrid;
+$('#matRandom').onclick=()=>{
+  renderMatGrid();
+  matGridData=matGridData.map(r=>r.map(()=>rnd(-9,9)));
+  renderMatGrid();
+};
+$('#matClear').onclick=()=>{
+  renderMatGrid();
+  matGridData=matGridData.map(r=>r.map(()=>0));
+  renderMatGrid();
+};
+$('#matReadGrid').onclick=()=>{
+  $$('[data-mg]').forEach(e=>{
+    const[i,j]=e.dataset.mg.split(',').map(Number);
+    matGridData[i][j]=+e.value||0;
+  });
+  $('#matA').value=matGridData.map(r=>r.join(' ')).join('\n');
+  toast('Matrix übernommen');
+};
+renderMatGrid();
+
+/* ---------- Statistik-Diagramm ---------- */
+function renderStatChart(){
+  const raw=$('#statData').value.split(/[\s,;]+/).map(Number).filter(Number.isFinite);
+  if(raw.length<2)return $('#statChart').innerHTML='';
+  const bins=Math.min(14,Math.max(4,Math.ceil(Math.sqrt(raw.length))));
+  const min=Math.min(...raw),max=Math.max(...raw);
+  const span=max-min||1;
+  const counts=new Array(bins).fill(0);
+  for(const v of raw){
+    let idx=Math.floor((v-min)/span*bins);
+    if(idx>=bins)idx=bins-1;
+    if(idx<0)idx=0;
+    counts[idx]++;
+  }
+  const peak=Math.max(...counts)||1;
+  $('#statChart').innerHTML=counts.map((c,i)=>{
+    const lo=min+span*i/bins,hi=min+span*(i+1)/bins;
+    return `<div class="bar" style="height:${(c/peak*100).toFixed(1)}%" title="${fmt(lo)} – ${fmt(hi)}: ${c}"></div>`;
+  }).join('');
+  $('#statChartInfo').innerHTML=`${bins} Klassen · Spannweite ${fmt(min)} – ${fmt(max)} · häufigste Klasse: `+
+    counts.map((c,i)=>[c,min+span*(i+.5)/bins]).sort((a,b)=>b[0]-a[0])[0][0]+
+    ' Werte bei ≈ '+fmt(counts.map((c,i)=>[c,min+span*(i+.5)/bins]).sort((a,b)=>b[0]-a[0])[0][1]);
+}
+// in stat() einhängen
+const _origStat=stat;
+stat=function(){
+  _origStat();
+  if($('#statChart'))renderStatChart();
+};
+
+/* ---------- Regression & Korrelation ---------- */
+function parseSeries(s){
+  const a=String(s).split(/[\s,;]+/).filter(Boolean).map(Number);
+  if(a.length<2)throw Error('Mindestens zwei Werte pro Reihe nötig.');
+  if(a.some(v=>!Number.isFinite(v)))throw Error('Ungültiger Wert in der Reihe.');
+  return a;
+}
+$('#regBtn').onclick=()=>{
+  try{
+    const X=parseSeries($('#regX').value),Y=parseSeries($('#regY').value);
+    if(X.length!==Y.length)throw Error('Beide Reihen müssen gleich lang sein ('+X.length+' vs '+Y.length+').');
+    const n=X.length;
+    const mx=X.reduce((s,v)=>s+v,0)/n,my=Y.reduce((s,v)=>s+v,0)/n;
+    let sxy=0,sxx=0,syy=0;
+    for(let i=0;i<n;i++){
+      sxy+=(X[i]-mx)*(Y[i]-my);
+      sxx+=(X[i]-mx)**2;
+      syy+=(Y[i]-my)**2;
+    }
+    const r=sxx>0&&syy>0?sxy/Math.sqrt(sxx*syy):NaN;
+    const b=sxx>0?sxy/sxx:NaN;
+    const a=my-b*mx;
+    // Quadratische Regression
+    let s0=n,s1=0,s2=0,s3=0,s4=0,t0=0,t1=0,t2=0;
+    for(let i=0;i<n;i++){
+      const x=X[i],y=Y[i];
+      s1+=x;s2+=x*x;s3+=x*x*x;s4+=x*x*x*x;
+      t0+=y;t1+=x*y;t2+=x*x*y;
+    }
+    const M=[[s2,s1,s0,t1],[s3,s2,s1,t2],[s4,s3,s2,0]];
+    const quad=gauss(M.map(r=>r.slice()),['c','b','a']);
+    const strength=Math.abs(r)>0.9?'sehr stark':Math.abs(r)>0.7?'stark':Math.abs(r)>0.4?'moderat':Math.abs(r)>0.2?'schwach':'keine';
+    $('#regOut').innerHTML=
+      `<div><b>Linear:</b> y = ${fmt(b)}x ${a<0?'− '+fmt(Math.abs(a)):'+ '+fmt(a)}</div>`+
+      `<div>Korrelationskoeffizient r = <b>${fmt(r)}</b> (${strength} ${r<0?'negative':'positive'} Korrelation)</div>`+
+      `<div>Bestimmtheitsmaß r² = <b>${fmt(r*r)}</b></div>`+
+      (quad.c!==undefined?`<div><b>Quadratisch:</b> y = ${fmt(quad.c)}x² ${quad.b<0?'− '+fmt(Math.abs(quad.b)):'+ '+fmt(quad.b)}x ${quad.a<0?'− '+fmt(Math.abs(quad.a)):'+ '+fmt(quad.a)}</div>`:'')+
+      `<div class="help" style="margin-top:6px">x̄ = ${fmt(mx)} · ȳ = ${fmt(my)} · n = ${n}</div>`;
+  }catch(e){$('#regOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+$('#regFromStat').onclick=()=>{
+  const vals=$('#statData').value.split(/[\s,;]+/).filter(Boolean).map(Number).filter(Number.isFinite);
+  if(vals.length<2)return toast('Erst Statistik-Daten auswerten.');
+  $('#regX').value=vals.map((_,i)=>i+1).join(', ');
+  $('#regY').value=vals.join(', ');
+  toast('Daten übernommen');
+};
+$('#regPlotBtn').onclick=()=>{
+  try{
+    const X=parseSeries($('#regX').value),Y=parseSeries($('#regY').value);
+    const n=X.length;
+    const mx=X.reduce((s,v)=>s+v,0)/n,my=Y.reduce((s,v)=>s+v,0)/n;
+    let sxy=0,sxx=0;
+    for(let i=0;i<n;i++){sxy+=(X[i]-mx)*(Y[i]-my);sxx+=(X[i]-mx)**2}
+    const b=sxy/sxx,a=my-b*mx;
+    const pts=X.map((x,i)=>'P'+(i+1)+'=('+x+','+Y[i]+')').join('\n');
+    $('#graphInput').value='y='+fmt(b)+'*x+'+fmt(a)+'\n'+pts;
+    db.graphInput=$('#graphInput').value;persist();
+    show('graph');
+    toast('Regressionsgerade und Punkte geplottet');
+  }catch(e){toast(e.message)}
+};
+
+/* =====================================================================
+   Start
+   ===================================================================== */
+(async()=>{
+  await initAdmin();
+  applyTheme(db.theme);
+  renderCalc();
+  renderDiagnostics();
+  nav();
+  // Graph-Text vorbereiten, aber erst beim Öffnen der Ansicht zeichnen
+  $('#graphInput').value=db.graphInput||'y=9x+5';
+  // v7: Historien-Suche verdrahten
+  const hs=$('#histSearch');
+  if(hs)hs.addEventListener('input',renderHistory);
+  const hf=$('#histFavBtn');
+  if(hf)hf.onclick=()=>{hf.classList.toggle('on');renderHistory()};
+  const hc=$('#histExportCsv');
+  if(hc)hc.onclick=exportHistoryCsv;
+  // v7: Statistiken zeichnen das Diagramm mit
+  window.addEventListener('error',e=>{
+    console.error('ELIAN:',e.message);
+  });
+})();
+</script>
+</body>
+</html>
