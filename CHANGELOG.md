@@ -1,5 +1,42 @@
 # Changelog
 
+## [8.0.0] — 2026-11-02
+
+Umfangreichstes Release: vollständige Design-Überarbeitung, neuer symbolischer Rechenkern, sechs neue Module und die iOS-/iPadOS-App.
+
+### Neu
+- **3D-Funktionsplotter**: `z = f(x, y)` als drehbare, nach Höhe gefärbte Fläche (Painter-Algorithmus), Auflösung 24–80, Zoom/Pinch, automatische Parametererkennung, PNG-Export und Teilen
+- **RPN-Modus** (Umgekehrte Polnische Notation): Stapelanzeige T Z Y X, ENTER, SWAP, ROLL, DROP, LASTx, Stack-Leeren; umschaltbar neben dem algebraischen Modus
+- **Symbolische Mathematik**: Tokenizer → Parser → AST → exakte Differentiation (Kettenregel) für alle trigonometrischen, hyperbolischen, logarithmischen, Wurzel- und Potenzfunktionen; konsistent mit dem Winkelmodus (DEG/GON/RAD)
+- **Taylor-Reihen**: Grad 1–30, beliebiger Entwicklungspunkt, Koeffizientenliste, Plot von Funktion und Polynom
+- **Hypothesentests**: Einstichproben-t, Zweistichproben-t (Welch), z-Test (μ₀ + σ), χ²-Anpassungstest — mit Prüfgröße, Freiheitsgraden, p-Wert (Lanczos-Gamma, unvollständige Betafunktion), kritischem Wert und 95-%-Konfidenzintervall
+- **Numerische Integration** mit wählbarer Methode (Simpson/Trapez) und Kennzahlen-Karte
+- **Apple-Pencil-Skizze** (iPad): Zeichnen direkt auf dem 2D-Graphen, nur Stifteingaben, wird in Export und Teilen eingebunden
+- **Natives Teilen**: PNG-Weitergabe über Capacitor-Share-Plugin bzw. Web-Share-API mit Download-Fallback
+- **Helles Design**: Light-Mode vollständig umgesetzt, automatisch nach System oder manuell
+- **Dynamische Schriftgröße** (80–150 %) in den Einstellungen
+- **iPadOS-Layout**: Sidebar persistent ab 834 px, sichere Bereiche, 44-px-Touch-Ziele, ⌘1–⌘9 / ⌘B / ⌘K Hardware-Shortcuts
+- **iOS/iPadOS-App**: Capacitor-8-Projekt, eigene App-Icons und Splash-Screens (`ios/`), GitHub-Actions-Build (unsigned-Archiv, optional signierte IPA)
+
+### Verbessert
+- Tangenten, Normalen und Newton-Iteration nutzen jetzt die exakte symbolische Ableitung (numerischer Fallback bleibt erhalten)
+- Alle bestehenden Module auf einheitliche Design-Tokens, Fokus-States und Touch-Ziele umgestellt
+- Diagnose im Admin-Panel zeigt Winkelmodus, Design-Modus und Schriftgröße
+- Hilfe- und Info-Dialoge um RPN, 3D-Plotter, Taylor und Hypothesentests erweitert
+- Befehlspalette um 3D-Plotter, RPN, Teilen, Skizze, Taylor, Hypothesentest, Hell/Dunkel und Integralmethode erweitert
+- SVG-Export des Graphen eingebettet jetzt auch die Skizze
+
+### Behoben
+- Inkonsistenz zwischen symbolischem und numerischem Ableiten bei DEG/GON-Winkelmodus (Ableitungsskalierung π/180 bzw. π/200)
+- Resize-Handler zeichnet jetzt 3D-Ansicht und Skizze-Layer mit
+
+### Migriert
+- Bestehende Datenbanken aus v6.2, v6.3, v6.4 und v7.0 werden übernommen; neue Felder (themeMode, fontScale, intMethod, calcMode, rpnStack, graph3dInput) erhalten Standardwerte
+
+### Verifiziert
+- Im Browser gegen die Live-Datei geprüft: Parser-Korrektheit (Operatorreihenfolge, Rechtsassoziation, implizite Multiplikation), RPN-Kette, symbolische vs. numerische Ableitung (DEG und RAD), Taylor-Koeffizienten gegen bekannte Reihen, Hypothesentest gegen Referenzwerte, 3D-Gitteraufbau, Integralmethoden, Persistenz und Migration über Reload
+
+
 ## [7.0] — 2026-10-12
 
 ### Neu

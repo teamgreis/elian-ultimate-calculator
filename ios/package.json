@@ -1,0 +1,22 @@
+{
+  "name": "elian-ultimate-calculator-ios",
+  "version": "8.0.0",
+  "private": true,
+  "description": "ELIAN Ultimate Calculator v8.0 — iOS & iPadOS Edition (Capacitor)",
+  "scripts": {
+    "sync": "npx cap sync ios",
+    "copy": "npx cap copy ios",
+    "open": "npx cap open ios",
+    "icons": "python make_assets.py"
+  },
+  "dependencies": {
+    "@capacitor/core": "^8.6.0",
+    "@capacitor/ios": "^8.6.0",
+    "@capacitor/share": "^8.0.3",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.4"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.6.0"
+  }
+}

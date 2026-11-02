@@ -1,0 +1,20 @@
+# Abhängigkeiten
+node_modules/
+
+# Capacitor-Build-Artefakte
+App/Pods/
+App/build/
+App/DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcworkspace/xcuserdata/
+
+# Signatur
+*.mobileprovision
+*.cer
+*.p12
+*.certSigningRequest
+
+# OS-Unrat
+.DS_Store
+Thumbs.db

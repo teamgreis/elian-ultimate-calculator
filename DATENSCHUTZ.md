@@ -1,7 +1,7 @@
 DATENSCHUTZERKLÄRUNG
-ELIAN Ultimate Calculator v7.0
+ELIAN Ultimate Calculator v8.0 (Web, iOS und iPadOS)
 
-Stand: 12. Oktober 2026
+Stand: 2. November 2026
 Rechtsstand: Bundesrepublik Deutschland (DSGVO, BDSG, TDDDG — Fassung 2026)
 
 --------------------------------------------------------------------------------
@@ -31,6 +31,15 @@ Insbesondere gilt:
   - KEINE Netzwerkanfragen beim Rechnen, Plotten oder Speichern
 
 Es werden ausschließlich Daten auf Ihrem eigenen Gerät verarbeitet.
+
+Das gilt unverändert auch für die iOS-/iPadOS-App: Sie führt dieselbe
+Anwendung in einer lokalen Web-Ansicht (Capacitor) aus. Es gibt keine
+Serveranbindung, keine Analytics, keine Werbe-IDs, keine Push-Dienste und
+keine Konten bei Apple oder Dritten. Die lokale Datenspeicherung erfolgt
+im Anwendungsspeicher des Geräts (Sandbox), nicht in iCloud. Das optionale
+Teilen von Graphenbildern erfolgt ausschließlich über das von Ihnen
+ausgelöste System-Teilen von Apple; die Software versendet nichts von
+selbst.
 
 
 3. WELCHE DATEN WERDEN VERARBEITET
