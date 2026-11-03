@@ -72,11 +72,17 @@ jobs:
           KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
           KEY_B64: ${{ secrets.APPLE_API_KEY_BASE64 }}
+          PROFILE_NAME: ${{ secrets.PROVISIONING_PROFILE_NAME }}
         run: |
           ARGS=""
           if [ -n "$KEY_B64" ] && [ -n "$KEY_ID" ] && [ -n "$ISSUER_ID" ]; then
             echo "$KEY_B64" | base64 --decode > /tmp/AuthKey.p8
             ARGS="-allowProvisioningUpdates -authenticationKeyPath /tmp/AuthKey.p8 -authenticationKeyID $KEY_ID -authenticationKeyIssuerID $ISSUER_ID"
+          fi
+          if [ -n "$PROFILE_NAME" ]; then
+            echo "has_profile=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_profile=false" >> "$GITHUB_OUTPUT"
           fi
           {
             echo "signargs<<EOF"
@@ -114,7 +120,7 @@ jobs:
           retention-days: 14
 
       - name: IPA exportieren (nur mit Signatur-Geheimnissen)
-        if: ${{ steps.signing.outputs.has_signing == 'true' && secrets.PROVISIONING_PROFILE_NAME != '' }}
+        if: ${{ steps.signing.outputs.has_signing == 'true' && steps.signargs.outputs.has_profile == 'true' }}
         run: |
           cd ios/App
           cat > build/ExportOptions.plist <<PLIST
@@ -145,7 +151,7 @@ jobs:
             ${{ steps.signargs.outputs.signargs }}
 
       - name: IPA als Artefakt hochladen (optional)
-        if: ${{ steps.signing.outputs.has_signing == 'true' && secrets.PROVISIONING_PROFILE_NAME != '' }}
+        if: ${{ steps.signing.outputs.has_signing == 'true' && steps.signargs.outputs.has_profile == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: ELIAN-ipa
