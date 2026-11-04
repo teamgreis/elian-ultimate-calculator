@@ -1,0 +1,62 @@
+name: HTML-Prüfung
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ELIAN_Ultimate_Calculator_v8.0.html'
+      - '.github/workflows/pruefung.yml'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  pruefung:
+    name: JS-Syntax und HTML-Struktur
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node einrichten
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: JavaScript-Syntax prüfen
+        run: |
+          node -e "
+            const fs = require('fs');
+            const html = fs.readFileSync('ELIAN_Ultimate_Calculator_v8.0.html', 'utf8');
+            const m = html.match(/<script>([\s\S]*?)<\/script>/);
+            if (!m) { console.error('kein Skript-Block gefunden'); process.exit(1); }
+            fs.writeFileSync('/tmp/app.js', m[1]);
+            console.log('Skript-Block: ' + m[1].length + ' Zeichen');
+          "
+          node --check /tmp/app.js
+          echo "JavaScript-Syntax OK"
+
+      - name: HTML-Struktur prüfen
+        run: |
+          node -e "
+            const fs = require('fs');
+            const html = fs.readFileSync('ELIAN_Ultimate_Calculator_v8.0.html', 'utf8');
+            const checks = [
+              ['Dokumenttyp', /^<!doctype html>/i.test(html)],
+              ['Titel v8', html.includes('<title>ELIAN Ultimate Calculator v8')],
+              ['view-viewport', html.includes('viewport-fit=cover')],
+              ['Single-File (keine externen Skripte)', !/<script[^>]+src=/.test(html)],
+              ['Single-File (keine externen Stylesheets)', !/<link[^>]+stylesheet/.test(html)],
+              ['Single-File (keine externen Bilder)', !/<img[^>]+src=\"http/.test(html)],
+              ['Dark-/Light-Modus', html.includes('data-mode=light') || html.includes('[data-mode=light]')],
+              ['Update-Mechanismus', html.includes('gh-check') || html.includes('Update')],
+              ['Build-Kennung', html.includes(\"BUILD='8.1'\") || html.includes('BUILD = \'8.1\'')],
+              [' 25 Module', (html.match(/class=\"view\"/g) || []).length >= 25]
+            ];
+            let bad = 0;
+            for (const [n, ok] of checks) {
+              console.log((ok ? 'OK  ' : 'FAIL') + '  ' + n.trim());
+              if (!ok) bad++;
+            }
+            process.exit(bad ? 1 : 0);
+          "

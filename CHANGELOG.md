@@ -1,82 +1,85 @@
 # Changelog
 
-## [8.0.0] — 2026-11-02
+## [8.1.0] — 2026-11-02
 
-Umfangreichstes Release: vollständige Design-Überarbeitung, neuer symbolischer Rechenkern, sechs neue Module und die iOS-/iPadOS-App.
+Design-Reboot „Liquid Glass", Intelligenz-Features und ein GitHub-Update-System mit SHA-256-Verifikation.
 
 ### Neu
-- **3D-Funktionsplotter**: `z = f(x, y)` als drehbare, nach Höhe gefärbte Fläche (Painter-Algorithmus), Auflösung 24–80, Zoom/Pinch, automatische Parametererkennung, PNG-Export und Teilen
-- **RPN-Modus** (Umgekehrte Polnische Notation): Stapelanzeige T Z Y X, ENTER, SWAP, ROLL, DROP, LASTx, Stack-Leeren; umschaltbar neben dem algebraischen Modus
-- **Symbolische Mathematik**: Tokenizer → Parser → AST → exakte Differentiation (Kettenregel) für alle trigonometrischen, hyperbolischen, logarithmischen, Wurzel- und Potenzfunktionen; konsistent mit dem Winkelmodus (DEG/GON/RAD)
-- **Taylor-Reihen**: Grad 1–30, beliebiger Entwicklungspunkt, Koeffizientenliste, Plot von Funktion und Polynom
-- **Hypothesentests**: Einstichproben-t, Zweistichproben-t (Welch), z-Test (μ₀ + σ), χ²-Anpassungstest — mit Prüfgröße, Freiheitsgraden, p-Wert (Lanczos-Gamma, unvollständige Betafunktion), kritischem Wert und 95-%-Konfidenzintervall
-- **Numerische Integration** mit wählbarer Methode (Simpson/Trapez) und Kennzahlen-Karte
-- **Apple-Pencil-Skizze** (iPad): Zeichnen direkt auf dem 2D-Graphen, nur Stifteingaben, wird in Export und Teilen eingebunden
-- **Natives Teilen**: PNG-Weitergabe über Capacitor-Share-Plugin bzw. Web-Share-API mit Download-Fallback
-- **Helles Design**: Light-Mode vollständig umgesetzt, automatisch nach System oder manuell
-- **Dynamische Schriftgröße** (80–150 %) in den Einstellungen
-- **iPadOS-Layout**: Sidebar persistent ab 834 px, sichere Bereiche, 44-px-Touch-Ziele, ⌘1–⌘9 / ⌘B / ⌘K Hardware-Shortcuts
-- **iOS/iPadOS-App**: Capacitor-8-Projekt, eigene App-Icons und Splash-Screens (`ios/`), GitHub-Actions-Build (unsigned-Archiv, optional signierte IPA)
+- **Komplett neues Design-System (Liquid Glass)**: schwebende Glasflächen mit Tiefenunschärfe, runde Rechnertasten, iOS-Systemfarben, Feder-Animationen (cubic-bezier-Springs), einheitliche Radien/Abstände, Fokus-States
+- **Floating-Tab-Bar** (Handy): Rechner, Wissenschaft, Funktionen, 3D, Statistik + „Mehr" — feste Tableiste unten mit Daumen-Haltung
+- **Large-Title-Navigation**: großer Modultitel, kollabiert beim Scrollen; kompakte Kopfzeile erscheint
+- **Bottom-Sheets**: Dialoge erscheinen auf dem Handy als Sheet mit Greif-Lasche
+- **Update-System über GitHub** (opt-in): erkennt neue Releases, installiert sie vor dem Laden, verifiziert per SHA-256 gegen die im Release hinterlegte Prüfsumme, kein Downgrade
+- **Live-Vorschau beim Tippen** im Rechner
+- **Natürliche Sprache**: „wurzel aus 144", „sinus von 30 Grad", „50 % von 200", „2 hoch 10", „5 plus 3 mal 2", „logarithmus von 100"
+- **Absichts-Erkennung**: Gleichung → „Gleichung lösen →" (Algebra-Modul), Einheiten, Datumsangaben
+- **Auto-Klammern**: fehlende schließende Klammern werden ergänzt und die Korrektur angezeigt
+- **Befehlspalette** um Update-, Design- und Intelligenz-Befehle erweitert
 
 ### Verbessert
-- Tangenten, Normalen und Newton-Iteration nutzen jetzt die exakte symbolische Ableitung (numerischer Fallback bleibt erhalten)
-- Alle bestehenden Module auf einheitliche Design-Tokens, Fokus-States und Touch-Ziele umgestellt
-- Diagnose im Admin-Panel zeigt Winkelmodus, Design-Modus und Schriftgröße
-- Hilfe- und Info-Dialoge um RPN, 3D-Plotter, Taylor und Hypothesentests erweitert
-- Befehlspalette um 3D-Plotter, RPN, Teilen, Skizze, Taylor, Hypothesentest, Hell/Dunkel und Integralmethode erweitert
-- SVG-Export des Graphen eingebettet jetzt auch die Skizze
+- Light-Mode vollständig überarbeitet (Karten, Tabellen, Tastatur, Plotter, Sheets)
+- Sichere Bereiche (Notch/Dynamic Island), Overscroll-Kontrolle, `100dvh`
+- Touch-Ziele ≥ 44 px, runde Tasten mit Spring-Einrasten
+- Diagnose im Admin-Panel um Update-Informationen erweitert
 
 ### Behoben
-- Inkonsistenz zwischen symbolischem und numerischem Ableiten bei DEG/GON-Winkelmodus (Ableitungsskalierung π/180 bzw. π/200)
-- Resize-Handler zeichnet jetzt 3D-Ansicht und Skizze-Layer mit
+- smartParse: die Ersetzungsfunktionen von `String.replace` empfingen den Match-Text statt der Fangruppen — alle natürlichsprachlichen Umwandlungen lieferten falsche Zeichenkettten
+- detectIntent: Gleichungen wie `2x+5=17` wurden nicht erkannt (Regex verlangte ein Buchstabe direkt vor dem `=`)
+- Entfernt: unnötige `$('#top')||0`-Anweisung und ungültige scrollTo-Verhalten-Option in show()
 
 ### Migriert
-- Bestehende Datenbanken aus v6.2, v6.3, v6.4 und v7.0 werden übernommen; neue Felder (themeMode, fontScale, intMethod, calcMode, rpnStack, graph3dInput) erhalten Standardwerte
+- Bestehende Datenbanken aus v6.2 bis v8.0 werden übernommen; `themeMode` wechselt auf „auto", `updateCheck` startet aus (Opt-in)
 
 ### Verifiziert
-- Im Browser gegen die Live-Datei geprüft: Parser-Korrektheit (Operatorreihenfolge, Rechtsassoziation, implizite Multiplikation), RPN-Kette, symbolische vs. numerische Ableitung (DEG und RAD), Taylor-Koeffizienten gegen bekannte Reihen, Hypothesentest gegen Referenzwerte, 3D-Gitteraufbau, Integralmethoden, Persistenz und Migration über Reload
+- Im Browser geprüft: Live-Vorschau (inkl. Klammer-Ergänzung), alle smartParse-Regeln mit Kontrollwerten, Absichtserkennung für alle vier Typen, Rechnerkern (Operatorreihenfolge, DEG/RAD), 3D-Gitter, Tab-Bar-Aufbau, Light-Mode, Reload-Persistenz
+
+### Datenschutz
+- Update-Prüfung ist standardmäßig **deaktiviert**; ohne sie kein Netzwerkzugriff
+- Datenschutzerklärung um den opt-in GitHub-Zugriff ergänzt
+
+
+## [8.0.0] — 2026-11-02
+
+### Neu (Archiv)
+- **3D-Funktionsplotter**: z = f(x, y) als drehbare, nach Höhe gefärbte Fläche (Painter-Algorithmus), Auflösung bis 80×80, Parameter-Support, PNG-Export und Teilen
+- **RPN-Modus** (Umgekehrte Polnische Notation): Stapelanzeige T Z Y X, ENTER, SWAP, ROLL, DROP, LASTx
+- **Symbolische Mathematik**: exakte Differentiation auf dem Syntaxbaum mit Kettenregel, konsistent mit dem Winkelmodus
+- **Taylor-Reihen**: Grad 1–30, beliebiger Entwicklungspunkt, Plot von Funktion und Polynom
+- **Hypothesentests**: Einstichproben-t, Zweistichproben-t (Welch), z-Test, χ²-Anpassungstest mit p-Wert und Konfidenzintervall
+- **Numerische Integration** mit Methodenwahl (Simpson/Trapez)
+- **Apple-Pencil-Skizze** (iPad) auf dem Graphen, eingebunden in Export und Teilen
+- **Natives Teilen** (Web-Share-API)
+- **Helles Design** (automatisch nach System), dynamische Schriftgröße 80–150 %
+- **iPad-Layout**: Sidebar ab 834 px, sichere Bereiche, ⌘1–⌘9 / ⌘B / ⌘K
+
+### Entfernt gegenüber 8.0.0
+- **iOS-/iPadOS-App (Capacitor)**:Entfernt auf Wunsch — das Projekt ist wieder ausschließlich die Single-File-HTML-Datei
 
 
 ## [7.0] — 2026-10-12
 
 ### Neu
-- **Polynom-Werkzeug**: auswerten, ableiten, integrieren, Nullstellen, Faktorisierung über rationale Nullstellen
-- **Komplexe Zahlen**: Grundrechenarten, Betrag, Argument, Konjugation, Kehrwert, Polarform, √z, e^z, ln(z)
-- **Grenzwerte**: numerische Bestimmung ein- und beidseitiger Grenzwerte mit Erkennung von Pol- und Sprungstellen
-- **Tangente & Normale** an beliebiger Stelle, direkt plotbar
-- **Newton-Iteration** mit Iterationstabelle
-- **Folgen & Reihen**: automatische Mustererkennung (arithmetisch, geometrisch, quadratisch), Summe, Monotonie
-- **Geometrie**: Kreis, Rechteck, Dreieck, Kugel, Zylinder, Kegel
-- **Datum & Zeit**: Differenz mit Arbeitstagen, Datumsrechnung, Wochentag, Kalenderwoche, Schaltjahr, Stoppuhr
-- **Erweiterte Umrechnung**: 9 Kategorien (Temperatur, Winkel, Datenrate, Frequenz, Leistung, Drehmoment, Brennstoff, Kochmaße, Schuhgrößen)
-- **Formelbibliothek**: 28 Formeln, durchsuchbar, übernehmbar
-- **Konstanten-Tabelle**: 25 Werte, durchsuchbar, kopierbar
-- **Übungsmodus** mit drei Schwierigkeitsstufen und Punktezähler
-- **Notizen** mit Formelauswertung beim Export
-- **Bruchrechnung** mit automatischem Kürzen
-- **Matrix-Raster** von 1×1 bis 8×8
-- **Verteilungsdiagramm** in der Statistik
-- **Regression & Korrelation**: linear und quadratisch, r und r², direkter Plot
-- **Befehlspalette** (Strg+K oder /)
-- **Verlaufssuche**, Merkfunktion, CSV-Export
-- **Migration** bestehender Daten aus v6.2, v6.3 und v6.4
+- **Polynom-Werkzeug**: auswerten, ableiten, integrieren, Nullstellen, Faktorisierung
+- **Komplexe Zahlen**: Grundrechenarten, Betrag, Argument, Konjugation, Polarform, √z, e^z, ln(z)
+- **Grenzwerte**: numerische Bestimmung ein- und beidseitiger Grenzwerte
+- **Tangente & Normale**, **Newton-Iteration** mit Iterationstabelle
+- **Folgen & Reihen** mit Mustererkennung
+- **Geometrie**, **Datum & Zeit**, **Erweiterte Umrechnung** (9 Kategorien)
+- **Formelbibliothek** (28 Formeln), **Konstanten-Tabelle** (25 Werte)
+- **Übungsmodus**, **Notizen**, **Bruchrechnung**, **Matrix-Raster**, **Verteilungsdiagramm**
+- **Regression & Korrelation**, **Befehlspalette**, **Verlaufssuche**, **Migration**
 
 ### Behoben
 - Parser rechnete bei Operatorreihenfolge falsch (`2+3*4` ergab 24 statt 14) — Kern vollständig neu geschrieben
 - Komma in Funktionsaufrufen wurde als Dezimalpunkt gelesen
-- Temperatur- und Winkelumrechnung warf Fehler bei bestimmten Einheitenpaaren
-- Determinante einer 1×1-Matrix wurde nicht angezeigt
 - Große Zahlen wurden als Exponentialdarstellung geschrieben
-- Mehrfache Dezimalpunkte wurden nicht zuverlässig erkannt
 - XSS-Risiko: Attribute in erzeugtem HTML wurden nicht escaped
-- Grenzwertbestimmung erkannte Polstellen nicht
-- Selbstbezogene Integritätsprüfung entfernt (nach jeder Dateiänderung prinzipiell falsch)
 
 ### Verifiziert
 181 automatisierte Tests, null Fehlschlägen, null Laufzeitfehlern.
 
 
-## Lizenzänderung — 2026-10-12 (überarbeitet)
+## Lizenzänderung — 2026-10-12
 
 Lizenz von proprietär auf vollständige Nutzungs- und Lizenzbedingungen
 überführt. Gestattet ist ausschließlich die Nutzung der unveränderten

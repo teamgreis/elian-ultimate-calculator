@@ -1,0 +1,29 @@
+{
+	"appId": "app.elian.ultimate",
+	"appName": "ELIAN Calculator",
+	"webDir": "www",
+	"ios": {
+		"contentInset": "always",
+		"backgroundColor": "#0a1220",
+		"limitsNavigationsToAppBoundDomains": true
+	},
+	"plugins": {
+		"SplashScreen": {
+			"backgroundColor": "#0a1220",
+			"showSpinner": false,
+			"launchAutoHide": true,
+			"launchShowDuration": 700,
+			"fadeOutDuration": 300
+		},
+		"StatusBar": {
+			"style": "DARK",
+			"backgroundColor": "#0a1220",
+			"overlaysWebView": true
+		}
+	},
+	"packageClassList": [
+		"SharePlugin",
+		"SplashScreenPlugin",
+		"StatusBarPlugin"
+	]
+}

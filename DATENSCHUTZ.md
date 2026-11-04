@@ -1,5 +1,5 @@
 DATENSCHUTZERKLÄRUNG
-ELIAN Ultimate Calculator v8.0 (Web, iOS und iPadOS)
+ELIAN Ultimate Calculator v8.1 (Web, offline)
 
 Stand: 2. November 2026
 Rechtsstand: Bundesrepublik Deutschland (DSGVO, BDSG, TDDDG — Fassung 2026)
@@ -32,14 +32,28 @@ Insbesondere gilt:
 
 Es werden ausschließlich Daten auf Ihrem eigenen Gerät verarbeitet.
 
-Das gilt unverändert auch für die iOS-/iPadOS-App: Sie führt dieselbe
-Anwendung in einer lokalen Web-Ansicht (Capacitor) aus. Es gibt keine
-Serveranbindung, keine Analytics, keine Werbe-IDs, keine Push-Dienste und
-keine Konten bei Apple oder Dritten. Die lokale Datenspeicherung erfolgt
-im Anwendungsspeicher des Geräts (Sandbox), nicht in iCloud. Das optionale
-Teilen von Graphenbildern erfolgt ausschließlich über das von Ihnen
-ausgelöste System-Teilen von Apple; die Software versendet nichts von
-selbst.
+OPTIONALE UPDATE-PRÜFUNG (STANDARD: AUS)
+
+Wenn Sie in den Einstellungen die Update-Prüfung ausdrücklich einschalten,
+fragt die Software höchstens alle zwölf Stunden die neueste Programmversion
+über die offizielle Release-Schnittstelle von GitHub ab. Dabei werden
+ausschließlich folgende Daten übertragen:
+
+  - Die Zieladresse des Repositorys (teamgreis/elian-ultimate-calculator)
+  - Den Zeitpunkt der Abfrage in englischsprachigen Server-Logs von GitHub
+
+Übertragen werden keine Nutzungsdaten, keine Gerätekennung und keine
+Inhalte aus Ihrem lokalen Speicher. Nach dem Herunterladen einer neuen
+Version prüft die Software die SHA-256-Summe der heruntergeladenen Datei
+gegen die im Release hinterlegte Prüfsumme. Bei aktivierter Prüfung ist
+GitHub (GitHub Inc., USA) als technischer Empänger eingebunden; es findet
+ein Drittlandtransfer in die USA statt (Art. 46 DSGVO — Durchführungs-
+beschluss der EU-Kommission vom 07.07.2023). Rechtsgrundlage ist Ihre
+Einwilligung nach Art. 6 Abs. 1 lit. a DSGVO. Die Prüfung lässt sich
+jederzeit in den Einstellungen deaktivieren; die Einwilligung ist damit
+ebenso leicht widerrufen wie sie erteilt wurde.
+
+OHNE eingeschaltete Update-Prüfung findet kein Netzwerkzugriff statt.
 
 
 3. WELCHE DATEN WERDEN VERARBEITET
