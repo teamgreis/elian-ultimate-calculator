@@ -1054,6 +1054,12 @@ body[data-mode=light] .cmdk{background:rgba(10,20,40,.28)}
             <button class="btn" data-mat="transpose">Aᵀ</button>
             <button class="btn" data-mat="rank">Rang(A)</button>
             <button class="btn" data-mat="trace">Spur(A)</button>
+            <button class="btn" data-mat="char">char. Polynom</button>
+            <button class="btn" data-mat="eigen">Eigenwerte</button>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <input id="matPow" class="input" style="width:100px" value="2" placeholder="n">
+            <button class="btn" data-mat="pow">Aⁿ (n ∈ ℕ)</button>
           </div>
           <div id="matOut" class="glass" style="padding:14px;margin-top:12px"></div>
 <div class="card glass" style="margin-top:14px">
@@ -2907,6 +2913,28 @@ $$('[data-mat]').forEach(b=>b.onclick=()=>{
       case 'trace':{
         if(A.length!==A[0].length)throw Error('Spur benötigt eine quadratische Matrix.');
         out='Spur(A) = '+fmt(A.reduce((s,r,i)=>s+r[i],0));break;
+      }
+      case 'char':{
+        if(A.length!==A[0].length)throw Error('Charakteristisches Polynom benötigt eine quadratische Matrix.');
+        out=charPolyText(A);
+        break;
+      }
+      case 'eigen':{
+        const e=eigenOf(A);
+        out='Charakteristisches Polynom: '+charPolyText(A)+'\n\nEigenwerte ('+(e.exact?'exakt':'numerisch (QR-Iteration)')+'):\n'+e.text+
+          (e.vals.length? '\n\nKontrolle: Σλ = '+fmt(e.vals.reduce((s,v)=>s+v.re,0))+' (Spur: '+fmt(traceOf(A))+')'+
+          (A.length===2? ' · Πλ = '+fmt(e.vals.reduce((p,v)=>p*(v.re*v.re+v.im*v.im),1))+' (det: '+fmt(det(A))+')':''):'');
+        break;
+      }
+      case 'pow':{
+        const k=Math.round(+$('#matPow').value);
+        const P=matPowN(A,k);
+        out=P;
+        $('#matOut').innerHTML=mhtml(P)+
+          (A.length===A[0].length&&A.length===2
+            ? '<div class="help" style="margin-top:8px">A'+superscript(2)+' … Aⁿ'+superscript(2)+' bleibt im Spannenraum von A und I — für Eigenwerte λ gilt Aⁿ ≈ V·Λⁿ·V⁻¹.</div>'
+            : '');
+        return;
       }
     }
     $('#matOut').innerHTML=typeof out==='number'?'<b>'+fmt(out)+'</b>':(typeof out==='string'?'<b>'+esc(out)+'</b>':mhtml(out));
@@ -5225,6 +5253,118 @@ function vecKomp(o){
     const v=vecParse(o);
     return v;
   }catch(e){return null}
+}
+
+/* =====================================================================
+   V9.0 Baustein 7 — Lineare Algebra: Eigenwerte (exakt 2×2, QR numerisch
+   für größere), Matrix-Potenz, charakteristisches Polynom
+   ===================================================================== */
+function traceOf(A){
+  if(A.length!==A[0].length)throw Error('Spur benötigt eine quadratische Matrix.');
+  return A.reduce((s,r,i)=>s+r[i],0);
+}
+function charPolyText(A){
+  const n=A.length;
+  if(n!==2)return 'λ'+superscript(3)+' … (nur für 2×2 als λ² − tr·λ + det geschlossen darstellbar)';
+  const tr=traceOf(A),d=det(A);
+  return 'λ² − '+fmt(tr)+'λ + '+fmt(d);
+}
+function superscript(s){return{2:'²',3:'³',4:'⁴'}[s]||s}
+function eigen2(A){
+  // λ² − tr·λ + det = 0 exakt (rationale Diskriminante via Bruchkoeffizienten)
+  const tr=traceOf(A),d=det(A);
+  const p=polyClean({
+    2:rq(1,1),
+    1:{n:Math.round(-tr*1e9),d:1e9},
+    0:{n:Math.round(d*1e9),d:1e9}
+  });
+  const r=solvePolyEquation(polyToStr(p)+'=0','x');
+  return r;
+}
+function qrEigen(A,maxIter,eps){
+  // QR-Iteration auf (beliebiger) quadratischer Matrix — Eigenwerte
+  // konvergieren auf die Diagonalen; 2×2-Blöcke werden paarweise
+  // als komplexe Eigenwerte zusammengefasst.
+  const n=A.length;
+  let H=A.map(r=>r.slice());
+  const qr=m=>{
+    const qs=[];
+    for(let j=0;j<n;j++){
+      const col=m.map(r=>r[j]);
+      let v=col.slice();
+      for(let k=0;k<j;k++){
+        const dot=col.reduce((s,x,i)=>s+x*qs[k][i],0);
+        v=v.map((x,i)=>x-dot*qs[k][i]);
+      }
+      const nv=Math.sqrt(v.reduce((s,x)=>s+x*x,0));
+      qs.push(nv<1e-13?new Array(n).fill(0):v.map(x=>x/nv));
+    }
+    const Q=[];
+    for(let i=0;i<n;i++)Q.push(qs.map(q=>q[i]));
+    const QT=[];
+    for(let i=0;i<n;i++)QT.push(Q.map(row=>row[i]));
+    return{Q,R:mmul(QT,m)};
+  };
+  for(let it=0;it<(maxIter||600);it++){
+    const {Q,R}=qr(H);
+    const next=mmul(R,Q);
+    let delta=0;
+    for(let i=0;i<n;i++)for(let j=0;j<n;j++)if(i!==j)delta=Math.max(delta,Math.abs(next[i][j]));
+    H=next;
+    if(delta<(eps||1e-11))break;
+  }
+  const out=[];
+  let i=0;
+  while(i<n){
+    if(i+1<n&&Math.abs(H[i+1][i])>1e-6){
+      const a=H[i][i],b=H[i][i+1],c=H[i+1][i],d=H[i+1][i+1];
+      const tr=a+d,dt2=a*d-b*c;
+      const disk=tr*tr-4*dt2;
+      if(disk<0){out.push({re:tr/2,im:Math.sqrt(-disk)/2});i+=2;continue}
+      out.push({re:(tr+Math.sqrt(disk))/2,im:0});
+      out.push({re:(tr-Math.sqrt(disk))/2,im:0});
+      i+=2;continue;
+    }
+    out.push({re:H[i][i],im:0});
+    i++;
+  }
+  return out;
+}
+function eigenOf(A){
+  if(A.length!==A[0].length)throw Error('Eigenwerte benötigen eine quadratische Matrix.');
+  const n=A.length;
+  const tr=traceOf(A);
+  // komplexes Paar (2×2): numerisch exakt über Diskriminante
+  const disc=tr*tr-4*det(A);
+  if(n===2&&disc<0){
+    const im=Math.sqrt(-disc)/2;
+    const vals=[{re:tr/2,im},{re:tr/2,im:-im}];
+    return{exact:false,vals,text:eigenText(vals)};
+  }
+  if(n===2){
+    const r=eigen2(A);
+    const vals=(r.roots||[]).map(x=>({re:rqNum(x),im:0}))
+      .concat((r.numeric||[]).map(v=>({re:v,im:0})));
+    return{exact:!!r.rational,vals,text:(r.roots||[]).map(x=>'λ = '+x.n+(x.d!==1?'/'+x.d:'')).join(' · ')||(r.surdText?esc(r.surdText):'')};
+  }
+  const vals=qrEigen(A);
+  return{exact:false,vals,text:eigenText(vals)};
+}
+function eigenText(vals){
+  return vals.map(v=>'λ = '+(v.im===0?fmt(v.re):(Math.abs(v.re)>1e-12?fmt(v.re):'')+(v.im<0?' − ':' + ')+fmt(Math.abs(v.im))+'i')).join(' · ');
+}
+function matPowN(A,k){
+  if(A.length!==A[0].length)throw Error('Potenz nur für quadratische Matrizen.');
+  if(!Number.isInteger(k)||k<0)throw Error('Exponent muss eine ganze Zahl ≥ 0 sein.');
+  let R=A.map((r,i)=>r.map((v,j)=>i===j?1:0));
+  let base=A.map(r=>r.slice());
+  let e=k;
+  while(e>0){
+    if(e&1)R=mmul(R,base);
+    base=mmul(base,base);
+    e=Math.floor(e/2);
+  }
+  return R;
 }
 
 /* =====================================================================
