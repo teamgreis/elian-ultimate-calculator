@@ -50,8 +50,10 @@ jobs:
               ['Single-File (keine externen Bilder)', !/<img[^>]+src=\"http/.test(html)],
               ['Dark-/Light-Modus', html.includes('data-mode=light') || html.includes('[data-mode=light]')],
               ['Update-Mechanismus', html.includes('gh-check') || html.includes('Update')],
-              ['Build-Kennung', html.includes(\"BUILD='8.1'\") || html.includes('BUILD = \'8.1\'')],
-              [' 25 Module', (html.match(/class=\"view\"/g) || []).length >= 25]
+              [' 25 Module', (html.match(/class=\"view\"/g) || []).length >= 25],
+              ['Build 9.0', html.includes(\"BUILD='9.0'\")],
+              ['Exakte rationale Arithmetik', html.includes('evalExprExact') && html.includes('astEvalRat')],
+              ['Kein Capacitor-Rest', !html.includes('window.Capacitor')]
             ];
             let bad = 0;
             for (const [n, ok] of checks) {

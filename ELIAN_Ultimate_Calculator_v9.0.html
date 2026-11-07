@@ -1501,8 +1501,8 @@ body[data-mode=light] .cmdk{background:rgba(10,20,40,.28)}
    Hypothesentests, Apple-Pencil-Skizze, nativem Teilen und vielem mehr.
    ===================================================================== */
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
-const BUILD='8.1';
-const DBKEY='elian_v81_db',OLD_DBKEYS=['elian_v80_db','elian_v70_db','elian_v64_db','elian_v63_db','elian_v62_db'];
+const BUILD='9.0';
+const DBKEY='elian_v90_db',OLD_DBKEYS=['elian_v81_db','elian_v80_db','elian_v70_db','elian_v64_db','elian_v63_db','elian_v62_db'];
 const THEMES=['liquid2','pride','premium','rainbow','diamond'];
 const COLORS=['#62a9ff','#6ee7b7','#ffb86c','#ff6b9a','#b69cff','#4dd9d0','#ffd166','#f28cff','#8ee6ff','#c9f36a'];
 const DEFAULT_FEATURES={calculator:true,scientific:true,algebra:true,graph:true,statistics:true,matrix:true,units:true,programmer:true,finance:true,users:true,admin:true,history:true,settings:true,
@@ -1641,12 +1641,12 @@ function tokenize(s){
     if(/\s/.test(c)){i++;continue}
     if(/[0-9.]/.test(c)){
       const m=s.slice(i).match(/^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?/);
-      if(!m)throw Error('Ungültige Zahl bei "'+s.slice(i,i+8)+'"');
+      if(!m||m[0].length===0)throw Error('Ungültige Zahl bei "'+s.slice(i,i+8)+'"');
       // Doppelpunkt wie in 2..5 oder 2.5.5 abfangen
       if(m[0].includes('.')&&(s[i+m[0].length]==='.'||/\.\d*\./.test(m[0]))){
         throw Error('Ungültige Zahl: mehrere Dezimalpunkte.');
       }
-      a.push(['num',+m[0]]);i+=m[0].length;continue;
+      a.push(['num',+m[0],m[0]]);i+=m[0].length;continue;
     }
     if(ID_START.test(c)){
       let j=i+1;while(j<s.length&&ID_CHAR.test(s[j]))j++;
@@ -2451,8 +2451,12 @@ $('#keys').onclick=e=>{
     try{
       const sp=smartParse(current);
       ans=calculate(current);
-      addHist(sp.note?sp.expr+' ('+sp.note+')':current,fmt(ans));
-      let hint='<span class="ok">= '+esc(fmt(ans))+'</span>';
+      let exInfo=null;
+      try{exInfo=evalExprExact(sp.expr)}catch{exInfo=null}
+      const exText=exInfo&&exInfo.exact?exInfo.text:fmt(ans);
+      addHist(sp.note?sp.expr+' ('+sp.note+')':current,exText);
+      let hint='<span class="ok">= '+esc(exText)+'</span>';
+      if(exInfo&&exInfo.exact&&exInfo.r.d!==1)hint+=' <span class="help" style="font-size:11.5px">exakt · dezimal '+esc(fmt(ans))+'</span>';
       if(sp.note)hint+=' <span class="help" style="font-size:11px">'+esc(sp.note)+'</span>';
       if(detectIntent(current)==='algebra')hint+=' <button class="btn tint-blue" data-intent="algebra" style="min-height:28px;padding:4px 11px;font-size:12px">Gleichung lösen →</button>';
       $('#calcHint').innerHTML=hint;
@@ -2498,10 +2502,18 @@ document.addEventListener('keydown',e=>{
    ===================================================================== */
 $('#sciBtn').onclick=()=>{
   try{
-    const r=calculate($('#sciInput').value);
-    const fr=fmtFraction(r);
-    $('#sciOut').innerHTML='<span class="ok">= '+fmt(r)+'</span>'+(fr&&fr!==fmt(r)?'<br><span class="help">≈ '+esc(fr)+'</span>':'');
-    addHist($('#sciInput').value,fmt(r));
+    const src=$('#sciInput').value;
+    const r=calculate(src);
+    let ex=null;try{ex=evalExprExact(src)}catch{ex=null}
+    if(ex&&ex.exact){
+      $('#sciOut').innerHTML='<span class="ok">= '+esc(ex.text)+'</span>'+
+        (ex.r.d!==1?'<br><span class="help">exakt · dezimal '+esc(fmt(ex.value))+'</span>':'')+
+        '<br><span class="help">dezimal: '+esc(fmt(ex.value))+'</span>';
+    }else{
+      const fr=fmtFraction(r);
+      $('#sciOut').innerHTML='<span class="ok">= '+fmt(r)+'</span>'+(fr&&fr!==fmt(r)?'<br><span class="help">≈ '+esc(fr)+'</span>':'');
+    }
+    addHist(src,ex&&ex.exact?ex.text:fmt(r));
   }catch(e){$('#sciOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
 };
 $('#fractionBtn').onclick=()=>{
@@ -4389,7 +4401,7 @@ function astParse(src){
   function primary(){
     const t=peek();
     if(!t)throw Error('Ausdruck unvollständig.');
-    if(t[0]==='num'){take();return{t:'num',v:t[1]}}
+    if(t[0]==='num'){take();return{t:'num',v:t[1],src:t[2]||String(t[1])}}
     if(t[0]==='id'){
       take();const n=t[1];
       if(peek()&&peek()[0]==='('){
@@ -4509,6 +4521,100 @@ function astToStr(a){
 function num(n){return{t:'num',v:n}}
 function vr(n){return{t:'var',n}}
 function bin(t,a,b){return{t,a,b}}
+
+/* =====================================================================
+   V9.0 — Exakte rationale Arithmetik (CAS-Grundlage)
+   Derselbe AST wie die Float-Auswertung, gerechnet wird auf gekürzten
+   Brüchen. Alles, was sich nicht rational schließen lässt (sin, sqrt,
+   Variablen), fällt sauber auf den Float-Pfad zurück.
+   ===================================================================== */
+function rq(n,d){ // normalisierter Bruch: Nenner > 0, gekürzt
+  n=Number(n);d=Number(d);
+  if(!Number.isInteger(n)||!Number.isInteger(d))throw Error('rational: nur ganze Zahlen');
+  if(d===0)throw Error('rational: Nenner 0');
+  if(d<0){n=-n;d=-d}
+  const g=gcd2(Math.abs(n),d);
+  return{n:g?n/g:n,d:g?d/g:d};
+}
+function parseDecimalToRational(s){ // "0,1"/"3"/"-2.5"/"1e3" → exakter Bruch
+  s=String(s).trim();
+  let sign=1;
+  if(s[0]==='+')s=s.slice(1);
+  else if(s[0]==='-'){sign=-1;s=s.slice(1)}
+  let exp=0;
+  const me=s.match(/^(\d+(?:\.\d*)?|\.\d+)[eE]([+-]?\d+)$/);
+  if(me){s=me[1];exp=+me[2]}
+  const parts=s.split('.');
+  const ip=parts[0]||'0',fp=parts[1]||'';
+  if(!/^\d*$/.test(ip)||!/^\d*$/.test(fp))throw Error('rational: ungültige Dezimalzahl');
+  let n=parseInt((ip+fp||'0'),10),d=10**fp.length;
+  if(exp>0)n*=10**exp; else if(exp<0)d*=10**(-exp);
+  return rq(sign*n,d);
+}
+function rAdd(a,b){return rq(a.n*b.d+b.n*a.d,a.d*b.d)}
+function rSub(a,b){return rq(a.n*b.d-b.n*a.d,a.d*b.d)}
+function rMul(a,b){return rq(a.n*b.n,a.d*b.d)}
+function rDiv(a,b){if(b.n===0)throw Error('Division durch Null.');return rq(a.n*b.d,a.d*b.n)}
+function rNeg(a){return rq(-a.n,a.d)}
+function rPow(a,b){ // nur ganzzahlige Exponenten
+  if(!Number.isInteger(b))throw Error('rational: nur ganzzahlige Potenzen');
+  if(b>=0)return rq(a.n**b,a.d**b);
+  if(a.n===0)throw Error('Division durch Null.');
+  return rq(b%2?a.d**(-b):a.d**(-b),b%2?a.n**(-b):a.n**(-b));
+}
+function rToNum(a){return a.n/a.d}
+function rToStr(a){return a.d===1?String(a.n):(a.n+'/'+a.d)}
+function rIsInt(a){return a.d===1}
+const RAT_NOT_CLOSED='nicht rational geschlossen';
+function astEvalRat(a,env){
+  switch(a.t){
+    case 'num':return parseDecimalToRational(a.src!==undefined?a.src:String(a.v));
+    case 'var':{
+      const v=env[a.n];
+      if(!Number.isFinite(v))throw Error(RAT_NOT_CLOSED);
+      if(!Number.isInteger(v))throw Error(RAT_NOT_CLOSED);
+      return rq(v,1);
+    }
+    case 'neg':return rNeg(astEvalRat(a.a,env));
+    case 'add':return rAdd(astEvalRat(a.a,env),astEvalRat(a.b,env));
+    case 'sub':return rSub(astEvalRat(a.a,env),astEvalRat(a.b,env));
+    case 'mul':return rMul(astEvalRat(a.a,env),astEvalRat(a.b,env));
+    case 'div':return rDiv(astEvalRat(a.a,env),astEvalRat(a.b,env));
+    case 'mod':{
+      const b=astEvalRat(a.b,env);if(b.n===0)throw Error('Modulo durch Null.');
+      if(!rIsInt(astEvalRat(a.a,env))||!rIsInt(b))throw Error(RAT_NOT_CLOSED);
+      return rq(astEvalRat(a.a,env).n%b.n,1);
+    }
+    case 'pow':{
+      const e=astEvalRat(a.b,env);
+      if(!rIsInt(e))throw Error(RAT_NOT_CLOSED);
+      return rPow(astEvalRat(a.a,env),e.n);
+    }
+    default:throw Error(RAT_NOT_CLOSED); // sin, sqrt, … → Float-Pfad
+  }
+}
+/* Kernergebnis: exakt wenn möglich, sonst Float */
+function evalExprExact(src,env){
+  try{
+    const ast=astParse(src);
+    const e={...(env||{}),...buildEnv()};
+    const r=astEvalRat(ast,e);
+    return{exact:true,r,value:rToNum(r),text:rToStr(r)};
+  }catch(ex){
+    // NUR wenn der Ausdruck sich nicht rational schließen lässt (sin, sqrt,
+    // gebrochene Variablen …) → Float-Pfad. Echte Fehler (Division durch
+    // Null, ungültiger Ausdruck) bleiben harte Fehler.
+    if(ex&&ex.message===RAT_NOT_CLOSED){
+      return evalExprExactFloat(src,env);
+    }
+    throw ex;
+  }
+}
+function evalExprExactFloat(src,env){
+  const v=evalExpr(src,env||{});
+  if(typeof v!=='number'||!Number.isFinite(v))throw Error('Kein endlicher Wert.');
+  return{exact:false,r:null,value:v,text:fmt(v)};
+}
 function astDiff(a,v){
   switch(a.t){
     case 'num':return num(0);
@@ -5143,24 +5249,17 @@ function sketchComposite(target){
 }
 
 /* =====================================================================
-   v8.0 — Natives Teilen (Capacitor Share-Plugin / Web Share API)
+   Natives Teilen (Web Share API — iOS/iPadOS/Android/Desktop)
    ===================================================================== */
 async function shareCanvas(c,filename){
   let blob;
   const withSketch=(c===$('#plot'))?sketchComposite():c;
   blob=await new Promise(r=>withSketch.toBlob(r,'image/png'));
   if(!blob)throw Error('Bild konnte nicht erstellt werden.');
-  const cap=window.Capacitor;
   try{
-    if(cap&&cap.Plugins&&cap.Plugins.Share){
-      const b64=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(String(fr.result).split(',')[1]);fr.readAsDataURL(blob)});
-      await cap.Plugins.Share.share({title:'ELIAN Graph',text:'Mit ELIAN Ultimate Calculator v8.0 erstellt.',files:[b64]});
-      toast('Teilen-Dialog geöffnet');
-      return;
-    }
     const file=new File([blob],filename,{type:'image/png'});
     if(navigator.canShare&&navigator.canShare({files:[file]})){
-      await navigator.share({files:[file],title:'ELIAN Graph',text:'Mit ELIAN Ultimate Calculator erstellt.'});
+      await navigator.share({files:[file],title:'ELIAN Graph',text:'Mit ELIAN Ultimate Calculator v'+BUILD+' erstellt.'});
       return;
     }
   }catch(e){
