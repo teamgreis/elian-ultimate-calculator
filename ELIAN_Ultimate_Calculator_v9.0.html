@@ -940,6 +940,16 @@ body[data-mode=light] .cmdk{background:rgba(10,20,40,.28)}
             <span class="badge">🤏 Zwei Finger = zoomen</span>
             <span id="sfStatus" class="help"></span>
           </div>
+          <hr>
+          <div class="row">
+            <span class="badge">Analysis im Punkt</span>
+            <label style="width:100px">x₀<input id="tan3dX" class="input" type="number" step="any" value="1" style="margin-top:6px"></label>
+            <label style="width:100px">y₀<input id="tan3dY" class="input" type="number" step="any" value="1" style="margin-top:6px"></label>
+            <button class="btn" id="gradientBtn">Gradient</button>
+            <button class="btn" id="tangentBtn">Tangentialebene</button>
+            <button class="btn" id="tangentOverlayBtn" aria-pressed="false">Ebene einblenden</button>
+          </div>
+          <div id="gradientOut" class="glass" style="padding:15px;margin-top:10px">–</div>
         </div>
       </section>
 
@@ -4630,6 +4640,123 @@ function integrateTerm(src,v){
   return{expr:r.expr,special:r.special||null,constC:true,approx:!!r.approx};
 }
 
+/* ---------- V9.0: Partielle Ableitungen · Gradient · Tangentialebene ---------- */
+function partialSymbolic(src,v,vals){
+  // exakt, wenn der AST die Richtung kennt (sonst numerisch)
+  try{
+    const env={...buildEnv(vals||{}),...(vals||{})};
+    const d=astDiff(astParse(src),v);
+    const val=astEval(d,env,makeFuncs(env));
+    if(!Number.isFinite(val))return{ok:false};
+    return{ok:true,val};
+  }catch{return{ok:false}}
+}
+function partialNumeric(src,v,vals){
+  const h=1e-6;
+  const f=p=>safeNum(src,{...(vals||{}),[v]:p});
+  return(f(vals[v]+h)-f(vals[v]-h))/(2*h);
+}
+function partialAt(src,v,vals){
+  const s=partialSymbolic(src,v,vals);
+  return s.ok?{val:s.val,exact:true}:{val:partialNumeric(src,v,vals),exact:false};
+}
+function gradientStr(src,vals){
+  const fx=partialAt(src,'x',vals),fy=partialAt(src,'y',vals);
+  return{
+    fx:fx.val,fy:fy.val,
+    exact:fx.exact&&fy.exact,
+    str:'('+fmt(fx.val)+' , '+fmt(fy.val)+')'
+  };
+}
+function tangentPlane(src,x0,y0){
+  const vals={x:x0,y:y0};
+  const f0=safeNum(src,vals);
+  const g=gradientStr(src,vals);
+  const expr=fmt(f0)+'+('+fmt(g.fx)+')*(x-('+fmt(x0)+'))+('+fmt(g.fy)+')*(y-('+fmt(y0)+'))';
+  return{f0,fx:g.fx,fy:g.fy,expr,exact:g.exact};
+}
+function prettyAST(a,d){
+  // triviale Vereinfachung für die Anzeige abgeleiteter Bäume (Tiefen-Wächter)
+  d=d||0;
+  if(d>10)return a;
+  if(!a||typeof a!=='object')return a;
+  const num=v=>({t:'num',v,src:String(v)});
+  if(a.t==='num'||a.t==='var')return a;
+  if(a.t==='neg'){
+    const x=prettyAST(a.a,d+1);
+    if(x.t==='num'&&x.v===0)return num(0);
+    if(x.t==='neg')return x.a; // −(−a) = a
+    return{t:'neg',a:x};
+  }
+  if(a.t==='add'||a.t==='sub'){
+    const l=prettyAST(a.a,d+1),r=prettyAST(a.b,d+1);
+    if(l.t==='num'&&l.v===0)return a.t==='add'?r:prettyAST({t:'neg',a:r},d+1);
+    if(r.t==='num'&&r.v===0)return l;
+    return{a:l,b:r,t:a.t};
+  }
+  if(a.t==='mul'){
+    const l=prettyAST(a.a,d+1),r=prettyAST(a.b,d+1);
+    if((l.t==='num'&&l.v===0)||(r.t==='num'&&r.v===0))return num(0);
+    if(l.t==='num'&&l.v===1)return r;
+    if(r.t==='num'&&r.v===1)return l;
+    if(l.t==='num'&&r.t==='num')return num(l.v*r.v); // 2·3 → 6
+    // neg-Minus nach vorne: 3·(−sinx) → −3·sinx (innere Multiplikation re-vereinfachen)
+    if(l.t==='num'&&r.t==='neg')return{t:'neg',a:prettyAST({a:l,b:r.a,t:'mul'},d+1)};
+    // Konvention: Zahl nach links — und dabei (a·b)·c zusammenfassen
+    if(r.t==='num'&&l.t!=='num'){
+      if(l.t==='mul'&&l.a.t==='num')return{a:num(r.v*l.a.v),b:l.b,t:'mul'};
+      if(l.t==='neg')return{t:'neg',a:prettyAST({a:r,b:l.a,t:'mul'},d+1)}; // 3·(−sinx) = −3·sinx
+      return{a:r,b:l,t:'mul'};
+    }
+    // 2·(3·x) → 6·x
+    const fold2=(p,q)=>(p.t==='num'&&q.t==='mul'&&q.a.t==='num')?{a:num(p.v*q.a.v),b:q.b,t:'mul'}:null;
+    const f=fold2(l,r);
+    if(f)return f;
+    return{a:l,b:r,t:'mul'};
+  }
+  if(a.t==='pow'){
+    const l=prettyAST(a.a,d+1),r=prettyAST(a.b,d+1);
+    if(r.t==='num'&&r.v===0)return num(1);
+    if(r.t==='num'&&r.v===1)return l;
+    if(l.t==='num'&&r.t==='num')return num(l.v**r.v); // 2^3 → 8
+    return{a:l,b:r,t:'pow'};
+  }
+  if(a.t==='call')return{t:'call',fn:a.fn,args:a.args.map(x=>prettyAST(x,d+1))};
+  return a;
+}
+function prettyASTStr(a){
+  const SUP=['⁰','¹','²','³','⁴','⁵','⁶','⁷','⁸','⁹'];
+  let s=astToStr(prettyAST(a));
+  // potenzen hübsch: pow(x, 2) → x²
+  s=s.replace(/pow\(([^,()]+),\s*(\d+)\)/g,(m,base,exp)=>{
+    if(exp==='1')return base;
+    if(+exp<10)return base+String(exp).split('').map(c=>SUP[+c]).join('');
+    return base+'^'+exp;
+  });
+  // Funktions-Klammern maskieren, damit die Bereinigung sie nicht frisst
+  const FN='(sin|cos|tan|cot|sec|csc|exp|ln|log|sqrt|cbrt|abs|sinh|cosh|tanh|asinh|acosh|atanh|asin|acos|atan|floor|ceil|sign|round|factorial)';
+  s=s.replace(new RegExp('\\b'+FN+'\\(([^()]*)\\)','g'),m=>m.replace(/\(/g,'\u0003').replace(/\)/g,'\u0004'));
+  // überflüssige Klammern um additive Terme nur, wenn nötig
+  s=s.replace(/\(([^()]*)\)/g,(m,inner)=>(inner.includes('+')||inner.includes('−'))?'('+inner+')':inner);
+  s=s.replace(/[\u0003\u0004]/g,c=>c==='\u0003'?'(':')');
+  // umschließende äußere Klammer entfernen, wenn balanciert
+  for(;;){
+    if(!(s.startsWith('(')&&s.endsWith(')')))break;
+    let d=0,ok=true;
+    for(let i=0;i<s.length-1;i++){
+      if(s[i]==='(')d++;
+      else if(s[i]===')'){d--;if(d===0){ok=false;break}}
+    }
+    if(!ok||d!==1)break;
+    s=s.slice(1,-1);
+  }
+  return s.replace(/\s+/g,' ').trim();
+}
+function partialDiffStr(src,v){
+  // Ableitungsterm als lesbaren Text (wenn symbolisch möglich)
+  try{return prettyASTStr(astDiff(astParse(src),v))}catch{return null}
+}
+
 /* =====================================================================
    V9.0 — Symbolische Polynome (Vereinfachen auf Koeffizienten-Maps)
    Koeffizienten sind rationale Zahlen; eine Variable (x). Ausmultiplizieren,
@@ -5253,10 +5380,67 @@ $('#hypFromStat').onclick=()=>{
   toast('Daten übernommen');
 };
 
+/* ---------- V9.0: Gradient, Tangentialebene, Overlay ---------- */
+function sfTangential(){
+  const x0=+$('#tan3dX').value,y0=+$('#tan3dY').value;
+  if(!Number.isFinite(x0)||!Number.isFinite(y0))throw Error('x₀ und y₀ müssen Zahlen sein.');
+  return tangentPlane(sf.expr,x0,y0);
+}
+$('#gradientBtn').onclick=()=>{
+  try{
+    const x0=+$('#tan3dX').value,y0=+$('#tan3dY').value;
+    const t=sfTangential();
+    const g=gradientStr(sf.expr,{x:x0,y:y0});
+    const dFx=partialDiffStr(sf.expr,'x'),dFy=partialDiffStr(sf.expr,'y');
+    $('#gradientOut').innerHTML=
+      `<div class="kpi-row">`+
+      `<div class="kpi"><small>f(x₀,y₀)</small><b>${fmt(t.f0)}</b></div>`+
+      `<div class="kpi"><small>∂f/∂x</small><b>${fmt(t.fx)}</b></div>`+
+      `<div class="kpi"><small>∂f/∂y</small><b>${fmt(t.fy)}</b></div>`+
+      `<div class="kpi"><small>|∇f|</small><b>${fmt(Math.hypot(t.fx,t.fy))}</b></div>`+
+      `</div>`+
+      `<div>Gradient in (${fmt(x0)}, ${fmt(y0)}): <b>(${fmt(t.fx)} , ${fmt(t.fy)})</b></div>`+
+      `<div class="help">${g.exact?'exakt symbolisch':'numerisch (zentraler Differenzenquotient)'} · Steigung in x: ${fmt(t.fx)} · in y: ${fmt(t.fy)}</div>`+
+      (dFx?`<div class="help">∂f/∂x = ${esc(dFx)}</div>`:'')+
+      (dFy?`<div class="help">∂f/∂y = ${esc(dFy)}</div>`:'');
+  }catch(e){$('#gradientOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+$('#tangentBtn').onclick=()=>{
+  try{
+    const x0=+$('#tan3dX').value,y0=+$('#tan3dY').value;
+    const t=sfTangential();
+    $('#gradientOut').innerHTML=
+      `<div class="kpi-row">`+
+      `<div class="kpi"><small>Tangentialebene</small><b style="font-size:14px;word-break:break-all">z = ${esc(t.expr)}</b></div></div>`+
+      `<div class="help">Berührt die Fläche in (${fmt(x0)}, ${fmt(y0)}) — dort stimmen Funktionswert und beide Steigungen überein.</div>`+
+      `<div class="help">Tipp: „Ebene einblenden“ legt sie halbtransparent über die Fläche.</div>`;
+  }catch(e){$('#gradientOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+$('#tangentOverlayBtn').onclick=()=>{
+  try{
+    const on=$('#tangentOverlayBtn').getAttribute('aria-pressed')!=='true';
+    if(on){
+      const t=sfTangential();
+      sf.overlay=t.expr;
+      // Overlay darf die Parameter (a, b…) nutzen wie die Hauptfläche
+      try{sfCompile();sfBuild();}catch{}
+      $('#tangentOverlayBtn').setAttribute('aria-pressed','true');
+      $('#tangentOverlayBtn').textContent='Ebene ausblenden';
+      toast('Tangentialebene eingeblendet');
+    }else{
+      sf.overlay=null;sf.overlayGrid=null;
+      $('#tangentOverlayBtn').setAttribute('aria-pressed','false');
+      $('#tangentOverlayBtn').textContent='Ebene einblenden';
+      toast('Tangentialebene ausgeblendet');
+    }
+    sfDraw();
+  }catch(e){toast(e.message)}
+};
+
 /* =====================================================================
    v8.0 — 3D-Funktionsplotter (z = f(x,y))
    ===================================================================== */
-const sf={yaw:.72,pitch:.55,zoom:1,range:6,res:36,colorMode:'height',params:{},grid:null,zmin:0,zmax:1,expr:'sin(x)*cos(y)'};
+const sf={yaw:.72,pitch:.55,zoom:1,range:6,res:36,colorMode:'height',params:{},grid:null,zmin:0,zmax:1,expr:'sin(x)*cos(y)',overlay:null,overlayZmin:0,overlayZmax:1};
 function sfStrip(src){return String(src).trim().replace(/^[zZ]\s*=\s*/,'')}
 function sfCompile(){
   const raw=$('#sfExpr').value||'';
@@ -5285,6 +5469,9 @@ function sfCompile(){
 function sfEval(x,y){
   try{const v=safeNum(sf.expr,{x,y,...sf.params});return Number.isFinite(v)?v:NaN}catch{return NaN}
 }
+function sfEvalExpr(expr,x,y){
+  try{const v=safeNum(expr,{x,y,...sf.params});return Number.isFinite(v)?v:NaN}catch{return NaN}
+}
 function sfCtx3d(){
   const c=$('#plot3d'),d=Math.max(1,Math.min(2,devicePixelRatio||1)),r=c.getBoundingClientRect();
   const w=Math.max(320,Math.floor(r.width)),h=Math.max(300,Math.floor(r.height));
@@ -5293,22 +5480,28 @@ function sfCtx3d(){
   ctx.setTransform(d,0,0,d,0,0);
   return{ctx,w,h};
 }
-function sfBuild(){
+function sfBuildGrid(expr){
   const N=sf.res,span=2*sf.range;
   let zmin=Infinity,zmax=-Infinity;
   const grid=[];
   for(let j=0;j<=N;j++){
     const row=[];
     for(let i=0;i<=N;i++){
-      const z=sfEval(-sf.range+span*i/N,-sf.range+span*j/N);
+      const z=sfEvalExpr(expr,-sf.range+span*i/N,-sf.range+span*j/N);
       row.push(z);
       if(Number.isFinite(z)){if(z<zmin)zmin=z;if(z>zmax)zmax=z}
     }
     grid.push(row);
   }
-  sf.grid=grid;
-  sf.zmin=Number.isFinite(zmin)?zmin:0;
-  sf.zmax=Number.isFinite(zmax)?zmax:1;
+  return{grid,zmin:Number.isFinite(zmin)?zmin:0,zmax:Number.isFinite(zmax)?zmax:1};
+}
+function sfBuild(){
+  const g=sfBuildGrid(sf.expr);
+  sf.grid=g.grid;sf.zmin=g.zmin;sf.zmax=g.zmax;
+  if(sf.overlay){
+    const g2=sfBuildGrid(sf.overlay);
+    sf.overlayGrid=g2.grid;sf.overlayZmin=g2.zmin;sf.overlayZmax=g2.zmax;
+  }else{sf.overlayGrid=null}
 }
 function sfColor(t){
   if(sf.colorMode==='steel')return[Math.round(30+45*t),Math.round(80+130*t),Math.round(170+80*t)];
@@ -5335,25 +5528,40 @@ function sfDraw(){
     return[cx+x1*scale,cy-z2*scale-zscale*((z-(sf.zmin+sf.zmax)/2)/zr),y2];
   };
   const N=sf.res,span=2*sf.range;
-  const cells=[];
-  for(let j=0;j<N;j++)for(let i=0;i<N;i++){
-    const z00=sf.grid[j][i],z10=sf.grid[j][i+1],z01=sf.grid[j+1][i],z11=sf.grid[j+1][i+1];
-    if(![z00,z10,z01,z11].every(Number.isFinite))continue;
-    const x0=-sf.range+span*i/N,y0=-sf.range+span*j/N,dx=span/N,dy=span/N;
-    const pts=[proj(x0,y0,z00),proj(x0+dx,y0,z10),proj(x0+dx,y0+dy,z11),proj(x0,y0+dy,z01)];
-    const depth=(pts[0][2]+pts[1][2]+pts[2][2]+pts[3][2])/4;
-    const t=Math.max(0,Math.min(1,((z00+z10+z01+z11)/4-sf.zmin)/zr));
-    cells.push({pts,depth,t});
+  const cellsFor=(grid,zmin,zmax,alpha,color)=>{
+    const out=[];
+    for(let j=0;j<N;j++)for(let i=0;i<N;i++){
+      const z00=grid[j][i],z10=grid[j][i+1],z01=grid[j+1][i],z11=grid[j+1][i+1];
+      if(![z00,z10,z01,z11].every(Number.isFinite))continue;
+      const x0=-sf.range+span*i/N,y0=-sf.range+span*j/N,dx=span/N,dy=span/N;
+      const pts=[proj(x0,y0,z00),proj(x0+dx,y0,z10),proj(x0+dx,y0+dy,z11),proj(x0,y0+dy,z01)];
+      const depth=(pts[0][2]+pts[1][2]+pts[2][2]+pts[3][2])/4;
+      const t=Math.max(0,Math.min(1,((z00+z10+z01+z11)/4-zmin)/(zmax-zmin)));
+      out.push({pts,depth,t,alpha,color});
+    }
+    return out;
+  };
+  const cells=cellsFor(sf.grid,sf.zmin,sf.zmax,.86,null);
+  if(sf.overlayGrid){
+    for(const c of cellsFor(sf.overlayGrid,sf.overlayZmin,sf.overlayZmax,.42,'overlay'))cells.push(c);
   }
   cells.sort((a,b)=>a.depth-b.depth);
   for(const c of cells){
-    const[r,g,b]=sfColor(c.t);
-    ctx.fillStyle=`rgba(${r},${g},${b},.86)`;
+    let fill,stroke;
+    if(c.color==='overlay'){
+      fill=`rgba(120,230,255,${c.alpha})`;   // Tangentialebene: kühles Glas
+      stroke='rgba(255,255,255,.5)';
+    }else{
+      const[r,g,b]=sfColor(c.t);
+      fill=`rgba(${r},${g},${b},${c.alpha})`;
+      stroke='rgba(0,0,0,.14)';
+    }
+    ctx.fillStyle=fill;
     ctx.beginPath();
     ctx.moveTo(c.pts[0][0],c.pts[0][1]);
     for(let k=1;k<4;k++)ctx.lineTo(c.pts[k][0],c.pts[k][1]);
     ctx.closePath();ctx.fill();
-    ctx.strokeStyle='rgba(0,0,0,.14)';ctx.lineWidth=.6;ctx.stroke();
+    ctx.strokeStyle=stroke;ctx.lineWidth=c.color==='overlay'?1.2:.6;ctx.stroke();
   }
   // Koordinatenachsen
   ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=1;
