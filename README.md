@@ -1,30 +1,32 @@
-# ELIAN Ultimate Calculator v8.1
+# ELIAN Ultimate Calculator v9.0
 
-Ein wissenschaftlicher Taschenrechner und Funktionsplotter als **eine einzige HTML-Datei** — ohne Build, ohne Abhängigkeiten, ohne Server. Einfach öffnen und rechnen. Alle Daten bleiben lokal im Browser. Das Design: **Liquid Glass** — schwebende Glasflächen, runde Tasten, Feder-Animationen und eine Tab-Leiste unten, wie man sie von modernen iOS-Geräten kennt.
+Ein wissenschaftlicher Taschenrechner, Funktionsplotter und Computer-Algebra-System als **eine einzige HTML-Datei** — ohne Build, ohne Abhängigkeiten, ohne Server. Einfach öffnen und rechnen. Alle Daten bleiben lokal im Browser. Das Design: **Liquid Glass** — schwebende Glasflächen, runde Tasten, Feder-Animationen und eine Tab-Leiste unten, wie man sie von modernen iOS-Geräten kennt.
 
 **Live-Demo:** Datei herunterladen und im Browser öffnen — fertig. Funktioniert auf Desktop, Handy und Tablet.
 
 ---
 
-## Was ist neu in v8.1 — „Liquid Glass"
+## Was ist neu in v9.0 — „Exakte Mathematik"
 
-Version 8.1 ist ein **Design-Reboot** plus Intelligenz- und Update-System.
+Version 9.0 macht den Rechner zum **CAS**: Brüche statt Float-Rauschen, symbolische Algebra, exakte Analysis.
 
 | # | Neuerung | Beschreibung |
 |---|---|---|
-| 1 | **Komplett neues Design** | Liquid-Glass-Oberfläche: schwebende Karten, runde Rechnertasten, iOS-Systemfarben, Feder-Animationen — durchgängig neu |
-| 2 | **Floating-Tab-Bar** | Schwebende Tableiste unten (Handy): Rechner, Wissenschaft, Funktionen, 3D, Statistik + „Mehr" — mit dem Daumen erreichbar |
-| 3 | **Large-Title-Navigation** | Großer Modultitel, der beim Scrollen zusammenschrumpft und die kompakte Kopfzeile hervorholt — wie in iOS |
-| 4 | **Helles Design** | Automatisch nach Systemeinstellung oder manuell; dark und light vollständig umgesetzt |
-| 5 | **Update-System über GitHub** | Prüft auf neue Versionen (opt-in), installiert sie vor dem Laden und verifiziert jede Datei per SHA-256 |
-| 6 | **Live-Vorschau beim Tippen** | Der Rechner rechnet beim Tippen mit — Ergebnis erscheint unter der Eingabe, bevor man „=" drückt |
-| 7 | **Natürliche Sprache** | „wurzel aus 144", „sinus von 30 Grad", „50 % von 200", „2 hoch 10", „5 plus 3 mal 2" → rechnet direkt |
-| 8 | **Absichts-Erkennung** | Bei „2x+5=17" erscheint ein Knopf „Gleichung lösen →"; Einheiten und Datumsangaben werden ebenfalls erkannt |
-| 9 | **Auto-Klammern** | Fehlende schließende Klammern werden ergänzt — mit Hinweis auf die Korrektur |
-| 10 | **Bottom-Sheets** | Dialoge kommen auf dem Handy von unten als Sheet mit Greif-Lasche, nicht als kleines Fenster |
+| 1 | **Exakte rationale Arithmetik** | 1/3 + 1/6 = **1/2** als Bruch, nicht 0,5 — intern rechnet der Rechner mit Brüchen |
+| 2 | **Symbolische Polynome** | zusammenfassen, ausmultiplizieren, Potenzen — exakt mit Bruchkoeffizienten |
+| 3 | **Stammfunktionen** | ∫x²dx = x³/3 exakt; Grundintegrale sin/cos/exp/ln/1/x; Hauptsatz numerisch verifiziert |
+| 4 | **Nullstellen exakt** | pq-/Mitternachtsformel, komplexe Lösungen, rationale Probeteiler mit Deflation |
+| 5 | **Partielle Ableitungen** | Gradient und Tangentialebene im 3D-Plotter einblendbar |
+| 6 | **Kurvendiskussion automatisch** | Ableitungen, Nullstellen, Extrema, Wendepunkte, Polstellen, Symmetrie, Monotonie — ein Knopf |
+| 7 | **Vektoren 2D/3D** | Kreuzprodukt, Skalarprodukt, Winkel, Abstände, Parameterdarstellungen |
+| 8 | **Eigenwerte & Potenzen** | char. Polynom, exakt 2×2, QR-Iteration für größere Matrizen |
+| 9 | **Grenzwerte exakt** | 0/0 durch Kürzen, ∞ durch Gradvergleich; ∞ und π als Grenzpunkt |
+| 10 | **Differentialgleichungen** | exakt für y′=f(x), y′=a+by, Trennung der Variablen; sonst Runge-Kutta |
+| 11 | **Verteilungen** | Binomial, Poisson, Φ/Quantile, Konfidenzintervalle |
 
 ### Vorherige Versionen (übernommen)
 
+- **v8.1**: Liquid-Glass-Design, Floating-Tab-Bar, Large-Title, GitHub-Updates mit SHA-256, Live-Vorschau, natürliche Sprache
 - **v8.0**: 3D-Funktionsplotter, RPN-Modus, exakte symbolische Ableitungen (AST), Taylor-Reihen, Hypothesentests (t/z/χ²), Integration mit Simpson/Trapez, Apple-Pencil-Skizze, natives Teilen (Web-Share-API), dynamische Schriftgröße (80–150 %), iPad-Layout und Hardware-Keyboard-Shortcuts (⌘1–⌘9, ⌘B, ⌘K)
 - **v7.0**: Polynome, komplexe Zahlen, Grenzwerte, Tangenten/Normalen, Newton-Iteration, Folgen & Reihen, Geometrie, Datum & Zeit, Umrechnung, Formelbibliothek, Konstanten, Übungsmodus, Notizen, Bruchrechnung, Matrix-Raster, Verteilungsdiagramm, Regression, Befehlspalette (⌘K), Verlaufssuche
 - **v6.4**: mathematisch korrekter Kern (Operatorreihenfolge, implizite Multiplikation, rechtsassoziative Potenz)

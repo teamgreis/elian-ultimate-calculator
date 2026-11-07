@@ -4,7 +4,8 @@ on:
   push:
     branches: [main]
     paths:
-      - 'ELIAN_Ultimate_Calculator_v8.0.html'
+      - 'ELIAN_Ultimate_Calculator_v9.0.html'
+      - 'mathe-tests.js'
       - '.github/workflows/pruefung.yml'
   pull_request:
     branches: [main]
@@ -12,7 +13,7 @@ on:
 
 jobs:
   pruefung:
-    name: JS-Syntax und HTML-Struktur
+    name: JS-Syntax, HTML-Struktur, Mathematik
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -27,7 +28,7 @@ jobs:
         run: |
           node -e "
             const fs = require('fs');
-            const html = fs.readFileSync('ELIAN_Ultimate_Calculator_v8.0.html', 'utf8');
+            const html = fs.readFileSync('ELIAN_Ultimate_Calculator_v9.0.html', 'utf8');
             const m = html.match(/<script>([\s\S]*?)<\/script>/);
             if (!m) { console.error('kein Skript-Block gefunden'); process.exit(1); }
             fs.writeFileSync('/tmp/app.js', m[1]);
@@ -40,10 +41,10 @@ jobs:
         run: |
           node -e "
             const fs = require('fs');
-            const html = fs.readFileSync('ELIAN_Ultimate_Calculator_v8.0.html', 'utf8');
+            const html = fs.readFileSync('ELIAN_Ultimate_Calculator_v9.0.html', 'utf8');
             const checks = [
               ['Dokumenttyp', /^<!doctype html>/i.test(html)],
-              ['Titel v8', html.includes('<title>ELIAN Ultimate Calculator v8')],
+              ['Titel v9', html.includes('<title>ELIAN Ultimate Calculator v9')],
               ['view-viewport', html.includes('viewport-fit=cover')],
               ['Single-File (keine externen Skripte)', !/<script[^>]+src=/.test(html)],
               ['Single-File (keine externen Stylesheets)', !/<link[^>]+stylesheet/.test(html)],
@@ -53,6 +54,14 @@ jobs:
               [' 25 Module', (html.match(/class=\"view\"/g) || []).length >= 25],
               ['Build 9.0', html.includes(\"BUILD='9.0'\")],
               ['Exakte rationale Arithmetik', html.includes('evalExprExact') && html.includes('astEvalRat')],
+              ['Stammfunktionen (Baustein 3)', html.includes('integrateTerm') && html.includes('polyInt')],
+              ['Nullstellen exakt (Baustein 5)', html.includes('solvePolyEquation') && html.includes('horner')],
+              ['Kurvendiskussion (Baustein 9)', html.includes('curveAnalyze')],
+              ['Vektoren (Baustein 6)', html.includes('vecCross') && html.includes('vecAngle')],
+              ['Eigenwerte (Baustein 7)', html.includes('eigenOf') && html.includes('qrEigen')],
+              ['Grenzwerte (Baustein 8)', html.includes('limitAtFiniteExact') && html.includes('limitInfExact')],
+              ['DGL (Baustein 10)', html.includes('dglExact') && html.includes('dglEuler')],
+              ['Verteilungen (Baustein 11)', html.includes('binomPMF') && html.includes('confInterval')],
               ['Kein Capacitor-Rest', !html.includes('window.Capacitor')]
             ];
             let bad = 0;
@@ -62,3 +71,6 @@ jobs:
             }
             process.exit(bad ? 1 : 0);
           "
+
+      - name: Mathematik-Eigenschaftstests
+        run: node mathe-tests.js

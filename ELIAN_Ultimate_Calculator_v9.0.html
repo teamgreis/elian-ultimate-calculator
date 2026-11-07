@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ELIAN Calculator">
 <meta name="theme-color" content="#07101b">
-<title>ELIAN Ultimate Calculator v8.1</title>
+<title>ELIAN Ultimate Calculator v9.0</title>
 <style>
 /* =====================================================================
    ELIAN v8.1 — Liquid-Glass-Designsystem (iOS-27.2-Look)
@@ -630,7 +630,7 @@ body[data-mode=light] .cmdk{background:rgba(10,20,40,.28)}
 
 <div id="lock" class="lock">
   <div class="login glass">
-    <div class="brand"><div class="logo">E</div><div><b>ELIAN Ultimate</b><small>Calculator · v8.1 · iPhone &amp; iPad</small></div></div>
+    <div class="brand"><div class="logo">E</div><div><b>ELIAN Ultimate</b><small>Calculator · v9.0 · exakte Mathematik</small></div></div>
     <h2 style="margin:6px 0 4px">Anmelden</h2>
     <p class="help" style="margin-top:0">Lokal auf diesem Gerät. Keine Serververbindung, keine Konten in der Cloud.</p>
     <div class="row" style="margin-bottom:10px">
@@ -668,7 +668,7 @@ body[data-mode=light] .cmdk{background:rgba(10,20,40,.28)}
 
 <div class="app" id="app">
   <aside class="side" id="side">
-    <div class="brand"><div class="logo">E</div><div><b>ELIAN Ultimate</b><small>v8.1 · Liquid Glass · Offline</small></div></div>
+    <div class="brand"><div class="logo">E</div><div><b>ELIAN Ultimate</b><small>v9.0 · Exakte Mathematik · Offline</small></div></div>
     <nav class="nav" id="nav" aria-label="Hauptnavigation"></nav>
     <div class="user-mini glass">
       <strong id="who">–</strong>
@@ -693,7 +693,7 @@ body[data-mode=light] .cmdk{background:rgba(10,20,40,.28)}
       </div>
     </header>
     <div class="content">
-      <div class="large-title" id="largeTitle"><b id="largeTitleText">Rechner</b><small id="largeTitleSub">v8.1 · Liquid Glass</small></div>
+      <div class="large-title" id="largeTitle"><b id="largeTitleText">Rechner</b><small id="largeTitleSub">v9.0 · Exakte Mathematik</small></div>
 
       <section id="calculator" class="view active" aria-label="Rechner">
         <div class="card glass">
@@ -3427,13 +3427,25 @@ $('#infoBtn').onclick=()=>openModal(
   '<li><b>Helles Design</b>: automatisch nach Systemeinstellung oder manuell umschaltbar</li>'+
   '<li><b>Dynamische Schriftgröße</b> (80 %–150 %) für bessere Lesbarkeit</li>'+
   '<li><b>iPadOS-Optimierungen</b>: Split-View-taugliches Layout, sichere Bereiche (Notch), Hardware-Keyboard-Shortcuts (⌘1–⌘9, ⌘B, ⌘K), 44-px-Touch-Ziele</li>'+
-  '<li>iOS/iPadOS-App (Capacitor) mit eigenen App-Icons und Splash-Screens im Repository</li></ul>'+
+  '<li>iOS/iPadOS-App (Capacitor) im Verlauf der Entwicklung entfernt — auf Wunsch reine HTML-Ausgabe</li></ul>'+
   '<h3>Neu in v8.1</h3><ul>'+
   '<li><b>Komplett neues Design (Liquid Glass)</b>: schwebende Glasflächen, runde Tasten, Feder-Animationen, Large-Title-Navigation wie iOS — hell und dunkel'+
   '<li><b>Floating-Tab-Bar</b> auf dem Handy: fünf Hauptmodule + „Mehr“ — mit dem Daumen erreichbar'+
   '<li><b>Update-System über GitHub</b>: erkennt neue Versionen, installiert sie und verifiziert per SHA-256 (opt-in, standardmäßig aus)'+
-  '<li><b>Intelligentere Eingabe</b>: Live-Vorschau beim Tippen, natürlichsprachliche Befehle („wurzel aus 144“, „sinus von 30 Grad“, „50 % von 200“), Auto-Klammern, Absichtserkennung (Gleichung → Algebra-Vorschlag)</li>'+
+  '<li><b>Intelligentere Eingabe</b>: Live-Vorschau beim Tippen, natürlichsprachliche Befehle („wurzel aus 144“, „sinus von 30 Grad“, „50 % von 200“), Auto-Klammern, Absichtserkennung (Gleichung → Algebra-Vorschlag)'+
   '<li><b>Automatisches Design</b> nach Systemeinstellung (hell/dunkel)</li></ul>'+
+  '<h3>Neu in v9.0 — exakte Mathematik</h3><ul>'+
+  '<li><b>Exakte rationale Arithmetik</b>: 1/3 + 1/6 = 1/2 als Bruch, nicht 0,5 — der Rechner rechnet intern mit Brüchen</li>'+
+  '<li><b>Stammfunktionen</b>: ∫ bilden exakt für Polynome und Grundintegrale (sin, cos, exp, ln, 1/x) + C — mit numerischer Kontrolle</li>'+
+  '<li><b>Nullstellen exakt</b>: lineare und quadratische Gleichungen analytisch (pq-/Mitternachtsformel), komplexe Lösungen, rationale Probeteiler für höhere Polynome</li>'+
+  '<li><b>Partielle Ableitungen</b>: Gradient und Tangentialebene für z = f(x, y) — direkt im 3D-Plotter einblendbar</li>'+
+  '<li><b>Automatische Kurvendiskussion</b>: Ableitungen, Nullstellen, Extrema, Wendepunkte, Polstellen, Symmetrie und Monotonie in einem Schritt</li>'+
+  '<li><b>Vektoren 2D/3D</b>: Kreuzprodukt, Skalarprodukt, Winkel, Abstände, Parameterdarstellungen</li>'+
+  '<li><b>Eigenwerte &amp; Matrix-Potenzen</b>: charakteristisches Polynom, exakt für 2×2, QR-Iteration für größere Matrizen</li>'+
+  '<li><b>Grenzwerte</b>: exakt durch Kürzen (0/0) und Gradvergleich (∞), auch mit ∞ und π als Grenzpunkt</li>'+
+  '<li><b>Differentialgleichungen</b>: y′ = f(x), y′ = a + b·y und Trennung der Variablen exakt, sonst Runge-Kutta</li>'+
+  '<li><b>Verteilungen</b>: Binomial, Poisson, Normalverteilung (Φ, Quantile) und Konfidenzintervalle</li>'+
+  '<li><b>Winkeltreue</b>: DEG/GON skalieren Ableitung und Integration konsistent (π/180, π/200)</li></ul>'+
   '<p class="help">Build: v'+BUILD+' · Single-File Offline Edition · Alle Daten bleiben im Browser dieses Geräts. Netzwerkzugriff erfolgt ausschließlich nach aktivierter Update-Prüfung.</p>'
 );
 $('#easter').onclick=()=>openModal('<h2>✨ ELIAN EASTER EGG</h2><p>Du hast den geheimen Knopf gefunden.</p><p style="font-size:32px">∫ ∑ π √ ∞ → ELIAN</p><p class="help">Offline. Lokal. Präzise.</p>');

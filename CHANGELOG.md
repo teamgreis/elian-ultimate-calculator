@@ -1,5 +1,32 @@
 # Changelog
 
+## [9.0.0] — 2026-11-07
+
+Vom Rechner zum Computer-Algebra-System — exakte Mathematik in allen Modulen.
+
+### Neu
+- **Exakte rationale Arithmetik** (Baustein 1): 1/3 + 1/6 = 1/2 als Bruch statt 0,5; `evalExprExact` arbeitet intern mit Brüchen, Darstellungs- und Rechenfehler durch Float entfallen
+- **Symbolische Polynome** (Baustein 2): zusammenfassen, ausmultiplizieren, Potenzen — exakt über Koeffizienten-Maps mit Bruchkoeffizienten, schöne Ausgabe mit echten Hochzeichen (x²)
+- **Stammfunktionen** (Baustein 3): ∫x²dx = x³/3 exakt; Grundintegrale sin/cos/exp/ln/1/x mit Konstanten; Hauptsatz-Probe numerisch verifiziert
+- **Nullstellen exakt** (Baustein 5): lineare und quadratische Gleichungen analytisch (pq-/Mitternachtsformel), Diskriminante mit Quadratzahl-/Doppel-/Komplexfall, rationale Probeteiler mit Horner-Deflation für höhere Polynome
+- **Partielle Ableitungen** (Baustein 4): Gradient und Tangentialebene für z = f(x, y), halbtransparent im 3D-Plotter einblendbar
+- **Automatische Kurvendiskussion** (Baustein 9): Ableitungen, Nullstellen, Extrema, Wendepunkte, Polstellen, Symmetrie und Monotonieintervalle in einem Schritt, Marker direkt in den Plot
+- **Vektoren 2D/3D** (Baustein 6): Addition, Skalar- und Kreuzprodukt, Winkel, Abstände, Einheitsvektoren, Parameterdarstellungen
+- **Eigenwerte & Potenzen** (Baustein 7): charakteristisches Polynom, exakt für 2×2, QR-Iteration für größere Matrizen, binäre Potenzierung
+- **Grenzwerte exakt** (Baustein 8): 0/0 durch Kürzen von Linearfaktoren, ∞ durch Gradvergleich, exakte Bruchdarstellung; ∞/−∞/π als Grenzpunkt
+- **Differentialgleichungen** (Baustein 10): y′ = f(x), y′ = a + b·y und Trennung der Variablen exakt, sonst Runge-Kutta 2. Ordnung
+- **Verteilungen** (Baustein 11): Binomial, Poisson, Normalverteilung (Φ, Dichte, Quantile) und Konfidenzintervalle für Anteile
+
+### Verbessert
+- **Winkeltreue**: DEG/GON skalieren Ableitung und Integration konsistent mit π/180 bzw. π/200 — symbolisch und numerisch stimmen in beiden Modi überein
+- **Lesbare Mathematik**: Pretty-Print für Ableitungen (Hochzeichen, Konstantenfaltung, normierte Vorzeichen), geklammerte Bruchkoeffizienten, Verfahrensangabe bei jedem Ergebnis
+- **Nullstellen-Werkzeug** im Algebra-Modul zeigt Verfahren, Diskriminante und „Nullstellen im Plot markieren"
+- **Grenzwert-Werkzeug** zeigt das Verfahren an (Kürzen/numerisch)
+
+### Qualität
+- **mathe-tests.js**: 31 mathematische Eigenschaftstests (Brüche, Polynome, Hauptsatz, pq-Formel, Φ, Quantile, KI) laufen in der CI mit
+- CI prüft jetzt Baustein-spezifische Engines und führt die Mathematik-Tests aus
+
 ## [8.1.0] — 2026-11-02
 
 Design-Reboot „Liquid Glass", Intelligenz-Features und ein GitHub-Update-System mit SHA-256-Verifikation.
