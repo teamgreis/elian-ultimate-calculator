@@ -789,6 +789,15 @@ body[data-mode=light] .cmdk{background:rgba(10,20,40,.28)}
             <div id="lgsOut" class="glass" style="padding:15px">Variablen werden automatisch erkannt.</div>
           </div>
           <hr>
+          <h3>Term vereinfachen</h3>
+          <p class="help">Polynome exakt zusammenfassen und ausmultiplizieren — z. B. <code>(x+1)(x+2)</code> → <code>x²+3x+2</code>, <code>2x+3x</code> → <code>5x</code>. Auch mit Bruchkoeffizienten.</p>
+          <div class="row">
+            <input id="simplifyExpr" class="input" style="flex:1 1 260px" placeholder="(x+1)^2 - 3x + 5" value="2x+3x+x^2-1">
+            <button class="btn" id="simplifyBtn">Vereinfachen</button>
+            <button class="btn" id="simplifyPlotBtn">Im Plotter zeigen</button>
+          </div>
+          <div id="simplifyOut" class="glass" style="padding:15px;margin-top:10px">–</div>
+          <hr>
           <div class="grid2">
             <div>
               <label>Variable setzen
@@ -2628,6 +2637,36 @@ $('#setVar').onclick=()=>{
     db.vars[m[1]]=safeNum(m[2]);persist();
     $('#varOut').innerHTML=esc(m[1])+' = <b>'+fmt(db.vars[m[1]])+'</b>';
   }catch(e){$('#varOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+
+/* ---------- V9.0: Term vereinfachen (exakt, polynomial) ---------- */
+$('#simplifyBtn').onclick=()=>{
+  const src=$('#simplifyExpr').value;
+  try{
+    const s=simplifyTerm(src,'x');
+    const ev=safeNum(src,{x:0});
+    const deg=Object.keys(s.poly).map(Number).sort((a,b)=>b-a)[0];
+    $('#simplifyOut').innerHTML=
+      `<div class="kpi-row">`+
+      `<div class="kpi"><small>Vereinfacht</small><b style="font-size:17px;word-break:break-all">${esc(s.str)}</b></div>`+
+      `<div class="kpi"><small>Grad</small><b>${deg||0}</b></div>`+
+      `<div class="kpi"><small>f(0)</small><b>${fmt(ev)}</b></div>`+
+      `</div>`+
+      `<div class="help">${esc(src)} ergibt vereinfacht <b>${esc(s.str)}</b> — Koeffizienten exakt${s.exact?'':', mit Bruchwerten'}.</div>`;
+  }catch(e){
+    $('#simplifyOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'+
+      '<div class="help" style="margin-top:6px">Vereinfachen unterstützt polynomiale Terme in x (Grundrechenarten, Klammern, ganzzahlige Potenzen).</div>';
+  }
+};
+$('#simplifyPlotBtn').onclick=()=>{
+  try{
+    const s=simplifyTerm($('#simplifyExpr').value,'x');
+    const expr=s.str.replace(/−/g,'-').replace(/\s+/g,'');
+    $('#graphInput').value='y='+expr;
+    db.graphInput=$('#graphInput').value;persist();
+    show('graph');
+    toast('Vereinfachten Term geplottet');
+  }catch(e){toast(e.message)}
 };
 
 /* =====================================================================
@@ -4522,6 +4561,95 @@ function num(n){return{t:'num',v:n}}
 function vr(n){return{t:'var',n}}
 function bin(t,a,b){return{t,a,b}}
 
+/* =====================================================================
+   V9.0 — Symbolische Polynome (Vereinfachen auf Koeffizienten-Maps)
+   Koeffizienten sind rationale Zahlen; eine Variable (x). Ausmultiplizieren,
+   Zusammenfassen, ganzzahlige Potenzen — alles exakt.
+   ===================================================================== */
+function polyConst(n){const r=(typeof n==='object')?n:rq(n,1);return Object.keys(r.n!==undefined?{0:r}:{})?{0:r}:{0:r}}
+function polyClean(p){
+  const out={};
+  for(const k of Object.keys(p)){
+    const c=p[k];
+    if(c.n!==0)out[+k]=c;
+  }
+  return out;
+}
+function polyAdd(a,b){const out={...a};for(const k of Object.keys(b)){const e=+k;out[e]=out[e]?rAdd(out[e],b[k]):b[k]}return polyClean(out)}
+function polySub(a,b){const out={...a};for(const k of Object.keys(b)){const e=+k;out[e]=out[e]?rSub(out[e],b[k]):rNeg(b[k])}return polyClean(out)}
+function polyMul(a,b){
+  const out={};
+  for(const i of Object.keys(a))for(const j of Object.keys(b)){
+    const e=+i + +j;const c=rMul(a[i],b[j]);
+    out[e]=out[e]?rAdd(out[e],c):c;
+  }
+  return polyClean(out);
+}
+function polyPow(a,n){
+  if(!Number.isInteger(n)||n<0)throw Error('Polynom-Potenz: nur nichtnegative ganze Exponenten.');
+  let r={0:rq(1,1)};
+  for(let i=0;i<n;i++)r=polyMul(r,a);
+  return r;
+}
+function polyIsNum(p){return Object.keys(p).length===0||(Object.keys(p).length===1&&p[0]!==undefined)}
+function polyToNum(p){return polyIsNum(p)?rToNum(p[0]):NaN}
+function polyFromAST(a,v){
+  switch(a.t){
+    case 'num':{const r=parseDecimalToRational(a.src!==undefined?a.src:String(a.v));return{0:r}}
+    case 'var':{
+      if(a.n===v)return{1:rq(1,1)};
+      throw Error('Nicht polynomial in '+v+': Variable '+a.n+'.');
+    }
+    case 'neg':{
+      const b=polyFromAST(a.a,v);
+      const out={};for(const k of Object.keys(b))out[+k]=rNeg(b[k]);
+      return out;
+    }
+    case 'add':return polyAdd(polyFromAST(a.a,v),polyFromAST(a.b,v));
+    case 'sub':return polySub(polyFromAST(a.a,v),polyFromAST(a.b,v));
+    case 'mul':return polyMul(polyFromAST(a.a,v),polyFromAST(a.b,v));
+    case 'div':{
+      const d=polyFromAST(a.b,v);
+      if(!polyIsNum(d))throw Error('Polynom-Division nur durch Zahlen unterstützt.');
+      const dd=d[0];if(dd.n===0)throw Error('Division durch Null.');
+      const out={};for(const k of Object.keys(a)){
+        const p=polyFromAST(a.a,v);
+        for(const kk of Object.keys(p))out[+kk]=rDiv(p[kk],dd);
+      }
+      return polyClean(out);
+    }
+    case 'pow':{
+      const e=a.b;
+      if(e.t!=='num')throw Error('Polynom-Potenz nur mit ganzzahligem Exponenten.');
+      const ev=Number(e.src!==undefined?e.src:e.v);
+      if(!Number.isInteger(ev))throw Error('Polynom-Potenz nur mit ganzzahligem Exponenten.');
+      return polyPow(polyFromAST(a.a,v),ev);
+    }
+    default:throw Error('Nicht polynomial: '+a.t+' (sin, sqrt, … sind nicht polynomial).');
+  }
+}
+function polyParse(src,v){return polyFromAST(astParse(src),v||'x')}
+function polyToStr(p,v){
+  v=v||'x';
+  const SUP=['⁰','¹','²','³','⁴','⁵','⁶','⁷','⁸','⁹'];
+  const sup=n=>String(n).split('').map(c=>SUP[+c]).join('');
+  const keys=Object.keys(p).map(Number).sort((a,b)=>b-a);
+  if(!keys.length)return'0';
+  return keys.map(k=>{
+    const c=p[k],sign=c.n<0?'−':'+',mag=Math.abs(c.n),den=c.d;
+    if(k===0)return(mag===1&&den===1)?sign+' 1':(den===1?sign+' '+mag:sign+' '+mag+'/'+den);
+    const numPart=(mag===1&&den===1)?'':(den===1?String(mag):mag+'/'+den);
+    const varPart=k===1?v:(k<10?v+sup(k):v+'^'+k);
+    // Bruchkoeffizient vor Variable klammern: (5/6)x statt 5/6x
+    return sign+' '+(den!==1?'('+numPart+')':numPart)+varPart;
+  }).join(' ').replace(/^\+ /,'').replace(/^− /,'−');
+}
+/* Algebra: Term vereinfachen — exakt wenn polynomial */
+function simplifyTerm(src,v){
+  const p=polyParse(src,v);
+  const exactSame=Object.keys(p).some(k=>p[k].d!==1)||/x|y|[a-zA-Z]/.test(src)&&false;
+  return{poly:p,str:polyToStr(p,v),exact:Object.keys(p).every(k=>p[k].d===1&&Number.isInteger(p[k].n))};
+}
 /* =====================================================================
    V9.0 — Exakte rationale Arithmetik (CAS-Grundlage)
    Derselbe AST wie die Float-Auswertung, gerechnet wird auf gekürzten
