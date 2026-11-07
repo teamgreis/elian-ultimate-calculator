@@ -1035,9 +1035,50 @@ body[data-mode=light] .cmdk{background:rgba(10,20,40,.28)}
     <button class="btn" id="hypFromStat">Aus Statistik-Daten übernehmen</button>
   </div>
   <div id="hypOut" class="glass" style="padding:15px;margin-top:10px">–</div>
-</div>
-        </div>
-      </section>
+  </div>
+  <div class="card glass" style="margin-top:14px">
+  <h2>Wahrscheinlichkeitsverteilungen</h2>
+  <div class="grid3">
+  <div>
+  <h3>Binomial B(n, p)</h3>
+  <input id="binN" class="input" placeholder="n = 10" value="10">
+  <input id="binP" class="input" placeholder="p = 0,5" value="0.5" style="margin-top:6px">
+  <input id="binK" class="input" placeholder="k = 5" value="5" style="margin-top:6px">
+  <button class="btn" id="binBtn" style="margin-top:6px">P(X=k) · P(X≤k)</button>
+  <div id="binOut" class="help" style="margin-top:6px"></div>
+  </div>
+  <div>
+  <h3>Poisson Po(λ)</h3>
+  <input id="poL" class="input" placeholder="λ = 3" value="3">
+  <input id="poK" class="input" placeholder="k = 2" value="2" style="margin-top:6px">
+  <button class="btn" id="poBtn" style="margin-top:6px">P(X=k) · P(X≤k)</button>
+  <div id="poOut" class="help" style="margin-top:6px"></div>
+  </div>
+  <div>
+  <h3>Normal N(μ, σ)</h3>
+  <input id="nmX" class="input" placeholder="x" value="1.9">
+  <input id="nmMu" class="input" placeholder="μ = 0" value="0" style="margin-top:6px">
+  <input id="nmS" class="input" placeholder="σ = 1" value="1" style="margin-top:6px">
+  <button class="btn" id="nmBtn" style="margin-top:6px">Φ(x) · Quantil</button>
+  <div id="nmOut" class="help" style="margin-top:6px"></div>
+  </div>
+  </div>
+  <hr>
+  <div class="row">
+  <span class="badge">Konfidenzintervall (Anteil)</span>
+  <input id="ciP" class="input" style="width:110px" value="0.6" placeholder="p̂">
+  <input id="ciN" class="input" style="width:110px" value="100" placeholder="n">
+  <select id="ciLevel" style="width:auto">
+  <option value="0.9">90 %</option>
+  <option value="0.95" selected>95 %</option>
+  <option value="0.99">99 %</option>
+  </select>
+  <button class="btn" id="ciBtn">Berechnen</button>
+  </div>
+  <div id="ciOut" class="glass" style="padding:15px;margin-top:10px">–</div>
+  </div>
+  </div>
+  </section>
 
       <section id="matrix" class="view" aria-label="Matrizen">
         <div class="card glass">
@@ -5597,6 +5638,67 @@ function parseSeparable(ast,v){
 }
 
 /* =====================================================================
+   V9.0 Baustein 11 — Stochastik: Binomial, Poisson, Normal-CDF,
+   Konfidenzintervalle
+   ===================================================================== */
+function binomPMF(n,p,k){
+  if(!Number.isInteger(n)||n<0)throw Error('n muss eine natürliche Zahl sein.');
+  if(!(p>=0&&p<=1))throw Error('p muss in [0,1] liegen.');
+  if(!Number.isInteger(k)||k<0||k>n)return 0;
+  // stabil über Faktoren: C(n,k)·p^k·(1−p)^(n−k)
+  let logC=0;
+  for(let i=0;i<k;i++)logC+=Math.log(n-i)-Math.log(i+1);
+  const v=Math.exp(logC);
+  return v*Math.pow(p,k)*Math.pow(1-p,n-k);
+}
+function binomCDF(n,p,k){
+  let s=0;
+  for(let i=0;i<=Math.min(k,n);i++)s+=binomPMF(n,p,i);
+  return Math.min(1,s);
+}
+function poissonPMF(l,k){
+  if(l<0)throw Error('λ muss ≥ 0 sein.');
+  if(!Number.isInteger(k)||k<0)return 0;
+  // rekursiv stabil: P(0)=e^−λ, P(k)=P(k−1)·λ/k
+  let v=Math.exp(-l);
+  for(let i=1;i<=k;i++)v=v*l/i;
+  return v;
+}
+function poissonCDF(l,k){
+  let s=0;
+  for(let i=0;i<=Math.max(0,k);i++)s+=poissonPMF(l,i);
+  return Math.min(1,s);
+}
+function erfA(x){ // Abramowitz-Stegun 7.1.26 — |Fehler| < 1.5e-7
+  const sign=Math.sign(x)||1;
+  const ax=Math.abs(x);
+  const t=1/(1+0.3275911*ax);
+  const t2=t*t,t3=t2*t,t4=t3*t,t5=t4*t;
+  const poly=0.254829592*t-0.284496736*t2+1.421413741*t3-1.453152027*t4+1.061405429*t5;
+  return sign*(1-poly*Math.exp(-ax*ax));
+}
+function normalPhi(z){return 0.5*(1+erfA(z/Math.SQRT2))}
+function normalPDF(x,mu,s){return Math.exp(-0.5*((x-mu)/s)**2)/(s*Math.sqrt(2*Math.PI))}
+function normalQuantile(p,mu,s){
+  mu=mu||0;s=s||1;
+  if(!(p>0&&p<1))throw Error('p muss in (0,1) liegen.');
+  let lo=mu-40*s,hi=mu+40*s;
+  for(let i=0;i<200;i++){
+    const m=(lo+hi)/2;
+    if(normalPhi((m-mu)/s)<p)lo=m;else hi=m;
+  }
+  return(lo+hi)/2;
+}
+function confInterval(pHat,n,level){
+  if(!Number.isInteger(n)||n<=0)throw Error('n muss > 0 sein.');
+  if(!(pHat>=0&&pHat<=1))throw Error('Anteil muss in [0,1] liegen.');
+  if(!(level>0&&level<1))throw Error('Niveau in (0,1), z. B. 0,95.');
+  const z=normalQuantile(1-(1-level)/2);
+  const se=Math.sqrt(pHat*(1-pHat)/n);
+  return{z,se,lo:Math.max(0,pHat-z*se),hi:Math.min(1,pHat+z*se)};
+}
+
+/* =====================================================================
    V9.0 — Symbolische Polynome (Vereinfachen auf Koeffizienten-Maps)
    Koeffizienten sind rationale Zahlen; eine Variable (x). Ausmultiplizieren,
    Zusammenfassen, ganzzahlige Potenzen — alles exakt.
@@ -6340,6 +6442,53 @@ $('#hypFromStat').onclick=()=>{
   if(vals.length<2)return toast('Erst Statistik-Daten auswerten.');
   $('#hypA').value=vals.join(', ');
   toast('Daten übernommen');
+};
+
+/* ---------- V9.0: Verteilungen & Konfidenzintervalle ---------- */
+$('#binBtn').onclick=()=>{
+  try{
+    const n=+$('#binN').value,p=+$('#binP').value.replace(',','.'),k=+$('#binK').value;
+    const pmf=binomPMF(n,p,k),cdf=binomCDF(n,p,k);
+    $('#binOut').innerHTML=
+      `P(X = ${k}) = <b>${fmt(pmf)}</b><br>P(X ≤ ${k}) = <b>${fmt(cdf)}</b><br>`+
+      `<span class="help">Erwartungswert μ = ${fmt(n*p)} · σ = ${fmt(Math.sqrt(n*p*(1-p)))}</span>`;
+  }catch(e){$('#binOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+$('#poBtn').onclick=()=>{
+  try{
+    const l=+$('#poL').value,k=+$('#poK').value;
+    const pmf=poissonPMF(l,k),cdf=poissonCDF(l,k);
+    $('#poOut').innerHTML=
+      `P(X = ${k}) = <b>${fmt(pmf)}</b><br>P(X ≤ ${k}) = <b>${fmt(cdf)}</b><br>`+
+      `<span class="help">Erwartungswert μ = σ² = λ = ${fmt(l)}</span>`;
+  }catch(e){$('#poOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+$('#nmBtn').onclick=()=>{
+  try{
+    const x=+$('#nmX').value,mu=+$('#nmMu').value,s=+$('#nmS').value;
+    if(!s||s<=0)throw Error('σ muss > 0 sein.');
+    const z=(x-mu)/s;
+    const phi=normalPhi(z);
+    const qs=[0.975,0.99].map(q=>normalQuantile(q,mu,s));
+    $('#nmOut').innerHTML=
+      `Φ(${fmt(x)}) = P(X ≤ ${fmt(x)}) = <b>${fmt(phi)}</b><br>`+
+      `z = ${fmt(z)} · Dichte φ(z) = ${fmt(normalPDF(x,mu,s))}<br>`+
+      `<span class="help">97,5 % der Fläche links von ${fmt(qs[0])} · 99 % links von ${fmt(qs[1])}</span>`;
+  }catch(e){$('#nmOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+$('#ciBtn').onclick=()=>{
+  try{
+    const ph=+$('#ciP').value.replace(',','.'),n=+$('#ciN').value,level=+$('#ciLevel').value;
+    const ci=confInterval(ph,n,level);
+    const pct=Math.round(level*100);
+    $('#ciOut').innerHTML=
+      `<div class="kpi-row">`+
+      `<div class="kpi"><small>${pct}-Intervall</small><b style="font-size:15px">[${fmt(ci.lo)} ; ${fmt(ci.hi)}]</b></div>`+
+      `<div class="kpi"><small>z</small><b>${fmt(ci.z)}</b></div>`+
+      `<div class="kpi"><small>Standardfehler</small><b>${fmt(ci.se)}</b></div>`+
+      `</div>`+
+      `<div class="help" style="margin-top:8px">p̂ ± z·√(p̂(1−p̂)/n) mit p̂ = ${fmt(ph)}, n = ${n}, z = ${fmt(ci.z)} — das Intervall überdeckt den wahren Anteil in ${pct} % der Stichproben.</div>`;
+  }catch(e){$('#ciOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
 };
 
 /* ---------- V9.0: Gradient, Tangentialebene, Overlay ---------- */
