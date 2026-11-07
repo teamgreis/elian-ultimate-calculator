@@ -1384,6 +1384,34 @@ body[data-mode=light] .cmdk{background:rgba(10,20,40,.28)}
               <button class="btn" id="geoCone" style="margin-top:6px">Berechnen</button></div>
           </div>
           <div id="geoOut" class="glass" style="padding:15px;margin-top:12px">–</div>
+          <hr>
+          <div class="row">
+            <span class="badge">📐 Vektoren 2D/3D</span>
+            <input id="vecA" class="input" style="width:120px" value="1,2,3" placeholder="a">
+            <input id="vecB" class="input" style="width:120px" value="4,5,6" placeholder="b">
+            <select id="vecOp" style="width:auto">
+              <option value="add">a + b</option>
+              <option value="sub">a − b</option>
+              <option value="scale">k · a</option>
+              <option value="dot">a · b (Skalar)</option>
+              <option value="cross">a × b (Kreuz)</option>
+              <option value="angle">Winkel φ</option>
+              <option value="norm">Beträge</option>
+              <option value="unit">Einheitsvektor von a</option>
+              <option value="laged">Abstand Punkt–Gerade</option>
+              <option value="lagen">Abstand Punkt–Ebene</option>
+              <option value="para">Parameterdarstellungen</option>
+            </select>
+            <button class="btn" id="vecBtn">Rechnen</button>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <label style="width:130px">Punkt P (für Abst.)<input id="vecP" class="input" value="2,1,0" style="margin-top:6px"></label>
+            <label style="width:130px">Aufpunkt A / Ebene A<input id="vecPt" class="input" value="1,0,0" style="margin-top:6px"></label>
+            <label style="width:130px">Normalenvektor n<input id="vecN" class="input" value="0,0,1" style="margin-top:6px"></label>
+            <label style="width:90px">Faktor k<input id="vecK" class="input" value="2" style="margin-top:6px"></label>
+          </div>
+          <p class="help">Eingabe als <code>1,2,3</code> oder <code>(1 2 3)</code>. Abstand Punkt–Gerade nutzt P, a (Richtung) und b (Stütz). Abstand Punkt–Ebene nutzt P, A (Aufpunkt) und n. Kreis/Rechteck/Dreieck oben bleiben unverändert.</p>
+          <div id="vecOut" class="glass" style="padding:15px;margin-top:12px">–</div>
         </div>
       </section>
       <section id="dates" class="view" aria-label="Datum und Zeit">
@@ -3843,6 +3871,65 @@ $('#geoCone').onclick=()=>{
   ]);
 };
 
+/* ---------- V9.0: Vektoren 2D/3D ---------- */
+$('#vecBtn').onclick=()=>{
+  try{
+    const a=vecParse($('#vecA').value),b=vecParse($('#vecB').value);
+    const op=$('#vecOp').value;
+    const P=$('#vecP').value.trim()?vecParse($('#vecP').value):null;
+    const A=$('#vecPt').value.trim()?vecParse($('#vecPt').value):null;
+    const n=$('#vecN').value.trim()?vecParse($('#vecN').value):null;
+    const k=+($('#vecK').value||'1');
+    const rows=[['a',vecStr(a)],['b',vecStr(b)]];
+    let title='Vektorrechnung';
+    if(op==='add'){rows.push(['a + b',vecStr(vecAdd(a,b))])}
+    else if(op==='sub'){rows.push(['a − b',vecStr(vecSub(a,b))])}
+    else if(op==='scale'){
+      if(!Number.isFinite(k))throw Error('Faktor k muss eine Zahl sein.');
+      rows.push(['k · a',vecStr(vecScale(k,a))]);
+    }
+    else if(op==='dot'){rows.push(['a · b',fmt(vecDot(a,b))])}
+    else if(op==='cross'){
+      rows.push(['a × b',vecStr(vecCross(a,b))]);
+      const cr=vecCross(a,b);
+      rows.push(['|a × b| = |a||b|sin φ',fmt(vecNorm(cr))]);
+    }
+    else if(op==='angle'){
+      const w=vecAngle(a,b);
+      rows.push(['φ (Grad)',w.degTxt],['φ (rad)',w.radTxt],['φ (gon)',w.gonTxt]);
+      title='Winkel zwischen a und b';
+    }
+    else if(op==='norm'){
+      rows.push(['|a|',fmt(vecNorm(a))],['|b|',fmt(vecNorm(b))]);
+    }
+    else if(op==='unit'){rows.push(['a/|a|',vecStr(vecUnit(a))])}
+    else if(op==='laged'){
+      if(!P)throw Error('Für Abstände wird der Punkt P benötigt.');
+      rows.push(['d(P, g)',fmt(vecDistPointLine(P,a,b))]);
+      title='Abstand Punkt – Gerade (Stütz a, Richtung b)';
+    }
+    else if(op==='lagen'){
+      if(!P||!A||!n)throw Error('Für Abstände werden P, A und n benötigt.');
+      rows.push(['d(P, E)',fmt(vecDistPointPlane(P,A,n))]);
+      title='Abstand Punkt – Ebene';
+    }
+    else if(op==='para'){
+      const lines=[vecGaussPara(a,b)];
+      if(a.length===3&&b.length===3){
+        const nvec=vecCross(a,b);
+        if(vecNorm(nvec)>1e-12){
+          lines.push(vecGaussPara(a,nvec,b));
+          rows.push(['Normale n = a × b',vecStr(nvec)]);
+        }
+      }
+      $('#vecOut').innerHTML='<div style="font-size:16px;line-height:1.9">'+lines.join('<br><br>')+'</div>'+
+        '<div class="help" style="margin-top:8px">t, s ∈ ℝ — Parameterdarstellungen. '+rows.map(r=>esc(r[0])+': '+esc(r[1])).join(' · ')+'</div>';
+      return;
+    }
+    $('#vecOut').innerHTML=geoBox(title,rows);
+  }catch(e){$('#vecOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+
 /* ---------- Datum & Zeit ---------- */
 const MONTHS_DE=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 const DAYS_DE=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
@@ -5080,6 +5167,64 @@ function curveAnalyze(src,v){
   }
   res.monotonie=segs;
   return res;
+}
+
+/* =====================================================================
+   V9.0 Baustein 6 — Analytische Geometrie (Vektoren 2D/3D)
+   ===================================================================== */
+function vecParse(s){
+  const t=String(s).replace(/[()]/g,'').split(/[,;\s]+/).filter(Boolean).map(x=>parseFloat(x.replace(',','.')));
+  if(!t.length||t.some(x=>!Number.isFinite(x)))throw Error('Vektor erwartet: z. B. 1,2,3 oder (1 2 3).');
+  return t;
+}
+function vecStr(v){return '('+v.map(x=>fmt(x)).join(' ; ')+')'}
+function vecAdd(a,b){if(a.length!==b.length)throw Error('Vektoren müssen gleiche Dimension haben.');return a.map((x,i)=>x+b[i])}
+function vecSub(a,b){if(a.length!==b.length)throw Error('Vektoren müssen gleiche Dimension haben.');return a.map((x,i)=>x-b[i])}
+function vecScale(k,a){return a.map(x=>k*x)}
+function vecDot(a,b){if(a.length!==b.length)throw Error('Vektoren müssen gleiche Dimension haben.');return a.reduce((s,x,i)=>s+x*b[i],0)}
+function vecCross(a,b){
+  if(a.length!==3||b.length!==3)throw Error('Kreuzprodukt benötigt zwei 3D-Vektoren.');
+  return[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+}
+function vecNorm(a){return Math.sqrt(vecDot(a,a))}
+function vecUnit(a){const n=vecNorm(a);if(n===0)throw Error('Nullvektor hat keine Richtung.');return a.map(x=>x/n)}
+function vecAngle(a,b){
+  const na=vecNorm(a),nb=vecNorm(b);
+  if(na===0||nb===0)throw Error('Winkel nur für Vektoren ungleich Null.');
+  const c=vecDot(a,b)/(na*nb);
+  const rad=Math.acos(Math.max(-1,Math.min(1,c)));
+  const deg=rad*180/Math.PI;
+  const gon=deg*400/360;
+  return{rad,deg,gon,degTxt:fmt(deg)+'°',radTxt:fmt(rad)+' rad',gonTxt:fmt(gon)+' gon'};
+}
+function vecDistPointLine(p,a,b){
+  // Abstand Punkt p von Gerade durch a Richtung b: |(p-a) × b| / |b|
+  const d=vecSub(p,a);
+  const nb=vecNorm(b);
+  if(nb===0)throw Error('Richtungsvektor darf nicht Null sein.');
+  if(p.length===2&&a.length===2&&b.length===2)
+    return Math.abs(d[0]*b[1]-d[1]*b[0])/nb; // 2D-Kreuzprodukt als Skalar
+  return vecNorm(vecCross(d,b))/nb;
+}
+function vecDistPointPlane(p,a,nvec){
+  // Abstand Punkt p von Ebene a + n·x: |(p-a)·n| / |n|
+  const nn=vecNorm(nvec);
+  if(nn===0)throw Error('Normalenvektor darf nicht Null sein.');
+  return Math.abs(vecDot(vecSub(p,a),nvec))/nn;
+}
+function vecGaussPara(a,p,r){
+  // Gerade (2D/3D): g: x = a + t·p ; Ebene (3D): x = a + s·p + t·r
+  let out='g: x = '+vecStr(a)+' + t · '+vecStr(p);
+  if(r&&r.length===3){
+    out+='<br>E: x = '+vecStr(a)+' + s · '+vecStr(p)+' + t · '+vecStr(r);
+  }
+  return out;
+}
+function vecKomp(o){
+  try{
+    const v=vecParse(o);
+    return v;
+  }catch(e){return null}
 }
 
 /* =====================================================================
