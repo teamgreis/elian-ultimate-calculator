@@ -1280,7 +1280,7 @@ body[data-mode=light] .cmdk{background:rgba(10,20,40,.28)}
           <div class="row">
             <input id="calcExpr" class="input" style="flex:1 1 260px" placeholder="sin(x)/x" value="sin(x)/x">
             <button class="btn" id="limitBtn">Grenzwert</button>
-            <input id="limitAt" class="input" style="width:110px" value="0" placeholder="gegen">
+            <input id="limitAt" class="input" style="width:110px" value="0" placeholder="0, ∞, −∞, pi">
             <select id="limitDir" style="width:110px"><option value="both">beidseitig</option><option value="+">von rechts</option><option value="-">von links</option></select>
           </div>
           <div id="limitOut" class="glass" style="padding:15px;margin-top:12px">–</div>
@@ -3684,9 +3684,34 @@ $('#limitBtn').onclick=()=>{
   try{
     const src=$('#calcExpr').value;
     if(!src.trim())throw Error('Bitte einen Ausdruck eingeben.');
-    const at=+$('#limitAt').value;
-    if(!Number.isFinite(at))throw Error('Grenzpunkt muss eine Zahl sein.');
+    const at=parseAtPoint($('#limitAt').value);
     const dir=$('#limitDir').value;
+    const infAt=(at===Infinity||at===-Infinity);
+    if(infAt){
+      const sign=at>0?+1:-1;
+      const e=limitInfExact(src,'x');
+      const n=numericLimInf(src,'x',sign);
+      if(e&&e.exact&&e.value!==undefined){
+        $('#limitOut').innerHTML=
+          `lim<sub>x→${at>0?'+∞':'−∞'}</sub> ${esc(src)} = <b>${esc(e.value.n+'/'+e.value.d)} = ${fmt(e.value.n/e.value.d)}</b><br>`+
+          `<span class="help">Verfahren: ${esc(e.method)} — exakt.</span>`;
+        return;
+      }
+      if(e&&e.inf){
+        $('#limitOut').innerHTML=`lim<sub>x→${at>0?'+∞':'−∞'}</sub> ${esc(src)} = <b>${at>0?'+∞':'−∞'}</b><br><span class="help">Verfahren: ${esc(e.method)}.</span>`;
+        return;
+      }
+      if(n&&n.diverges){
+        $('#limitOut').innerHTML=`<span class="warning">Der Grenzwert existiert nicht.</span><br><span class="help">Die Funktionswerte wachsen ohne Grenze (Divergenz gegen ∞).</span>`;
+        return;
+      }
+      if(n&&Number.isFinite(n.val)){
+        $('#limitOut').innerHTML=`lim<sub>x→${at>0?'+∞':'−∞'}</sub> ${esc(src)} ≈ <b>${fmt(n.val)}</b><br><span class="help">Verfahren: numerisch (Annäherung bei ${at>0?'1e8/1e9':'−1e8/−1e9'}).</span>`;
+        return;
+      }
+      $('#limitOut').innerHTML='<span class="warning">Der Grenzwert gegen ∞ ist hier nicht bestimmbar.</span>';
+      return;
+    }
     // Erst direkt prüfen — aber nur wenn der Wert endlich ist
     let direct;
     try{direct=evalCalcExpr(src,at)}catch{direct=NaN}
@@ -3694,9 +3719,17 @@ $('#limitBtn').onclick=()=>{
       $('#limitOut').innerHTML=`lim<sub>x→${fmt(at)}</sub> ${esc(src)} = <b>${fmt(direct)}</b><br><span class="help">Direkt eingesetzt — der Grenzwert existiert.</span>`;
       return;
     }
+    // exakt: Polynomquotient mit Kürzen
+    const e2=limitAtFiniteExact(src,'x',at);
+    if(e2){
+      $('#limitOut').innerHTML=
+        `lim<sub>x→${fmt(at)}</sub> ${esc(src)} = <b>${esc(e2.value.n+'/'+e2.value.d)} = ${fmt(e2.value.n/e2.value.d)}</b><br>`+
+        `<span class="help">Verfahren: ${e2.kuerzungen>0?'Kürzen von '+e2.kuerzungen+' Linearfaktor(en) (x − '+fmt(at)+')':'direkt nach schrittweisem Prüfen'} — exakt.</span>`;
+      return;
+    }
     const r=numericLimit(src,at,dir);
     $('#limitOut').innerHTML=r.ok
-      ?`lim<sub>x→${fmt(at)}</sub> ${esc(src)} = <b>${fmt(r.val)}</b><br><span class="help">Direkt eingesetzt — der Grenzwert existiert.</span>`
+      ?`lim<sub>x→${fmt(at)}</sub> ${esc(src)} = <b>${fmt(r.val)}</b><br><span class="help">Numerisch bestimmt (Annäherung).</span>`
       :`<span class="warning">Der Grenzwert existiert nicht oder ist nicht bestimmbar.</span><br><span class="help">Die Funktionswerte streben gegen ${fmt(r.val)} oder divergieren (mögliche Polstelle).</span>`;
   }catch(e){$('#limitOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
 };
@@ -4947,9 +4980,9 @@ function ratDivisors(r){
   return[...cands].map(s=>{const [m,d]=s.split('/').map(Number);return rq(m,d)});
 }
 function horner(poly,xRat){ // Dividiere poly durch (x − xRat) — synthetische Division
-  const ks=Object.keys(poly).map(Number).sort((a,b)=>b-a);
-  const n=ks[0];
-  const a=ks.map(k=>poly[k]);
+  const n=Math.max(...Object.keys(poly).map(Number));
+  const a=[];
+  for(let k=n;k>=0;k--)a.push(poly[k]||rq(0,1)); // Lücken als 0 füllen
   const b=[];
   for(let i=0;i<a.length;i++)b.push(i===0?a[0]:rAdd(a[i],rMul(xRat,b[i-1])));
   const q={};
@@ -5365,6 +5398,78 @@ function matPowN(A,k){
     e=Math.floor(e/2);
   }
   return R;
+}
+
+/* =====================================================================
+   V9.0 Baustein 8 — Grenzwerte exakt (Polynome/Quotienten + ∞)
+   Ausmultiplizieren und Kürzen für 0/0, Gradvergleich für ∞,
+   exakt rationale Werte wo möglich — sonst numerischer Fallback.
+   ===================================================================== */
+function parseAtPoint(s){
+  const t=String(s).trim().toLowerCase();
+  if(t==='oo'||t==='∞'||t==='inf'||t==='unendlich')return Infinity;
+  if(t==='-oo'||t==='−∞'||t==='-inf'||t==='-unendlich')return -Infinity;
+  if(t==='pi'||t==='π')return Math.PI;
+  const v=+t;
+  if(!Number.isFinite(v))throw Error('Grenzpunkt: Zahl, pi, oder ∞/−∞ erwartet.');
+  return v;
+}
+function ratFromAt(at){ // at als rationale Zahl
+  if(!Number.isFinite(at))return null;
+  const s=Math.round(at*1e12)/1e12;
+  return{n:Math.round(s*1e12),d:1e12};
+}
+function polyEvalAtExact(p,xRat){
+  return polyEvalRat(p,xRat);
+}
+function fracPoly(src,v){
+  // Versucht Zähler/Nenner als Polynome zu trennen
+  const ast=astParse(src);
+  if(ast.t!=='div')return null;
+  try{return{num:polyFromAST(ast.a,v),den:polyFromAST(ast.b,v)}}catch{return null}
+}
+function polyHasFactor(p,xRat){ return polyEvalRat(p,xRat).n===0 }
+function limitAtFiniteExact(src,v,at){
+  const f=fracPoly(src,v);
+  if(!f)return null;
+  const pinned=!Number.isFinite(at)?null:(Math.abs(at-Math.round(at))<1e-9?rq(Math.round(at),1):ratFromAt(at));
+  if(!pinned)return null;
+  let num=f.num,den=f.den;
+  let kuerzungen=0;
+  // 0/0: Linearfaktoren kürzen (mehrfach)
+  for(let guard=0;guard<10;guard++){
+    if(!polyHasFactor(den,pinned))break;
+    if(!polyHasFactor(num,pinned))break;
+    const dn=horner(den,pinned),du=horner(num,pinned);
+    if(dn.rem.n!==0||du.rem.n!==0)break;
+    num=du.q;den=dn.q;kuerzungen++;
+  }
+  const denVal=polyEvalAtExact(den,pinned);
+  if(denVal.n===0)return null; // weiterhin singulär
+  const numVal=polyEvalAtExact(num,pinned);
+  const quot=rDiv(numVal,denVal);
+  return{exact:true,value:quot,num,den,kuerzungen,method:'Kürzen von '+(kuerzungen||keinText())+' Linearfaktor(en) (x − '+fmt(at)+')'};
+}
+function keinText(){return 'keinem'}
+function polyLeadCoef(p){const ks=Object.keys(p).map(Number).sort((a,b)=>b-a);return{deg:ks[0]||0,c:p[ks[0]]}}
+function limitInfExact(src,v){
+  const f=fracPoly(src,v);
+  if(!f)return null;
+  const a=polyLeadCoef(f.num),b=polyLeadCoef(f.den);
+  if(a.deg<b.deg)return{exact:true,value:rq(0,1),sign:0,method:'Grad Zähler < Grad Nenner'};
+  if(a.deg>b.deg)return{exact:false,inf:true,method:'Grad Zähler > Grad Nenner'};
+  const quot=rDiv(a.c,b.c);
+  return{exact:true,value:quot,method:'gleicher Grad — Quotient der Leitkoeffizienten'};
+}
+function numericLimInf(src,v,sign){
+  const x0=sign<0?-1e8:1e8;
+  const x1=sign<0?-1e9:1e9;
+  let y0,y1;
+  try{y0=safeNum(src,{x:x0})}catch{y0=NaN}
+  try{y1=safeNum(src,{x:x1})}catch{y1=NaN}
+  if(!Number.isFinite(y0)&&!Number.isFinite(y1))return{diverges:true};
+  if(!Number.isFinite(y0)||!Number.isFinite(y1))return{diverges:true};
+  return{val:y1,plain:true};
 }
 
 /* =====================================================================
