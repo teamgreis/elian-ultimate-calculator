@@ -1320,6 +1320,15 @@ body[data-mode=light] .cmdk{background:rgba(10,20,40,.28)}
           </div>
           <p class="help">Exakt für Polynome und die Grundintegrale sin, cos, exp, ln, 1/x — jeweils mit beliebiger Konstanten. Allgemeine Substitution bleibt Aufgabe der Nutzerin.</p>
           <div id="intTermOut" class="glass" style="padding:15px;margin-top:12px">–</div>
+          <hr>
+          <div class="row">
+            <span class="badge">Kurvendiskussion</span>
+            <input id="curveExpr" class="input" style="flex:1 1 220px" value="x^3-3x" placeholder="x^3-3x">
+            <button class="btn" id="curveBtn">Alles analysieren</button>
+            <button class="btn" id="curvePlotBtn">Im Plot markieren</button>
+          </div>
+          <p class="help">Polynome werden exakt diskutiert (Brüche, pq-Formel), andere Funktionen numerisch (Zentraldifferenzen). Definitionsbereich, Ableitungen, Nullstellen, Extrema, Wendepunkte, Polstellen, Symmetrie und Monotonie in einem Schritt.</p>
+          <div id="curveOut" class="glass" style="padding:15px;margin-top:12px">–</div>
         </div>
       </section>
 
@@ -4924,6 +4933,156 @@ function polyToNumericFn(p,v){
 }
 
 /* =====================================================================
+   V9.0 Baustein 9 — Automatische Kurvendiskussion
+  Auf f' / f'' aufbauend (exakt für Polynome, numerisch sonst):
+  Nullstellen, Extrema, Wendepunkte, Definitionslücken, Symmetrie,
+  Monotonie — alles mit Plot-Markierungen.
+   ===================================================================== */
+function dExpr(src,n,v){
+  let a=astParse(src);
+  for(let i=0;i<n;i++)a=astDiff(a,v||'x');
+  return prettyASTStr(a);
+}
+function dNum(src,n,x){ // numerische n-te Ableitung an x (zentral, rekursiv)
+  const h=Math.max(1e-6,Math.abs(x)*1e-6);
+  if(n===0)return safeNum(src,{x});
+  if(n===1)return (safeNum(src,{x:x+h})-safeNum(src,{x:x-h}))/(2*h);
+  // höhere Ableitungen: Differenzenquotient der (n-1)-ten
+  const g=t=>dNum(src,n-1,t);
+  return (g(x+h)-g(x-h))/(2*h);
+}
+function polyDiff(p){
+  const out={};
+  for(const k of Object.keys(p)){
+    const e=+k;
+    if(e>0)out[e-1]=rMul(p[k],rq(e,1));
+  }
+  return polyClean(out);
+}
+function polyIsPoly(src,v){
+  try{polyFromAST(astParse(src),v);return true}catch{return false}
+}
+function numericRootsOn(f,fnSrc,lo,hi,N){
+  // Nullstellen einer numerischen Funktion fnSrc(x) im Intervall
+  const out=[];
+  let px=lo,py;
+  try{py=fnSrc(px)}catch{py=NaN}
+  for(let i=1;i<=N;i++){
+    const x=lo+(hi-lo)*i/N;
+    let y;try{y=fnSrc(x)}catch{px=x;py=NaN;continue}
+    if(Number.isFinite(py)&&Number.isFinite(y)&&py*y<0){
+      let a=px,b=x,fa=py;
+      for(let k=0;k<60;k++){
+        const m=(a+b)/2;let fm;try{fm=fnSrc(m)}catch{break}
+        if(!Number.isFinite(fm))break;
+        if(fa*fm<=0)b=m;else{a=m;fa=fm}
+      }
+      const r=(a+b)/2;
+      if(!out.some(z=>Math.abs(z-r)<1e-7))out.push(r);
+    }
+    if(Number.isFinite(y)&&Math.abs(y)<1e-9&&!out.some(z=>Math.abs(z-x)<1e-7))out.push(x);
+    px=x;py=y;
+  }
+  return out;
+}
+function curveAnalyze(src,v){
+  v=v||'x';
+  const a=String(src).replace(/\s+/g,'');
+  const res={f:a,isPoly:polyIsPoly(a,v)};
+  res.d1=dExpr(a,1,v);res.d2=dExpr(a,2,v);
+  // Nullstellen exakt (Polynom) oder numerisch
+  let nullstellen=[];
+  if(res.isPoly){
+    try{
+      const r=solvePolyEquation(a+'=0',v);
+      nullstellen=(r.roots||[]).map(x=>({x:rqNum(x),exact:true,text:x.n+(x.d!==1?'/'+x.d:'')}));
+      nullstellen=nullstellen.concat((r.numeric||[]).map(n=>({x:n,exact:false,text:undefined})));
+    }catch{}
+  }
+  if(!nullstellen.length){
+    nullstellen=numericRootsOn(a,x=>safeNum(a,{x}),-12,12,900)
+      .map(x=>({x,exact:false,text:undefined}));
+  }
+  res.nullstellen=nullstellen.filter(z=>Math.abs(z.x)<1e6);
+  // Extrema: Nullstellen von f′ — exakt wenn f Polynom
+  let extrema=[];
+  if(res.isPoly){
+    try{
+      const p=polyFromAST(astParse(a),v);
+      const dp=polyDiff(p);
+      const ddp=polyDiff(dp);
+      const dpStr=polyToStr(dp);
+      const r=solvePolyEquation(dpStr+'=0',v);
+      const xs=(r.roots||[]).map(x=>({x:rqNum(x),exact:true,text:x.n+(x.d!==1?'/'+x.d:'')}));
+      extrema=xs.concat((r.numeric||[]).map(n=>({x:n,exact:false})));
+      res.extremaRaw=extrema;
+    }catch{}
+  }
+  // numerische Extrema (immer, konsistent)
+  const d1n=x=>dNum(a,1,x);
+  const cand=numericRootsOn(a,d1n,-12,12,900).map(x=>({x,exact:false}));
+  const merged=[];
+  const push1=e=>{
+    if(Math.abs(e.x)>1e6)return;
+    if(!merged.some(z=>Math.abs(z.x-e.x)<1e-6))merged.push(e);
+  };
+  (res.extremaRaw||[]).forEach(push1);cand.forEach(push1);
+  res.extrema=merged.map(e=>{
+    const dd=dNum(a,2,e.x);
+    const type=dd<0?'Hochpunkt (Maximum)':dd>0?'Tiefpunkt (Minimum)':'Sattelpunkt (f"=0)';
+    const y=dNum(a,0,e.x);
+    return{x:e.x,y,type,exact:e.exact===true,text:e.text};
+  });
+  // Wendepunkte: Vorzeichenwechsel von f″
+  const d2n=x=>dNum(a,2,x);
+  const wpCand=numericRootsOn(a,d2n,-12,12,900);
+  const wps=[];
+  for(const x of wpCand){
+    // Vorzeichenwechsel bestätigen
+    const h=1e-4;
+    let l,r;
+    try{l=Math.sign(d2n(x-h));r=Math.sign(d2n(x+h))}catch{continue}
+    if(l!==r&&l!==0&&r!==0){
+      const y=dNum(a,0,x),steep=dNum(a,3,x);
+      wps.push({x,y,steep,type:steep!==0?(steep>0?'Links-rechts-Wendepunkt (Rechts-links-Wendepunkt)':'Rechts-links-Wendepunkt (Links-rechts-Wendepunkt)'):'Wendepunkt'});
+    }
+  }
+  res.wendepunkte=wps.filter(z=>Math.abs(z.x)<1e6);
+  // Definitionslücken/Polstellen: Scan auf nicht endliche Werte
+  const poles=[];
+  for(let i=-60;i<=60;i++){
+    const x=i/5;
+    let y;
+    try{y=safeNum(a,{x})}catch{y=NaN}
+    if(!Number.isFinite(y)||Math.abs(y)>1e8)poles.push(x);
+  }
+  // gruppieren
+  const pg=[];
+  poles.forEach(p=>{const last=pg[pg.length-1];if(last&&Math.abs(p-last[last.length-1])<0.201)last.push(p);else pg.push([p])});
+  res.polstellen=pg.map(g=>+(g.reduce((s,v)=>s+v,0)/g.length).toFixed(4));
+  // Symmetrie
+  try{
+    const s1=safeNum(a,{x:1.7}),s2=safeNum(a,{x:-1.7});
+    res.symmetrie=Math.abs(s1-s2)<1e-8?'achsensymmetrisch zur y-Achse':Math.abs(s1+s2)<1e-8?'punktsymmetrisch zum Ursprung':'keine (allgemeine Lage)';
+  }catch{res.symmetrie='—'}
+  // Monotonie: Vorzeichen von f′ an den Intervallgrenzen
+  res.monotonie=[];
+  const marks=[...res.nullstellen.map(z=>z.x),...res.polstellen,...res.extrema.map(z=>z.x)].filter(x=>Number.isFinite(x)).sort((a,b)=>a-b);
+  const dedup=marks.filter((m,i)=>i===0||Math.abs(m-marks[i-1])>1e-6);
+  const segs=[];
+  let lo=-12;
+  const edges=[lo,...dedup.filter(m=>m>-12&&m<12),12];
+  for(let i=0;i<edges.length-1;i++){
+    const mid=(edges[i]+edges[i+1])/2;
+    let sg;
+    try{sg=Math.sign(d1n(mid))}catch{sg=0}
+    segs.push({von:edges[i],bis:edges[i+1],steigung:sg>0?'streng monoton steigend':sg<0?'streng monoton fallend':'konstant'});
+  }
+  res.monotonie=segs;
+  return res;
+}
+
+/* =====================================================================
    V9.0 — Symbolische Polynome (Vereinfachen auf Koeffizienten-Maps)
    Koeffizienten sind rationale Zahlen; eine Variable (x). Ausmultiplizieren,
    Zusammenfassen, ganzzahlige Potenzen — alles exakt.
@@ -5277,6 +5436,73 @@ $('#intPlotBtn').onclick=()=>{
     db.graphInput=$('#graphInput').value;persist();
     show('graph');
     toast('Funktion und Stammfunktion geplottet');
+  }catch(e){toast(e.message)}
+};
+
+/* ---------- V9.0: Automatische Kurvendiskussion ---------- */
+function curveFmt(x,exact,text){
+  return exact&&text?fmt(x)+' = '+text:'≈ '+fmt(x);
+}
+function curveRender(r,v){
+  v=v||'x';
+  const row=(label,value)=>`<div class="row" style="justify-content:space-between;padding:3px 0"><span class="help">${label}</span><b>${value}</b></div>`;
+  const list=(title,items,mk)=>{
+    if(!items.length)return row(title,'—');
+    return row(title,items.map(mk).join(' &nbsp;·&nbsp; '));
+  };
+  const pts=[];
+  r.nullstellen.forEach(z=>pts.push([`${v} = `+curveFmt(z.x,z.exact,z.text),z.x,0]));
+  r.extrema.forEach(z=>pts.push([z.type+': '+curveFmt(z.x,z.exact,z.text)+' , '+v+' = '+fmt(z.y),z.x,z.y]));
+  r.wendepunkte.forEach(z=>pts.push([z.type+': '+curveFmt(z.x,false,undefined)+' , '+v+' = '+fmt(z.y),z.x,z.y]));
+  const out=
+    row('y =',`<span style="font-size:17px">${esc(r.f)}</span>`) +
+    row('y′ =',`<span style="font-size:17px">${esc(r.d1)}</span>`) +
+    row('y″ =',`<span style="font-size:17px">${esc(r.d2)}</span>`) +
+    (r.isPoly?`<div class="help" style="margin:6px 0"><span class="ok">Polynom — exakt diskutiert (rationale Werte)</span></div>`:'')+
+    `<hr style="border-color:var(--border);margin:10px 0">`+
+    list('Definitionsbereich',(r.polstellen.length?r.polstellen.map(p=>'x ≠ '+fmt(p)):['alle reellen Zahlen']),s=>s)+
+    list('Nullstellen',r.nullstellen,z=>curveFmt(z.x,z.exact,z.text))+
+    list('Extrema',r.extrema,z=>z.type.replace(' (Maximum)','').replace(' (Minimum)','')+' bei '+curveFmt(z.x,z.exact,z.text))+
+    list('Wendepunkte',r.wendepunkte,z=>'bei ≈ '+fmt(z.x))+
+    list('Polstellen',r.polstellen,z=>'x = '+fmt(z))+
+    row('Symmetrie',esc(r.symmetrie||'—'))+
+    (r.monotonie.length?`<div class="help" style="margin-top:10px"><b style="color:var(--foreground)">Monotonie:</b><br>`+
+      r.monotonie.map(s=>'('+fmt(s.von)+' ; '+fmt(s.bis)+'): '+s.steigung).join('<br>')+'</div>':'')+
+    (pts.length?`<div class="help" style="margin-top:10px"><b style="color:var(--foreground)">Markierpunkte:</b><br>`+
+      pts.map(p=>esc(p[0])).join('<br>')+'</div>':'');
+  return{html:out,pts};
+}
+$('#curveBtn').onclick=()=>{
+  try{
+    const src=$('#curveExpr').value;
+    const r=curveAnalyze(src,'x');
+    const out=curveRender(r,'x');
+    $('#curveOut').innerHTML=out.html;
+    $('#curvePlotBtn').dataset.pts=JSON.stringify(out.pts);
+    $('#curvePlotBtn').dataset.fn=String(src).replace(/\s+/g,'');
+  }catch(e){$('#curveOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+$('#curvePlotBtn').onclick=()=>{
+  try{
+    const fn=$('#curvePlotBtn').dataset.fn||'';
+    let pts=[];
+    try{pts=JSON.parse($('#curvePlotBtn').dataset.pts||'[]')}catch{}
+    // Plot-Ausschnitt aus den Markern bilden
+    const xs=pts.map(p=>p[1]);
+    let lo=-8,hi=8;
+    if(xs.length){
+      const min=Math.min(...xs),max=Math.max(...xs);
+      const pad=Math.max(2,(max-min)*.3);
+      lo=Math.floor(min-pad);hi=Math.ceil(max+pad);
+      if(hi-lo<6){lo-=2;hi+=2}
+    }
+    $('#xmin').value=lo;$('#xmax').value=hi;
+    try{readBounds()}catch{}
+    $('#graphInput').value='y='+fn.replace(/-/g,'-')+
+      (pts.length?'\np=['+pts.map(p=>'('+fmt(p[1])+'|'+fmt(p[2])+')').join(' ')+']':'');
+    db.graphInput=$('#graphInput').value;persist();
+    show('graph');parseGraph();
+    toast('Kurve mit allen Markern geplottet');
   }catch(e){toast(e.message)}
 };
 
