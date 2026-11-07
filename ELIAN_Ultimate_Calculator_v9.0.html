@@ -1335,6 +1335,19 @@ body[data-mode=light] .cmdk{background:rgba(10,20,40,.28)}
           </div>
           <p class="help">Polynome werden exakt diskutiert (Brüche, pq-Formel), andere Funktionen numerisch (Zentraldifferenzen). Definitionsbereich, Ableitungen, Nullstellen, Extrema, Wendepunkte, Polstellen, Symmetrie und Monotonie in einem Schritt.</p>
           <div id="curveOut" class="glass" style="padding:15px;margin-top:12px">–</div>
+          <hr>
+          <div class="row">
+            <span class="badge">Differentialgleichung</span>
+            <input id="dglSrc" class="input" style="flex:1 1 200px" value="2*y+1" placeholder="y′ = … (Variablen x, y)">
+            <label style="width:130px">Start x₀<input id="dglX0" class="input" value="0" style="margin-top:6px"></label>
+            <label style="width:130px">Start y₀<input id="dglY0" class="input" value="1" style="margin-top:6px"></label>
+            <label style="width:120px">bis x =<input id="dglX1" class="input" value="2" style="margin-top:6px"></label>
+            <label style="width:90px">Schritt<input id="dglH" class="input" value="0.1" style="margin-top:6px"></label>
+            <button class="btn" id="dglBtn">Lösen</button>
+            <button class="btn" id="dglPlotBtn">Lösung plotten</button>
+          </div>
+          <p class="help">Exakt für y′ = f(x) (Stammfunktion), y′ = a + b·y (exponentiell) und y′ = g(x)·y (Trennung der Variablen) — sonst numerisch mit Runge-Kutta 2. Ordnung (Mittelpunkt). Beispiel: <code>2*y+1</code>, Start (0|1).</p>
+          <div id="dglOut" class="glass" style="padding:15px;margin-top:12px">–</div>
         </div>
       </section>
 
@@ -5473,6 +5486,117 @@ function numericLimInf(src,v,sign){
 }
 
 /* =====================================================================
+   V9.0 Baustein 10 — Differentialgleichungen 1. Ordnung
+   Exakt für die Schul-Muster (y'=f(x), y'=a+by, y'=g(x)·yⁿ),
+   sonst numerisch (Runge-Kutta 2. Ordnung) mit Schrittweite.
+   ===================================================================== */
+function dglAt(src,x,y){return safeNum(src,{x,y})}
+function dglEuler(src,x0,y0,x1,h){
+  const pts=[[x0,y0]];
+  let x=x0,y=y0;
+  const dir=Math.sign(x1-x0)||1;
+  let guard=0;
+  while(guard++<100000&&Math.abs(x1-x)>1e-12){
+    const step=dir*Math.min(h,Math.abs(x1-x));
+    let k1;
+    try{k1=dglAt(src,x,y)}catch{k1=NaN}
+    if(!Number.isFinite(k1))break;
+    let k2;
+    try{k2=dglAt(src,x+step/2,y+step/2*k1)}catch{k2=k1}
+    y+=step*k2;x+=step;
+    pts.push([x,y]);
+  }
+  return pts;
+}
+function polyIsConst(p){const ks=Object.keys(p).map(Number);return ks.length===0||ks.length===1&&ks[0]===0}
+function dglExact(src,x0,y0,v){
+  v=v||'x';
+  try{
+    const ast=astParse(String(src));
+    // Muster 1: y' = f(x) ohne y → Stammfunktion
+    let usesY=false;
+    try{safeNum(src,{x:1.3,y:9.4}),(usesY=false)}catch{usesY=true}
+    if(!usesY){
+      // Polynom in x → exakt stammfunktion
+      try{
+        const p=polyFromAST(ast,v);
+        const F=polyInt(p);
+        const C=rSub(rq(Math.round(y0*1e9),1e9),polyEvalRat(F,rq(Math.round(x0*1e9),1e9)));
+        return{ok:true,kind:'y′ = f(x) — Stammfunktion',text:polyToStr(F)+' + '+(C.n<0?'('+C.n+'/'+C.d+')':C.n+'/'+C.d)};
+      }catch{}
+    }
+    // Muster 2: y' = a + b·y (a,b konstant) → y = (y0 + a/b)·e^{b(x−x0)} − a/b
+    try{
+      const lin=parseLinearInY(ast);
+      if(lin){
+        const{a,b}=lin;
+        if(b!==0){
+          const C=y0+a/b;
+          const sol=x=>C*Math.exp(b*(x-x0))-a/b;
+          return{ok:true,kind:'y′ = '+fmt(a)+' + '+fmt(b)+'·y',fn:sol,
+            text:'y = '+fmt(C)+'·e^'+fmt(b)+'(x − '+fmt(x0)+') − '+fmt(a/b)};
+        }
+        // b=0: y'=a → Gerade
+        const sol=x=>y0+a*(x-x0);
+        return{ok:true,kind:'y′ = '+fmt(a),fn:sol,text:'y = '+fmt(y0)+' + '+fmt(a)+'·(x − '+fmt(x0)+')'};
+      }
+    }catch{}
+    // Muster 3: y' = g(x)·yⁿ mit g Polynom in x und yⁿ → Trennung
+    try{
+      const sep=parseSeparable(ast,v);
+      if(sep){
+        const{n,g}=sep;
+        const G=polyInt(g);
+        if(n===1){
+          const C=Math.log(Math.max(y0,1e-12))-rqNum(polyEvalRat(G,rq(Math.round(x0*1e9),1e9)));
+          const fn=x=>Math.exp(C+rqNum(polyEvalRat(G,rq(Math.round(x*1e9),1e9))));
+          return{ok:true,kind:'y′ = g(x)·y — Trennung der Variablen',fn,
+            text:'y = C·e^('+polyToStr(G)+')'};
+        }
+      }
+    }catch{}
+    return null;
+  }catch{return null}
+}
+function parseLinearInY(ast){
+  // a + b·y  (a,b Zahlen) → null wenn nicht
+  if(ast.t==='num')return{a:ast.v,b:0};
+  if(ast.t==='var'&&ast.n==='y')return{a:0,b:1};
+  if(ast.t==='mul'){
+    const la=ast.a,ra=ast.b;
+    const numSide=v=>v.t==='num'?v.v:null;
+    const ySide=v=>(v.t==='var'&&v.n==='y')?1:null;
+    const a=numSide(la),b2=ySide(ra);
+    if(a!==null&&b2!==null)return{a:0,b:a};
+    const a2=numSide(ra),b3=ySide(la);
+    if(a2!==null&&b3!==null)return{a:0,b:a2};
+  }
+  if(ast.t==='add'){
+    const l=parseLinearInY(ast.a),r=parseLinearInY(ast.b);
+    if(l&&r)return{a:l.a+r.a,b:l.b+r.b};
+  }
+  if(ast.t==='sub'){
+    const l=parseLinearInY(ast.a),r=parseLinearInY(ast.b);
+    if(l&&r)return{a:l.a-r.a,b:l.b-r.b};
+  }
+  return null;
+}
+function parseSeparable(ast,v){
+  // g(x)·yⁿ — g Polynom in v, n ganzzahlig ≥ 1
+  if(ast.t==='mul'){
+    try{
+      const gL=polyFromAST(ast.a,v);
+      const nR=(ast.b.t==='var'&&ast.b.n==='y')?1:(ast.b.t==='pow'&&ast.b.a.t==='var'&&ast.b.a.n==='y'&&ast.b.b.t==='num'&&Number.isInteger(ast.b.b.v)?ast.b.b.v:null);
+      if(nR)return{n:nR,g:gL};
+      const gR=polyFromAST(ast.b,v);
+      const nL=(ast.a.t==='var'&&ast.a.n==='y')?1:(ast.a.t==='pow'&&ast.a.a.t==='var'&&ast.a.a.n==='y'&&ast.a.b.t==='num'&&Number.isInteger(ast.a.b.v)?ast.a.b.v:null);
+      if(nL)return{n:nL,g:gR};
+    }catch{}
+  }
+  return null;
+}
+
+/* =====================================================================
    V9.0 — Symbolische Polynome (Vereinfachen auf Koeffizienten-Maps)
    Koeffizienten sind rationale Zahlen; eine Variable (x). Ausmultiplizieren,
    Zusammenfassen, ganzzahlige Potenzen — alles exakt.
@@ -5893,6 +6017,62 @@ $('#curvePlotBtn').onclick=()=>{
     db.graphInput=$('#graphInput').value;persist();
     show('graph');parseGraph();
     toast('Kurve mit allen Markern geplottet');
+  }catch(e){toast(e.message)}
+};
+
+/* ---------- V9.0: Differentialgleichungen ---------- */
+$('#dglBtn').onclick=()=>{
+  try{
+    const src=$('#dglSrc').value.trim();
+    if(!src)throw Error('Bitte y′ als Ausdruck in x und y eingeben.');
+    const x0=+$('#dglX0').value,y0=+$('#dglY0').value,x1=+$('#dglX1').value,h=Math.abs(+$('#dglH').value);
+    if(![x0,y0,x1].every(Number.isFinite)||!Number.isFinite(h)||h<=0)throw Error('Start, Ziel und Schritt gültig eingeben.');
+    const ex=dglExact(src,x0,y0,'x');
+    // Probe an Zwischenstellen exakt vs numerisch
+    let probe='';
+    if(ex&&ex.fn){
+      const num=dglEuler(src,x0,y0,x1,Math.min(h,(x1-x0)/40));
+      const xm=num[Math.floor(num.length/2)];
+      const diff=Math.abs(xm[1]-ex.fn(xm[0]));
+      probe=diff<Math.max(1e-3,Math.abs(ex.fn(xm[0]))*2e-2)
+        ?'<span class="ok">✓ numerisch bestätigt (RK2, Abweichung '+fmt(diff)+')</span>'
+        :'<span class="warning">numerische Probe weicht ab ('+fmt(diff)+')</span>';
+    }
+    if(ex){
+      $('#dglOut').innerHTML=
+        `<div class="kpi-row"><div class="kpi"><small>Verfahren</small><b style="font-size:14px">${esc(ex.kind)}</b></div></div>`+
+        `<div style="margin-top:8px">Lösung: <b style="font-size:17px">${esc(ex.text)}</b></div>`+
+        `<div class="help">Durch den Punkt (${fmt(x0)} ; ${fmt(y0)}).</div>`+
+        (probe?`<div style="margin-top:6px">${probe}</div>`:'');
+      $('#dglPlotBtn').dataset.exact=ex.fn?'fn':'text';
+      $('#dglPlotBtn').dataset.src=src;
+      if(ex.fn){
+        const p=[];
+        for(let x=x0;x<=x1+1e-9;x+=(x1-x0)/40)p.push('('+fmt(x)+'|'+fmt(ex.fn(x))+')');
+        $('#dglPlotBtn').dataset.pts=p.join(' ');
+      }
+      return;
+    }
+    const num=dglEuler(src,x0,y0,x1,h);
+    $('#dglOut').innerHTML=
+      `<div class="kpi-row"><div class="kpi"><small>Verfahren</small><b style="font-size:14px">Runge-Kutta 2. Ordnung</b></div></div>`+
+      `<div class="help" style="margin-top:8px">Schrittweite h = ${fmt(h)}, ${num.length} Schritte. Lösung y(${fmt(x1)}) ≈ <b>${fmt(num.length?num[num.length-1][1]:NaN)}</b></div>`+
+      `<div class="help">Kein exaktes Muster erkannt — die Lösung wird numerisch bestimmt.</div>`;
+    const pts=[];
+    const stride=Math.max(1,Math.floor(num.length/60));
+    for(let i=0;i<num.length;i+=stride)pts.push('('+fmt(num[i][0])+'|'+fmt(num[i][1])+')');
+    $('#dglPlotBtn').dataset.pts=pts.join(' ');
+    $('#dglPlotBtn').dataset.src=src;
+  }catch(e){$('#dglOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
+};
+$('#dglPlotBtn').onclick=()=>{
+  try{
+    const pts=$('#dglPlotBtn').dataset.pts||'';
+    if(!pts)return toast('Keine Lösung zum Plotten');
+    $('#graphInput').value='p=['+pts+']';
+    db.graphInput=$('#graphInput').value;persist();
+    show('graph');parseGraph();
+    toast('Lösungskurve geplottet');
   }catch(e){toast(e.message)}
 };
 
