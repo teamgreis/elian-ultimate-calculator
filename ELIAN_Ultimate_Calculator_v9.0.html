@@ -1301,6 +1301,15 @@ body[data-mode=light] .cmdk{background:rgba(10,20,40,.28)}
             <button class="btn" id="taylorPlotBtn">Mit Funktion plotten</button>
           </div>
           <div id="taylorOut" class="glass" style="padding:15px;margin-top:12px">–</div>
+          <hr>
+          <div class="row">
+            <span class="badge">Stammfunktion</span>
+            <input id="intExpr" class="input" style="flex:1 1 220px" value="x^3-2x+1" placeholder="x^2+x">
+            <button class="btn" id="intBtn">∫ bilden</button>
+            <button class="btn" id="intPlotBtn">Mit Funktion plotten</button>
+          </div>
+          <p class="help">Exakt für Polynome und die Grundintegrale sin, cos, exp, ln, 1/x — jeweils mit beliebiger Konstanten. Allgemeine Substitution bleibt Aufgabe der Nutzerin.</p>
+          <div id="intTermOut" class="glass" style="padding:15px;margin-top:12px">–</div>
         </div>
       </section>
 
@@ -4561,6 +4570,66 @@ function num(n){return{t:'num',v:n}}
 function vr(n){return{t:'var',n}}
 function bin(t,a,b){return{t,a,b}}
 
+/* ---------- V9.0: Unbestimmte Integrale (Stammfunktionen, exakt) ---------- */
+function polyInt(p){ // ∫ p dx — Konstante C wird außen ergänzt
+  const out={};
+  for(const k of Object.keys(p)){
+    const e=+k;
+    out[e+1]=out[e+1]?rAdd(out[e+1],rDiv(p[k],rq(e+1,1))):rDiv(p[k],rq(e+1,1));
+  }
+  return polyClean(out);
+}
+function astConstPoly(a,v){ // konstanter Faktor · Rest — {c, rest} oder null
+  if(a.t!=='mul')return null;
+  try{return{c:polyFromAST(a.a,v),rest:a.b}}catch{}
+  try{return{c:polyFromAST(a.b,v),rest:a.a}}catch{}
+  return null;
+}
+function integrateAST(a,v){
+  // 1) Polynom-Pfad: exakt
+  try{
+    const p=polyInt(polyFromAST(a,v));
+    return{expr:polyToStr(p,v)};
+  }catch{}
+  // 2) Grundintegrale direkt in x — Winkelmodus-Faktor beachten!
+  //    ∫sin(x)dx = −(1/k)·cos(x), ∫cos(x)dx = (1/k)·sin(x) mit k = Winkelmaß
+  const isVar=node=>node&&node.t==='var'&&node.n===v;
+  const angF=(db.angle==='DEG')?(180/Math.PI):(db.angle==='GON')?(200/Math.PI):1;
+  const angTxt=(angF===1)?'':fmt(angF)+'*';
+  if(a.t==='call'&&a.fn==='sin'&&isVar(a.args[0])){
+    if(angTxt)return{expr:angTxt+'(-cos(x))',approx:true};
+    return{expr:'-cos(x)'};
+  }
+  if(a.t==='call'&&a.fn==='cos'&&isVar(a.args[0])){
+    if(angTxt)return{expr:angTxt+'sin(x)',approx:true};
+    return{expr:'sin(x)'};
+  }
+  if(a.t==='call'&&a.fn==='exp'&&isVar(a.args[0]))return{expr:'exp(x)'};
+  if(a.t==='call'&&a.fn==='ln'&&isVar(a.args[0]))return{expr:'x*(ln(x)-1)',special:'x·ln(x) − x'};
+  if(a.t==='div'&&a.a.t==='num'&&a.a.v===1&&isVar(a.b))return{expr:'ln(x)',special:'ln|x|'};
+  // 3) Konstante · Grundintegral
+  const cf0=astConstPoly(a,v);
+  if(cf0){
+    const cf=polyToStr(cf0.c,v);
+    const inner=integrateAST(cf0.rest,v);
+    // -2cos(x) statt 2*(-cos(x))
+    if(inner.expr.startsWith('-')){
+      if(cf.startsWith('−')||cf.startsWith('-'))
+        // −(2)·(−cos x) = +2cos x
+        return{expr:cf.replace(/^−|^-/,'')+inner.expr.slice(1),special:inner.special,approx:inner.approx};
+      return{expr:'-'+cf+inner.expr.slice(1),special:inner.special,approx:inner.approx};
+    }
+    return{expr:cf+'*'+inner.expr,special:inner.special,approx:inner.approx};
+  }
+  throw Error('Integral dieses Aufbaus wird nicht unterstützt (Polynome sowie sin/cos/exp/ln in '+v+' mit konstantem Faktor).');
+}
+function integrateTerm(src,v){
+  v=v||'x';
+  const ast=astParse(src);
+  const r=integrateAST(ast,v);
+  return{expr:r.expr,special:r.special||null,constC:true,approx:!!r.approx};
+}
+
 /* =====================================================================
    V9.0 — Symbolische Polynome (Vereinfachen auf Koeffizienten-Maps)
    Koeffizienten sind rationale Zahlen; eine Variable (x). Ausmultiplizieren,
@@ -4640,7 +4709,9 @@ function polyToStr(p,v){
     if(k===0)return(mag===1&&den===1)?sign+' 1':(den===1?sign+' '+mag:sign+' '+mag+'/'+den);
     const numPart=(mag===1&&den===1)?'':(den===1?String(mag):mag+'/'+den);
     const varPart=k===1?v:(k<10?v+sup(k):v+'^'+k);
-    // Bruchkoeffizient vor Variable klammern: (5/6)x statt 5/6x
+    // 1/n als Nenner hinter die Variable: x³/3 statt (1/3)x³
+    if(mag===1&&den!==1)return sign+' '+varPart+'/'+den;
+    // Bruchkoeffizient vor Variable klammern: (5/6)x
     return sign+' '+(den!==1?'('+numPart+')':numPart)+varPart;
   }).join(' ').replace(/^\+ /,'').replace(/^− /,'−');
 }
@@ -4875,6 +4946,44 @@ $('#taylorPlotBtn').onclick=()=>{
     db.graphInput=$('#graphInput').value;persist();
     show('graph');
     toast('Funktion und Taylor-Polynom geplottet');
+  }catch(e){toast(e.message)}
+};
+
+/* ---------- V9.0: Stammfunktion ---------- */
+$('#intBtn').onclick=()=>{
+  const src=$('#intExpr').value;
+  try{
+    const r=integrateTerm(src,'x');
+    // Probe: numerisch an einer Stelle gegen Float-Integration (Simpson) prüfen
+    const f={type:'function',expr:src};
+    let check='';
+    try{
+      const a=.5,b=1.5;
+      const num=numericalIntegral(f,a,b,200);
+      const F=x=>evalExpr(r.expr,{x});
+      const exact=F(b)-F(a);
+      if(Number.isFinite(num)&&Number.isFinite(exact)&&Math.abs(num-exact)<Math.max(1e-2,Math.abs(exact)*.02))
+        check='<span class="ok">✓ numerisch bestätigt (Simpson: '+fmt(num)+')</span>';
+      else check='<span class="warning">Probe abweichend ('+fmt(num)+' vs '+fmt(exact)+')</span>';
+    }catch{}
+    const out=r.special?r.special:r.expr;
+    $('#intTermOut').innerHTML=
+      `<div class="kpi-row"><div class="kpi"><small>∫ f(x) dx</small><b style="font-size:17px;word-break:break-all">${esc(out)} + C</b></div></div>`+
+      (r.special?`<div class="help">Sonderform: <b>${esc(r.special)}</b></div>`:'')+
+      (r.approx?`<div class="help" style="margin-top:4px">Winkelmodus ${esc(db.angle)}: Trigonomische Integrale skalieren mit 180/π — der Faktor ist nicht exakt darstellbar.</div>`:'')+
+      (check?`<div style="margin-top:6px">${check}</div>`:'');
+  }catch(e){
+    $('#intTermOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'+
+      '<div class="help" style="margin-top:6px">Beispiele: <code>x^3-2x+1</code>, <code>sin(x)</code>, <code>2*cos(x)</code>, <code>1/x</code>, <code>exp(x)</code>.</div>';
+  }
+};
+$('#intPlotBtn').onclick=()=>{
+  try{
+    const r=integrateTerm($('#intExpr').value,'x');
+    $('#graphInput').value='y='+$('#intExpr').value.replace(/−/g,'-')+'\ny='+r.expr;
+    db.graphInput=$('#graphInput').value;persist();
+    show('graph');
+    toast('Funktion und Stammfunktion geplottet');
   }catch(e){toast(e.message)}
 };
 
