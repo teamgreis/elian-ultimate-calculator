@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ELIAN Calculator">
 <meta name="theme-color" content="#07101b">
-<title>ELIAN Ultimate Calculator v9.0</title>
+<title>ELIAN Ultimate Calculator v9.1</title>
 <style>
 /* =====================================================================
    ELIAN v8.1 — Liquid-Glass-Designsystem (iOS-27.2-Look)
@@ -630,7 +630,7 @@ body[data-mode=light] .cmdk{background:rgba(10,20,40,.28)}
 
 <div id="lock" class="lock">
   <div class="login glass">
-    <div class="brand"><div class="logo">E</div><div><b>ELIAN Ultimate</b><small>Calculator · v9.0 · exakte Mathematik</small></div></div>
+    <div class="brand"><div class="logo">E</div><div><b>ELIAN Ultimate</b><small>Calculator · v9.1 · exakte Mathematik</small></div></div>
     <h2 style="margin:6px 0 4px">Anmelden</h2>
     <p class="help" style="margin-top:0">Lokal auf diesem Gerät. Keine Serververbindung, keine Konten in der Cloud.</p>
     <div class="row" style="margin-bottom:10px">
@@ -668,7 +668,7 @@ body[data-mode=light] .cmdk{background:rgba(10,20,40,.28)}
 
 <div class="app" id="app">
   <aside class="side" id="side">
-    <div class="brand"><div class="logo">E</div><div><b>ELIAN Ultimate</b><small>v9.0 · Exakte Mathematik · Offline</small></div></div>
+    <div class="brand"><div class="logo">E</div><div><b>ELIAN Ultimate</b><small>v9.1 · Exakte Mathematik · Offline</small></div></div>
     <nav class="nav" id="nav" aria-label="Hauptnavigation"></nav>
     <div class="user-mini glass">
       <strong id="who">–</strong>
@@ -693,7 +693,7 @@ body[data-mode=light] .cmdk{background:rgba(10,20,40,.28)}
       </div>
     </header>
     <div class="content">
-      <div class="large-title" id="largeTitle"><b id="largeTitleText">Rechner</b><small id="largeTitleSub">v9.0 · Exakte Mathematik</small></div>
+      <div class="large-title" id="largeTitle"><b id="largeTitleText">Rechner</b><small id="largeTitleSub">v9.1 · Exakte Mathematik</small></div>
 
       <section id="calculator" class="view active" aria-label="Rechner">
         <div class="card glass">
@@ -701,6 +701,13 @@ body[data-mode=light] .cmdk{background:rgba(10,20,40,.28)}
             <span class="help">Speicher: <b id="memVal">0</b></span>
             <span class="help" id="calcHint">Tippe einen Ausdruck oder nutze die Tasten.</span>
           </div>
+          <div class="row" style="margin:8px 0">
+            <button class="btn" id="favBtn" title="Ausdruck als Favorit speichern">⭐ Favorit</button>
+            <button class="btn" id="undoBtn" title="Letzte Eingabe zurücknehmen (⌘/Strg+Z)">↶</button>
+            <button class="btn" id="redoBtn" title="Eingabe wiederherstellen (⌘/Strg+Y)">↷</button>
+            <span class="help" style="font-size:12px">Eingabe wie „nullstellen von x² minus 1", „kurvendiskussion von x³−3x", „stammfunktion von x²" wird direkt erkannt.</span>
+          </div>
+          <div id="favBar" class="row" style="margin:0 0 8px;flex-wrap:wrap;gap:6px"></div>
           <div class="display glass">
             <div id="expr" class="expr"></div>
             <div id="result" class="result">0</div>
@@ -1626,8 +1633,8 @@ body[data-mode=light] .cmdk{background:rgba(10,20,40,.28)}
    Hypothesentests, Apple-Pencil-Skizze, nativem Teilen und vielem mehr.
    ===================================================================== */
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
-const BUILD='9.0';
-const DBKEY='elian_v90_db',OLD_DBKEYS=['elian_v81_db','elian_v80_db','elian_v70_db','elian_v64_db','elian_v63_db','elian_v62_db'];
+const BUILD='9.1';
+const DBKEY='elian_v91_db',OLD_DBKEYS=['elian_v90_db','elian_v81_db','elian_v80_db','elian_v70_db','elian_v64_db','elian_v63_db','elian_v62_db'];
 const THEMES=['liquid2','pride','premium','rainbow','diamond'];
 const COLORS=['#62a9ff','#6ee7b7','#ffb86c','#ff6b9a','#b69cff','#4dd9d0','#ffd166','#f28cff','#8ee6ff','#c9f36a'];
 const DEFAULT_FEATURES={calculator:true,scientific:true,algebra:true,graph:true,statistics:true,matrix:true,units:true,programmer:true,finance:true,users:true,admin:true,history:true,settings:true,
@@ -2559,6 +2566,45 @@ const keyDefs=[
   ['0',''],['.',''],['ANS',''],['+','op'],['e',''],['=','equals']
 ];
 $('#keys').innerHTML=keyDefs.map(([k,cls])=>`<button class="key ${cls}">${k}</button>`).join('');
+/* ---------- V9.0: Bedienintelligenz (Undo/Redo, Favoriten, Sprache) ---------- */
+const calcUndo=[],calcRedo=[];
+function calcPush(){
+  calcUndo.push(current);
+  if(calcUndo.length>60)calcUndo.shift();
+  calcRedo.length=0;
+}
+function calcUndoStep(){
+  if(!calcUndo.length)return toast('Nichts zum Zurücknehmen.');
+  calcRedo.push(current);
+  current=calcUndo.pop()||'';
+  renderCalc();livePreview();
+  return true;
+}
+function calcRedoStep(){
+  if(!calcRedo.length)return toast('Nichts zum Wiederherstellen.');
+  calcUndo.push(current);
+  current=calcRedo.pop()||'';
+  renderCalc();livePreview();
+}
+function favRender(){
+  if(!Array.isArray(db.favorites))db.favorites=[];
+  const bar=$('#favBar');
+  if(!bar)return;
+  bar.innerHTML=db.favorites.length
+    ? db.favorites.map((f,i)=>`<button class="chip" data-fav="${i}">${esc(f)}</button>`).join('')+
+      `<button class="chip" data-favclear="1" style="margin-left:6px">alle löschen</button>`
+    : '<span class="help" style="font-size:12px">Noch keine Favoriten — ⭐ speichert die aktuelle Eingabe.</span>';
+}
+function favToggle(){
+  const v=current.trim();
+  if(!v)return toast('Erst einen Ausdruck eingeben.');
+  if(!Array.isArray(db.favorites))db.favorites=[];
+  const i=db.favorites.indexOf(v);
+  if(i>=0){db.favorites.splice(i,1);toast('Favorit entfernt')}
+  else{db.favorites.unshift(v);db.favorites=db.favorites.slice(0,40);toast('Favorit gespeichert')}
+  db.favorites=db.favorites.filter(Boolean);
+  persist();favRender();
+}
 function renderCalc(){
   $('#expr').textContent=current||'';
   $('#result').textContent=fmt(ans);
@@ -2573,6 +2619,8 @@ $('#keys').onclick=e=>{
   if(calcMode==='rpn'){rpnKey(k);return}
   if(k==='='){
     if(!current.trim())return;
+    // Tiefe Spracheingabe hat Vorrang: „nullstellen von x² minus 1" etc.
+    if(runDeepIntent(current)){current='';renderCalc();return}
     try{
       const sp=smartParse(current);
       ans=calculate(current);
@@ -2590,18 +2638,36 @@ $('#keys').onclick=e=>{
       $('#calcHint').innerHTML='<span class="err">'+esc(err.message)+'</span>';
       current='';
     }
-  }else if(k==='C'){current='';ans=0;$('#calcHint').textContent='Tippe einen Ausdruck oder nutze die Tasten.'}
-  else if(k==='⌫')current=current.slice(0,-1);
-  else if(k==='ANS')current+=fmt(ans);
-  else if(k==='π')current+='pi';
+  }else if(k==='C'){calcPush();current='';ans=0;$('#calcHint').textContent='Tippe einen Ausdruck oder nutze die Tasten.'}
+  else if(k==='⌫'){calcPush();current=current.slice(0,-1)}
+  else if(k==='ANS'){calcPush();current+=fmt(ans)}
+  else if(k==='π'){calcPush();current+='pi'}
   else if(k==='M+'){memory+=ans;toast('Speicher: '+fmt(memory))}
   else if(k==='M-'){memory-=ans;toast('Speicher: '+fmt(memory))}
   else if(k==='MC'){memory=0;toast('Speicher gelöscht')}
-  else if(k==='MR')current+=fmt(memory);
-  else current+=k;
+  else if(k==='MR'){calcPush();current+=fmt(memory)}
+  else{calcPush();current+=k}
   renderCalc();
   if(k!=='=')livePreview();
 };
+
+/* ---------- V9.0: Bedienintelligenz — Verdrahtung ---------- */
+$('#favBtn').onclick=()=>favToggle();
+$('#undoBtn').onclick=()=>calcUndoStep();
+$('#redoBtn').onclick=()=>calcRedoStep();
+$('#favBar').addEventListener('click',e=>{
+  const f=e.target.closest('[data-fav]');
+  if(f){calcPush();current=String(db.favorites[+f.dataset.fav]||'');renderCalc();livePreview();toast('Favorit geladen');return}
+  if(e.target.closest('[data-favclear]')){db.favorites=[];persist();favRender();toast('Favoriten geleert')}
+});
+favRender();
+document.addEventListener('keydown',e=>{
+  const mod=e.metaKey||e.ctrlKey;
+  if(!mod)return;
+  const k=e.key.toLowerCase();
+  if(k==='z'&&!e.shiftKey){e.preventDefault();calcUndoStep()}
+  else if((k==='z'&&e.shiftKey)||k==='y'){e.preventDefault();calcRedoStep()}
+});
 $('#calcHint').addEventListener('click',e=>{
   const b=e.target.closest('[data-intent]');
   if(b&&b.dataset.intent==='algebra'){
@@ -3446,6 +3512,10 @@ $('#infoBtn').onclick=()=>openModal(
   '<li><b>Differentialgleichungen</b>: y′ = f(x), y′ = a + b·y und Trennung der Variablen exakt, sonst Runge-Kutta</li>'+
   '<li><b>Verteilungen</b>: Binomial, Poisson, Normalverteilung (Φ, Quantile) und Konfidenzintervalle</li>'+
   '<li><b>Winkeltreue</b>: DEG/GON skalieren Ableitung und Integration konsistent (π/180, π/200)</li></ul>'+
+  '<h3>Neu in v9.1 — Bedienintelligenz</h3><ul>'+
+  '<li><b>Tiefe Spracheingabe</b>: „nullstellen von x² minus 1", „kurvendiskussion von x³−3x", „stammfunktion von x²", „ableitung von sin(x)", „gradient von x·y", „eigenwerte von 4 1 2 3", „determinante von 1 2 3 4" — das Modul öffnet sich mit vorausgefülltem Feld, inklusive Hochzeichen- und Wort-Operator-Normalisierung</li>'+
+  '<li><b>Favoriten</b>: Ausdruck mit ⭐ speichern, als Chips unter dem Display antippen, jederzeit löschen</li>'+
+  '<li><b>Undo/Redo</b> im Rechner: ↶ / ↷ oder ⌘Z / ⌘Y (Strg+Z / Strg+Y) — jede Eingabeänderung ist umkehrbar</li></ul>'+
   '<p class="help">Build: v'+BUILD+' · Single-File Offline Edition · Alle Daten bleiben im Browser dieses Geräts. Netzwerkzugriff erfolgt ausschließlich nach aktivierter Update-Prüfung.</p>'
 );
 $('#easter').onclick=()=>openModal('<h2>✨ ELIAN EASTER EGG</h2><p>Du hast den geheimen Knopf gefunden.</p><p style="font-size:32px">∫ ∑ π √ ∞ → ELIAN</p><p class="help">Offline. Lokal. Präzise.</p>');
@@ -6951,6 +7021,66 @@ function detectIntent(src){
   if(/\b\d{1,2}\.\d{1,2}\.\d{2,4}\b|\b\d{4}-\d{2}-\d{2}\b/.test(s))return'dates';
   if(/\bv\d|version\b/i.test(s))return'update';
   return null;
+}
+/* =====================================================================
+   V9.0 Baustein 12 — Bedienintelligenz
+   Tiefe Spracheingabe: Phrasen → Modul + vorausgefülltes Feld.
+   ===================================================================== */
+function deepIntent(src){
+  const s=String(src).trim();
+  const grab=(re)=>{const m=s.match(re);return m?m[1]:null};
+  const clean=x=>String(x).replace(/[.?。]+$/,'').trim();
+  // Hochzeichen in Textausdrücken normalisieren: x² → x^2
+  const toAsciiPow=x=>String(x)
+    .replace(/⁰/g,'^0').replace(/¹/g,'^1').replace(/²/g,'^2').replace(/³/g,'^3')
+    .replace(/⁴/g,'^4').replace(/⁵/g,'^5').replace(/⁶/g,'^6').replace(/⁷/g,'^7')
+    .replace(/⁸/g,'^8').replace(/⁹/g,'^9');
+  const wordPow=x=>String(x).replace(/\bhoch\s*(\d+)/gi,'^$1');
+  const norm=x=>wordPow(toAsciiPow(x))
+    .replace(/\bminus\b/gi,'-').replace(/\bplus\b/gi,'+')
+    .replace(/\bmal\b/gi,'*').replace(/\bdurch\b/gi,'/')
+    .replace(/\s*([+\-*/^])\s*/g,'$1'); // Leerzeichen um Binäroperatoren entfernen
+  let m;
+  if((m=grab(/^\s*(?:was sind die |wie lauten die |zeige die |berechne die )?nullstellen?\s+(?:von|für)\s+(.+?)\s*$/i)))
+    return{module:'algebra',field:'#algEq',value:clean(norm(m))+'=0',label:'Nullstellen gesucht'};
+  if((m=grab(/^\s*(?:mach|zeige|berechne)?\s*(?:eine )?kurvendiskussion\s+(?:von|für)\s+(.+?)\s*$/i)))
+    return{module:'calculus',field:'#curveExpr',value:clean(norm(m)),label:'Kurvendiskussion gestartet'};
+  if((m=grab(/^\s*(?:was ist die |zeige die |berechne die )?ableitung\s+(?:von|für)\s+(.+?)\s*$/i)))
+    return{module:'calculus',field:'#calcExpr',value:clean(norm(m)),label:'Ableitung geladen'};
+  if((m=grab(/^\s*(?:was ist die |zeige die |berechne die )?stammfunktion\s+(?:von|für)\s+(.+?)\s*$/i))||(m=grab(/^\s*(?:was ist das |berechne das )?integral\s+(?:von|für)\s+(.+?)\s*$/i)))
+    return{module:'calculus',field:'#intExpr',value:clean(norm(m)),label:'Stammfunktion geladen'};
+  if((m=grab(/^\s*(?:was ist der |zeige den |berechne den )?gradient\w*\s+(?:von|für)\s+(.+?)\s*$/i)))
+    return{module:'graph3d',field:'#sfExpr',value:clean(norm(m)),label:'Gradient geladen'};
+  if((m=grab(/^\s*(?:was sind die |berechne die |zeige die )?eigenwerte\s+(?:von|der matrix|für)\s+(.+?)\s*$/i)))
+    return{module:'matrix',field:'#matA',value:toMatrixText(norm(m)),label:'Eigenwerte geladen'};
+  if((m=grab(/^\s*(?:was ist die |berechne die |zeige die )?determinante\s+(?:von|der matrix)\s+(.+?)\s*$/i)))
+    return{module:'matrix',field:'#matA',value:toMatrixText(norm(m)),label:'Determinante geladen'};
+  if((m=grab(/^\s*(?:berechne|zeige)?\s*(?:den )?grenzwert\s+(?:von|für)\s+(.+?)\s*$/i)))
+    return{module:'calculus',field:'#calcExpr',value:clean(norm(m)),label:'Grenzwert geladen'};
+  if((m=grab(/^\s*(?:berechne|zeige)?\s*(?:die )?wahrscheinlichkeit\s+(?:von|für)?\s*(.+?)\s*$/i)))
+    return{module:'statistics',field:null,value:null,label:'Statistik geöffnet'};
+  return null;
+}
+function toMatrixText(s){
+  // "4 1 2 3" oder "4,1,2,3" (2×2) oder "1 2 3 4 5 6 7 8 9" (3×3) → Zeilen
+  const nums=String(s).replace(/\[|\]|\(|\)|;/g,' ').split(/[\s,]+/).filter(Boolean);
+  const n=nums.length;
+  const side=n===4?2:(n===9?3:(n===1?1:Math.ceil(Math.sqrt(n))));
+  if(side<1||side*side!==n)return String(s);
+  const rows=[];
+  for(let i=0;i<side;i++)rows.push(nums.slice(i*side,(i+1)*side).join(' '));
+  return rows.join('\n');
+}
+function runDeepIntent(text){
+  const di=deepIntent(text);
+  if(!di)return false;
+  show(di.module);
+  if(di.field&&di.value!=null){
+    const el=$(di.field);
+    if(el)el.value=di.value;
+  }
+  toast(di.label||'Geladen');
+  return true;
 }
 
 /* =====================================================================

@@ -23,8 +23,8 @@
 
 | # | Block | Inhalt | Status |
 |---|-------|--------|--------|
-| 12 | Bedienintelligenz | tiefere Spracheingabe („Nullstellen von x² minus 1"), Favoriten-Verlauf, Undo/Redo im Rechner | offen (nach dem Release) |
-| 13 | Qualität & Release | Mathematik-Eigenschaftstests in `pruefung.yml` (31 Tests, `mathe-tests.js`), README/CHANGELOG, Release v9.0 mit SHA | ✅ committet, Release ausstehend |
+| 12 | Bedienintelligenz | tiefere Spracheingabe („Nullstellen von x² minus 1"), Favoriten-Verlauf, Undo/Redo im Rechner | ✅ committet |
+| 13 | Qualität & Release | Mathematik-Eigenschaftstests in `pruefung.yml` (31 Tests, `mathe-tests.js`), README/CHANGELOG, Release v9.0 mit SHA | ✅ committet, Release v9.0 veröffentlicht |
 
 ## Spielregeln (aus allen bisherigen Blöcken)
 

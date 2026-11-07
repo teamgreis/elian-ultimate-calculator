@@ -1,5 +1,17 @@
 # Changelog
 
+## [9.1.0] — 2026-11-07
+
+Bedienintelligenz: tiefe Spracheingabe, Favoriten und Undo/Redo im Rechner.
+
+### Neu
+- **Tiefe Spracheingabe**: „nullstellen von x² minus 1", „kurvendiskussion von x³−3x", „stammfunktion von x²", „ableitung von sin(x)", „gradient von x·y", „eigenwerte von 4 1 2 3", „determinante von 1 2 3 4" — der Befehl öffnet das passende Modul mit vorausgefülltem Feld. Hochzeichen (x²) und Wort-Operatoren („minus", „plus", „mal", „durch", „hoch") werden normalisiert
+- **Favoriten**: Ausdruck mit ⭐ speichern, als Chips unter dem Display, Tap lädt ihn, „alle löschen" leert die Liste (in `db.favorites` gespeichert)
+- **Undo/Redo** im Rechner: ↶ / ↷ oder ⌘Z / ⌘Y (Strg+Y) — jede Eingabeänderung ist umkehrbar, 60 Schritte tief
+
+### Qualität
+- `mathe-tests.js` auf 41 Tests erweitert: Intent-Erkennung (7 Muster + Negativfall), Matrix-Text-Umwandlung, Favoriten-Verwaltung
+
 ## [9.0.0] — 2026-11-07
 
 Vom Rechner zum Computer-Algebra-System — exakte Mathematik in allen Modulen.

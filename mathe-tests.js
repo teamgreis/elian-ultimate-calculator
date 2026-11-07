@@ -116,6 +116,28 @@ T('symbolisch = numerisch (sin)',()=>{
   db.angle='DEG';
   return close(s,n,1e-6);
 });
+// --- Bedienintelligenz: tiefe Spracheingabe ---
+T('Intent: Nullstellen',()=>{const d=deepIntent('nullstellen von x² minus 1');return d.module==='algebra'&&d.value==='x^2-1=0'});
+T('Intent: Kurvendiskussion',()=>deepIntent('kurvendiskussion von x³ minus 3x').value==='x^3-3x');
+T('Intent: Stammfunktion',()=>deepIntent('stammfunktion von x²').value==='x^2');
+T('Intent: Ableitung',()=>deepIntent('ableitung von sin(x)').value==='sin(x)');
+T('Intent: Eigenwerte',()=>deepIntent('eigenwerte von 4 1 2 3').value==='4 1\n2 3');
+T('Intent: Determinante',()=>deepIntent('determinante von 1 2 3 4').value==='1 2\n3 4');
+T('Intent: Matrix 3×3',()=>toMatrixText('1 2 3 4 5 6 7 8 9')==='1 2 3\n4 5 6\n7 8 9');
+T('Intent: reiner Ausdruck bleibt beim Rechner',()=>deepIntent('2+3*4')===null);
+T('Intent: Navigationsziel löst',()=>{
+  const d=deepIntent('nullstellen von x^2-1');
+  return d.module==='algebra'&&solvePolyEquation(d.value,'x').rational===true;
+});
+// --- Favoriten-Verwaltung ---
+T('Favoriten hinzufügen/entfernen',()=>{
+  if(!Array.isArray(db.favorites))db.favorites=[];
+  db.favorites=db.favorites.filter(f=>f!=='sqrt(16)');
+  db.favorites.unshift('sqrt(16)');
+  const has1=db.favorites.indexOf('sqrt(16)')>=0;
+  db.favorites=db.favorites.filter(f=>f!=='sqrt(16)');
+  return has1&&db.favorites.indexOf('sqrt(16)')<0;
+});
 
 console.log('\nMathematik-Tests: '+ok+' bestanden, '+fail.length+' fehlgeschlagen');
 if(fail.length){console.log('Fehlgeschlagen:');fail.forEach(f=>console.log('  FAIL  '+f));process.exit(1)}

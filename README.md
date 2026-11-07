@@ -1,4 +1,4 @@
-# ELIAN Ultimate Calculator v9.0
+# ELIAN Ultimate Calculator v9.1
 
 Ein wissenschaftlicher Taschenrechner, Funktionsplotter und Computer-Algebra-System als **eine einzige HTML-Datei** — ohne Build, ohne Abhängigkeiten, ohne Server. Einfach öffnen und rechnen. Alle Daten bleiben lokal im Browser. Das Design: **Liquid Glass** — schwebende Glasflächen, runde Tasten, Feder-Animationen und eine Tab-Leiste unten, wie man sie von modernen iOS-Geräten kennt.
 
@@ -6,7 +6,15 @@ Ein wissenschaftlicher Taschenrechner, Funktionsplotter und Computer-Algebra-Sys
 
 ---
 
-## Was ist neu in v9.0 — „Exakte Mathematik"
+## Neu in v9.1 — „Bedienintelligenz"
+
+| # | Neuerung | Beschreibung |
+|---|---|---|
+| 1 | **Tiefe Spracheingabe** | „nullstellen von x² minus 1" öffnet das Algebra-Modul mit vorausgefüllter Gleichung; ebenso Kurvendiskussion, Stammfunktion, Ableitung, Gradient, Eigenwerte, Determinante, Grenzwert |
+| 2 | **Favoriten** | ⭐ speichert den aktuellen Ausdruck, Chips unter dem Display laden ihn mit einem Tap |
+| 3 | **Undo/Redo** | ↶ / ↷ oder ⌘Z / ⌘Y — jeder Tastendruck im Rechner ist umkehrbar |
+
+### Was ist neu in v9.0 — „Exakte Mathematik"
 
 Version 9.0 macht den Rechner zum **CAS**: Brüche statt Float-Rauschen, symbolische Algebra, exakte Analysis.
 

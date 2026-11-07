@@ -44,7 +44,7 @@ jobs:
             const html = fs.readFileSync('ELIAN_Ultimate_Calculator_v9.0.html', 'utf8');
             const checks = [
               ['Dokumenttyp', /^<!doctype html>/i.test(html)],
-              ['Titel v9', html.includes('<title>ELIAN Ultimate Calculator v9')],
+              ['Titel v9.1', html.includes('<title>ELIAN Ultimate Calculator v9.1')],
               ['view-viewport', html.includes('viewport-fit=cover')],
               ['Single-File (keine externen Skripte)', !/<script[^>]+src=/.test(html)],
               ['Single-File (keine externen Stylesheets)', !/<link[^>]+stylesheet/.test(html)],
