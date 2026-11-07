@@ -2588,10 +2588,53 @@ function solveEquation(s){
 }
 $('#solveEq').onclick=()=>{
   try{
-    const r=solveEquation($('#algEq').value);
-    $('#algOut').innerHTML=r.length
-      ?r.map((x,i)=>`x${r.length>1?'₍'+(i+1)+'₎':''} = <b>${fmt(x)}</b>`).join('<br>')
-      :'Keine reelle Lösung im Suchbereich [-100, 100].';
+    const src=$('#algEq').value;
+    const v=(typeof db!=='undefined'&&db.algVar)||'x';
+    let html='';
+    try{
+      const r=solvePolyEquation(src,v);
+      if(r.infinitely){html='Unendlich viele Lösungen (0 = 0).'}
+      else if(r.none){html='Keine Lösung (Polynom ist eine Konstante ≠ 0).'}
+      else{
+        const lines=[];
+        const fmtRat=x=>fmt(x.n/x.d)+' = '+x.n+'/'+x.d;
+        if(r.roots&&r.roots.length)
+          lines.push(r.roots.map((x,i)=>`${v}${r.roots.length>1?'₍'+(i+1)+'₎':''} = <b>${fmtRat(x)}</b>`+(r.dbl?' (doppelt)':'')).join('<br>'));
+        if(r.surdText)lines.push('<b>'+esc(r.surdText)+'</b><br>≈ '+r.numeric.map(n=>fmt(n)).join(' , '));
+        if(r.numeric&&!r.surdText)
+          lines.push(r.numeric.map((n,i)=>`${v}${r.numeric.length>1?'₍'+(i+1)+'₎':''} ≈ <b>${fmt(n)}</b>`).join('<br>'));
+        if(r.complex&&r.complex.length)
+          lines.push(r.complex.map(c=>esc('x = '+fmt(rqNum(c.re))+' ± i·'+c.im)).join('<br>'));
+        if(r.restDeg&&r.restDeg>0)
+          lines.push('<span class="warning">Rest vom Grad '+r.restDeg+' — exakt nicht weitergeführt, numerisch per Bisektion.</span>');
+        html=lines.join('<br>')+`<div class="help" style="margin-top:8px">Verfahren: <b>${esc(r.method)}</b>${r.rational?' · exakt':''}${r.D?' · Diskriminante D = '+r.D.n+(r.D.d!==1?'/'+r.D.d:'')+(r.D.n>0?' > 0 (zwei Nullstellen)':r.D.n<0?' < 0 (komplex)':' (doppelt)'):''}</div>`;
+      }
+    }catch(e1){
+      const r=solveEquation(src); // numerischer Fallback (Bisektion)
+      const shown=r.slice(0,10);
+      html=shown.length
+        ?shown.map((x,i)=>`${v}${r.length>1?'₍'+(i+1)+'₎':''} ≈ <b>${fmt(x)}</b>`).join('<br>')+
+         (r.length>10?'<br><span class="help">… und '+(r.length-10)+' weitere im Intervall</span>':'')+
+         '<div class="help" style="margin-top:8px">Verfahren: numerisch (Bisektion über [−100, 100]) — Ausdruck ist kein Polynom.</div>'
+        :'Keine reelle Lösung im Suchbereich [-100, 100].';
+    }
+    $('#algOut').innerHTML=html+
+      '<div style="margin-top:10px"><button class="btn" id="rootsPlot">Nullstellen im Plot markieren</button></div>';
+    const rp=$('#rootsPlot');
+    if(rp)rp.onclick=()=>{
+      try{
+        const r=solvePolyEquation(src,v);
+        const xs=(r.roots||[]).map(x=>x.n/x.d).concat(r.numeric||[]);
+        if(!xs.length)return toast('Keine markierbaren Nullstellen');
+        const eq=String(src).split('=');
+        const fnPoly=polyFromAST(astParse(eq[0]),v);
+        const pts=xs.map(x=>'('+fmt(x)+'|'+fmt(rqNum(polyEvalRat(fnPoly,rq(Math.round(x*1e12),1e12))||rq(0,1)))+')').join(' ');
+        $('#graphInput').value='y='+eq[0]+'-('+(eq[1]||0)+')\np=['+pts+']';
+        db.graphInput=$('#graphInput').value;
+        persist();show('graph');parseGraph();
+        toast('Nullstellen markiert');
+      }catch(e){toast(e.message)}
+    };
   }catch(e){$('#algOut').innerHTML='<span class="err">'+esc(e.message)+'</span>'}
 };
 function parseLgs(lines){
@@ -4755,6 +4798,129 @@ function prettyASTStr(a){
 function partialDiffStr(src,v){
   // Ableitungsterm als lesbaren Text (wenn symbolisch möglich)
   try{return prettyASTStr(astDiff(astParse(src),v))}catch{return null}
+}
+
+/* =====================================================================
+   V9.0 Baustein 5 — Nullstellen exakt (lineare, quadratische, Polynome)
+   Rationale Wurzeln + Diskriminante + Probeteiler + Horner-Deflation,
+   numerischer Fallback für höhere Grade.
+   ===================================================================== */
+function rGcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a||1}
+function rIsSquare(r){
+  if(r.n<0)return null;
+  const sm=Math.round(Math.sqrt(r.n)),sd=Math.round(Math.sqrt(r.d));
+  if(sm*sm!==r.n||sd*sd!==r.d)return null;
+  return rq(sm,sd);
+}
+function ratDivisors(r){
+  const divOf=n=>{const out=[];for(let i=1;i<=n;i++)if(n%i===0)out.push(i);return out};
+  const cands=new Set();
+  for(const p of divOf(Math.abs(r.n)))for(const q of divOf(r.d)){
+    const g=rGcd(p,q);
+    const v=p/g+'/'+(q/g);
+    cands.add(v);cands.add('-'+v);
+  }
+  return[...cands].map(s=>{const [m,d]=s.split('/').map(Number);return rq(m,d)});
+}
+function horner(poly,xRat){ // Dividiere poly durch (x − xRat) — synthetische Division
+  const ks=Object.keys(poly).map(Number).sort((a,b)=>b-a);
+  const n=ks[0];
+  const a=ks.map(k=>poly[k]);
+  const b=[];
+  for(let i=0;i<a.length;i++)b.push(i===0?a[0]:rAdd(a[i],rMul(xRat,b[i-1])));
+  const q={};
+  for(let i=0;i<b.length-1;i++){const deg=n-1-i;if(b[i].n!==0)q[deg]=b[i]}
+  return{q:polyClean(q),rem:b[b.length-1]};
+}
+function rqNum(r){return r.n/r.d}
+function polyDeg(p){
+  const ks=Object.keys(p).map(Number);
+  return ks.length?Math.max(...ks):-1;
+}
+function polyEvalRat(p,r){
+  let acc=rq(0,1);
+  const maxK=Math.max(...Object.keys(p).map(Number));
+  for(let k=maxK;k>=0;k--)acc=rAdd(rMul(acc,r),p[k]||rq(0,1));
+  return acc;
+}
+function sqrtText(D){ // √D exakt wenn Quadrat, sonst Wurzelausdruck
+  const s=rIsSquare(D);
+  return s?(''+s.n+(s.d!==1?'/'+s.d:'')):'√('+D.n+(D.d!==1?'/'+D.d:'')+')';
+}
+function solvePolyEquation(src,v){
+  // src = 'links = rechts' — beide Seiten müssen Polynome in v sein
+  const parts=String(src).split('=');
+  if(parts.length!==2)throw Error('Bitte genau ein = verwenden.');
+  const L=polyFromAST(astParse(parts[0]),v);
+  const R=polyFromAST(astParse(parts[1]),v);
+  const p=polySub(L,R);
+  const deg=polyDeg(p);
+  if(deg<0)return{infinitely:true};   // 0 = 0
+  if(deg===0)return{none:true};        // c ≠ 0
+  if(deg===1){
+    const x=rNeg(rDiv(p[0]||rq(0,1),p[1]));
+    return{method:'lineare Gleichung',roots:[x],rational:true};
+  }
+  if(deg===2){
+    const a=p[2],b=p[1]||rq(0,1),c=p[0]||rq(0,1);
+    const D=rSub(rMul(b,b),rMul(rMul(rq(4,1),a),c));
+    if(D.n<0){
+      const re=rNeg(rDiv(b,rMul(rq(2,1),a)));
+      const imSqrt=rNeg(D); // |D|
+      return{method:'Mitternachtsformel (D<0)',complex:[{re,im:'±'+sqrtText(imSqrt)+' / '+rDiv(rq(2,1),a).n}],D};
+    }
+    const sq=rIsSquare(D);
+    if(sq){
+      const r1=rDiv(rSub(rNeg(b),sq),rMul(rq(2,1),a));
+      const r2=rDiv(rAdd(rNeg(b),sq),rMul(rq(2,1),a));
+      return{method:'Mitternachtsformel (D Quadratzahl)',roots:[r1,r2],rational:true,D,dbl:D.n===0};
+    }
+    // D > 0, aber keine Quadratzahl: exakte Wurzeldarstellung + numerische Werte
+    const dSqrt=Math.sqrt(rqNum(D));
+    const twoANum=2*rqNum(a);
+    const nb=rqNum(rNeg(b));
+    return{method:'Mitternachtsformel (D ≥ 0, keine Quadratzahl)',
+      surdText:'x₁,₂ = ('+fmt(nb)+' ± '+sqrtText(D)+') / ('+fmt(twoANum)+')',
+      numeric:[(nb-dSqrt)/twoANum,(nb+dSqrt)/twoANum],D};
+  }
+  // Grad ≥ 3: rationale Nullstellen testen, deflationieren, Rest numerisch
+  const roots=[];
+  let cur=polyClean(p);
+  for(let guard=0;guard<deg&&polyDeg(cur)>=1;guard++){
+    const c0=cur[0]||rq(0,1),lead=cur[polyDeg(cur)];
+    const cand=[...new Set([...ratDivisors(c0),...ratDivisors(lead)])];
+    let found=null;
+    for(const r of cand){
+      if(r.n===0)continue;
+      if(polyEvalRat(cur,r).n===0){found=r;break}
+    }
+    if(found){
+      const {q,rem}=horner(cur,found);
+      roots.push(found);
+      cur=q;
+    }else break;
+  }
+  const degLeft=polyDeg(cur);
+  if(degLeft===2){
+    const a=cur[2],b=cur[1]||rq(0,1),c=cur[0]||rq(0,1);
+    const D=rSub(rMul(b,b),rMul(rMul(rq(4,1),a),c));
+    const sq=rIsSquare(D);
+    if(sq){
+      const r1=rDiv(rSub(rNeg(b),sq),rMul(rq(2,1),a));
+      const r2=rDiv(rAdd(rNeg(b),sq),rMul(rq(2,1),a));
+      roots.push(r1,r2);
+      return{method:'rationaler Nullstellensatz + Mitternachtsformel',roots,rational:true,restDeg:0};
+    }
+    return{method:'rationaler Nullstellensatz (Rest quadratisch, D keine Quadratzahl)',roots,restDeg:2,rest:cur};
+  }
+  return{method:degLeft===0?'rationaler Nullstellensatz (vollständig deflationiert)':'rationaler Nullstellensatz (Rest numerisch)',roots,rational:degLeft===0,restDeg:degLeft===0?0:Math.max(1,degLeft),rest:degLeft>=1?cur:null};
+}
+function polyToNumericFn(p,v){
+  return x=>{
+    let acc=0;
+    for(const k of Object.keys(p))acc+=(p[k].n/p[k].d)*Math.pow(x,+k);
+    return acc;
+  };
 }
 
 /* =====================================================================
