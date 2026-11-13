@@ -1,0 +1,1257 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#04060c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ELIAN">
+<meta name="description" content="ELIAN Ultimate Calculator v10 — modulare Offline-Mathematik-Werkbank. Liquid-Glass, dark, eine Datei.">
+<title>ELIAN Ultimate Calculator v10</title>
+<style>
+/* =====================================================================
+   ELIAN v10 — Liquid-Glass-Designsystem „Vollgas"
+   Ein dark-first System: Aurora-Tiefe, mehrschichtiges Glas,
+   Feder-Physik, Spekular-Kanten, physische Reaktionen.
+   ===================================================================== */
+:root{
+  /* Tiefe */
+  --c-void:#04060c; --c-bg:#080c16; --c-bg2:#0b1120; --c-panel:#0d1424;
+  --c-ink:#f6f8ff; --c-ink2:#b9c3d8; --c-ink3:#76839e;
+
+  /* Akzente (umschaltbar, data-accent am <html>) */
+  --acc:#0a84ff; --acc2:#5e5ce6; --acc3:#bf5af2;
+  --ok:#30d158; --warn:#ffd60a; --err:#ff453a; --mint:#63e6e2;
+
+  /* Glas — wirklich transparent, mehrschichtig */
+  --g1:rgba(148,163,190,.10);   /* Basisfläche */
+  --g2:rgba(148,163,190,.16);   /* Karten */
+  --g3:rgba(148,163,190,.26);   /* erhaben */
+  --gline:rgba(255,255,255,.12);
+  --gline2:rgba(255,255,255,.20);
+  --gblur:blur(34px) saturate(180%);
+  --gblur-strong:blur(52px) saturate(200%) brightness(1.08);
+  --shadow:0 24px 60px rgba(0,0,0,.45), 0 4px 14px rgba(0,0,0,.30);
+  --shadow-lift:0 34px 80px rgba(0,0,0,.55), 0 6px 18px rgba(0,0,0,.34);
+  --inlight:inset 0 1px 0 rgba(255,255,255,.13), inset 0 -1px 0 rgba(0,0,0,.22);
+
+  /* Geometrie */
+  --r-xs:10px; --r-s:14px; --r-m:19px; --r-l:26px; --r-xl:34px; --r-full:999px;
+  --rail-w:264px; --dock-h:calc(64px + env(safe-area-inset-bottom));
+
+  /* Physik */
+  --spring:cubic-bezier(.3,1.5,.45,1);
+  --pop:cubic-bezier(.2,1.7,.4,1);
+  --ease:cubic-bezier(.32,.72,0,1);
+  --t-fast:.15s var(--ease);
+  --t-mid:.28s var(--ease);
+
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",Inter,"Segoe UI Variable","Segoe UI",system-ui,sans-serif;
+  font-size:calc(16px * var(--font-scale,1));
+  -webkit-font-smoothing:antialiased;
+  color-scheme:dark;
+}
+html[data-accent="violet"]{--acc:#7d5cff;--acc2:#b04bff;--acc3:#ff5ce6}
+html[data-accent="mint"]{--acc:#2fd6c3;--acc2:#38b6ff;--acc3:#7df9c9}
+html[data-accent="ember"]{--acc:#ff7a2f;--acc2:#ffb02f;--acc3:#ff4f6d}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;min-height:100dvh;color:var(--c-ink);
+  background:var(--c-void);
+  font-size:15px;letter-spacing:-.01em;
+  overscroll-behavior:none;
+}
+button,input,select,textarea{font:inherit;letter-spacing:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;-webkit-tap-highlight:transparent}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:8px}
+::selection{background:color-mix(in srgb,var(--acc) 40%,transparent)}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16);border-radius:8px}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ============ Aurora-Tiefe (GPU-günstig: weiche Verläufe statt blur()) ============ */
+.aurora{position:fixed;inset:-12%;z-index:0;pointer-events:none;will-change:transform}
+.aurora i{position:absolute;display:block;border-radius:50%;opacity:.55;will-change:transform}
+.aurora .a1{width:52vmax;height:52vmax;left:-10%;top:-12%;background:radial-gradient(circle at 42% 42%,color-mix(in srgb,var(--acc) 42%,transparent),transparent 62%);animation:drift1 26s var(--ease) infinite alternate}
+.aurora .a2{width:44vmax;height:44vmax;right:-12%;top:0%;background:radial-gradient(circle at 58% 42%,color-mix(in srgb,var(--acc3) 34%,transparent),transparent 60%);animation:drift2 32s var(--ease) infinite alternate}
+.aurora .a3{width:56vmax;height:56vmax;left:20%;bottom:-26%;background:radial-gradient(circle at 50% 50%,color-mix(in srgb,var(--acc2) 30%,transparent),transparent 58%);animation:drift3 38s var(--ease) infinite alternate}
+@keyframes drift1{to{transform:translate3d(9vmax,6vmax,0) scale(1.14)}}
+@keyframes drift2{to{transform:translate3d(-8vmax,10vmax,0) scale(.9)}}
+@keyframes drift3{to{transform:translate3d(6vmax,-8vmax,0) scale(1.08)}}
+.grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.035;
+  background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E")}
+
+/* ============ Glas-Flächen ============
+   Karten: Glas-Look über Verläufe + Spekular-Kante (kein backdrop-filter → günstig).
+   Chrome (dock, palette, sheet, rail, top): echter Backdrop-Blur. */
+.glass.flat{border-radius:var(--r-m)}
+.glass{
+  position:relative;
+  background:linear-gradient(160deg,var(--g2),var(--g1));
+  border:1px solid var(--gline);
+  box-shadow:var(--shadow),var(--inlight);
+  border-radius:var(--r-l);
+}
+.glass::after{ /* Spekular-Kante */
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(140deg,rgba(255,255,255,.16),transparent 32%,transparent 68%,rgba(255,255,255,.05));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;padding:1px;
+}
+.chrome{
+  background:linear-gradient(160deg,var(--g2),var(--g1));
+  -webkit-backdrop-filter:var(--gblur);
+  backdrop-filter:var(--gblur);
+  box-shadow:var(--shadow),var(--inlight);
+}
+.chrome.strong{
+  background:linear-gradient(160deg,var(--g3),var(--g2));
+  -webkit-backdrop-filter:var(--gblur-strong);
+  backdrop-filter:var(--gblur-strong);
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .chrome,.chrome.strong{background:linear-gradient(160deg,rgba(16,22,38,.90),rgba(12,17,30,.82))}
+}
+
+/* ============ App-Gerüst ============ */
+.app{position:relative;z-index:2;display:grid;grid-template-columns:var(--rail-w) minmax(0,1fr);min-height:100dvh}
+
+/* --- Werkzeug-Menü (linke Schiene) --- */
+.rail{
+  position:sticky;top:0;height:100dvh;display:flex;flex-direction:column;
+  padding:18px 12px calc(12px);border-right:1px solid var(--gline);
+  background:linear-gradient(200deg,rgba(140,155,185,.10),rgba(140,155,185,.04));
+  -webkit-backdrop-filter:var(--gblur);backdrop-filter:var(--gblur);
+  overflow:auto;scrollbar-width:none;
+}
+.rail::-webkit-scrollbar{display:none}
+.brand{display:flex;align-items:center;gap:12px;padding:2px 6px 16px}
+.logo{
+  width:44px;height:44px;border-radius:14px;display:grid;place-items:center;flex:none;
+  background:linear-gradient(150deg,var(--acc),var(--acc2) 55%,var(--acc3));
+  color:#fff;font-weight:900;font-size:19px;letter-spacing:-.03em;
+  box-shadow:0 12px 28px color-mix(in srgb,var(--acc) 40%,transparent),inset 0 1px 0 rgba(255,255,255,.34);
+  transition:transform .18s var(--spring);
+}
+.logo:hover{transform:rotate(-4deg) scale(1.05)}
+.brand b{font-size:16px;letter-spacing:-.02em;display:block}
+.brand small{display:block;color:var(--c-ink2);font-size:11px;margin-top:1px}
+.rail-scroll{flex:1;display:grid;gap:14px;align-content:start}
+.grp-t{font-size:10.5px;font-weight:750;letter-spacing:.09em;text-transform:uppercase;color:var(--c-ink3);padding:0 8px 3px}
+.grp-items{display:grid;gap:2px}
+.mod-btn{
+  display:flex;align-items:center;gap:11px;width:100%;text-align:left;
+  padding:10px 11px;border-radius:var(--r-s);color:var(--c-ink2);
+  font-size:14px;font-weight:560;letter-spacing:-.01em;
+  transition:background var(--t-fast),color var(--t-fast),transform .12s var(--spring);
+}
+.mod-btn .mi{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;flex:none;
+  background:rgba(255,255,255,.07);font-size:14px;transition:background var(--t-fast),transform .12s var(--spring)}
+.mod-btn:hover{background:rgba(255,255,255,.07);color:var(--c-ink)}
+.mod-btn:hover .mi{background:color-mix(in srgb,var(--acc) 26%,transparent)}
+.mod-btn:active{transform:scale(.97)}
+.mod-btn.active{background:color-mix(in srgb,var(--acc) 24%,transparent);color:#fff;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--acc) 42%,transparent)}
+.mod-btn.active .mi{background:linear-gradient(150deg,var(--acc),var(--acc2));color:#fff}
+.rail-foot{padding:10px 8px 2px;font-size:10.5px;color:var(--c-ink3);display:flex;justify-content:space-between;align-items:center}
+
+/* --- Hauptbereich --- */
+.main{display:flex;flex-direction:column;min-width:0;min-height:100dvh}
+.top{
+  position:sticky;top:0;z-index:20;display:flex;align-items:flex-end;gap:12px;
+  padding:calc(10px + env(safe-area-inset-top)) 20px 12px;
+  border-bottom:1px solid transparent;transition:border-color var(--t-mid),background var(--t-mid),backdrop-filter var(--t-mid);
+}
+.top.scrolled{border-bottom-color:var(--gline);background:rgba(8,12,22,.62);-webkit-backdrop-filter:var(--gblur);backdrop-filter:var(--gblur)}
+.titles{flex:1;min-width:0}
+.titles h1{margin:0;font-size:clamp(21px,2.6vw,28px);font-weight:820;letter-spacing:-.025em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  transition:transform var(--t-mid),font-size var(--t-mid);transform-origin:left bottom}
+.top.scrolled .titles h1{font-size:19px}
+.titles p{margin:2px 0 0;font-size:12px;color:var(--c-ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-actions{display:flex;gap:8px;align-items:center}
+.iconbtn{
+  width:40px;height:40px;border-radius:var(--r-s);display:grid;place-items:center;flex:none;
+  border:1px solid var(--gline);background:rgba(255,255,255,.07);color:var(--c-ink);font-size:16px;
+  transition:background var(--t-fast),transform .12s var(--spring),box-shadow var(--t-fast);
+}
+.iconbtn:hover{background:rgba(255,255,255,.13)}
+.iconbtn:active{transform:scale(.9)}
+.iconbtn.on{background:color-mix(in srgb,var(--acc) 30%,transparent);border-color:color-mix(in srgb,var(--acc) 48%,transparent)}
+#menuBtn{display:none}
+
+/* --- Bühne --- */
+.stage{flex:1;padding:18px 20px calc(var(--dock-h) + 24px);max-width:1180px;width:100%;margin:0 auto;min-width:0}
+.view{display:none}
+.view.active{display:block;animation:viewIn .34s var(--ease)}
+@keyframes viewIn{from{opacity:0;transform:translateY(14px) scale(.985);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+
+/* ============ Bausteine ============ */
+.card{padding:18px;margin-bottom:14px}
+.card h2,.card h3{margin:0 0 10px;letter-spacing:-.022em}
+.card h2{font-size:19px;font-weight:780}
+.card h3{font-size:14.5px;font-weight:720;color:var(--c-ink2)}
+.card p.lead{margin:0 0 12px;color:var(--c-ink2);font-size:13px;line-height:1.5}
+.row{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+.row.tight{gap:6px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.spacer{flex:1}
+.help{color:var(--c-ink2);font-size:12px;line-height:1.5}
+.muted{color:var(--c-ink3)}
+.hr{height:1px;background:var(--gline);margin:14px 0}
+.tag{display:inline-flex;align-items:center;gap:5px;border-radius:var(--r-full);padding:4px 10px;
+  background:rgba(255,255,255,.08);font-size:11.5px;font-weight:650;white-space:nowrap}
+.tag.on{background:color-mix(in srgb,var(--acc) 26%,transparent);color:#fff}
+
+/* --- Eingaben --- */
+.input,select,textarea{
+  width:100%;border:1px solid var(--gline);background:rgba(6,10,20,.45);
+  border-radius:var(--r-s);padding:11px 12px;outline:none;font-size:14.5px;
+  transition:border-color var(--t-fast),box-shadow var(--t-fast),background var(--t-fast);
+  -webkit-appearance:none;appearance:none;
+}
+select{background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23b9c3d8' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+select option{background:#0d1424;color:var(--c-ink)}
+.input:focus,select:focus,textarea:focus{border-color:var(--acc);box-shadow:0 0 0 3.5px color-mix(in srgb,var(--acc) 22%,transparent);background:rgba(6,10,20,.6)}
+::placeholder{color:var(--c-ink3)}
+textarea{resize:vertical;min-height:100px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.6}
+
+/* --- Tasten --- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  border:1px solid var(--gline);background:rgba(255,255,255,.085);
+  border-radius:var(--r-s);padding:10px 15px;min-height:44px;
+  font-size:14px;font-weight:640;letter-spacing:-.01em;
+  transition:background var(--t-fast),transform .12s var(--spring),box-shadow var(--t-fast),border-color var(--t-fast);
+}
+.btn:hover{background:rgba(255,255,255,.15);transform:translateY(-1px)}
+.btn:active{transform:scale(.955) translateY(0)}
+.btn.primary{background:linear-gradient(180deg,var(--acc),color-mix(in srgb,var(--acc) 76%,#000));border-color:transparent;color:#fff;
+  box-shadow:0 10px 24px color-mix(in srgb,var(--acc) 38%,transparent)}
+.btn.primary:hover{filter:brightness(1.12);box-shadow:0 14px 32px color-mix(in srgb,var(--acc) 46%,transparent)}
+.btn.danger{background:color-mix(in srgb,var(--err) 16%,transparent);border-color:color-mix(in srgb,var(--err) 38%,transparent);color:#ff9a92}
+.btn.ghost{background:transparent}
+.btn.sm{padding:7px 11px;min-height:36px;font-size:12.5px}
+.chip{
+  border:1px solid var(--gline);background:rgba(255,255,255,.06);color:var(--c-ink2);
+  border-radius:var(--r-full);padding:8px 14px;min-height:36px;font-size:12.5px;font-weight:640;
+  display:inline-flex;align-items:center;gap:6px;
+  transition:background var(--t-fast),color var(--t-fast),transform .12s var(--spring),border-color var(--t-fast);
+}
+.chip:hover{color:var(--c-ink);background:rgba(255,255,255,.12)}
+.chip:active{transform:scale(.94)}
+.chip.on{background:color-mix(in srgb,var(--acc) 30%,transparent);border-color:color-mix(in srgb,var(--acc) 52%,transparent);color:#fff}
+
+/* --- Schalter (iOS-Stil) --- */
+.toggle{appearance:none;-webkit-appearance:none;width:51px;height:31px;border-radius:var(--r-full);flex:none;
+  background:rgba(118,118,128,.34);position:relative;cursor:pointer;border:0;
+  transition:background .22s var(--ease)}
+.toggle::before{content:"";position:absolute;width:27px;height:27px;left:2px;top:2px;border-radius:50%;
+  background:#fff;box-shadow:0 2px 7px rgba(0,0,0,.35);transition:transform .24s var(--spring)}
+.toggle:checked{background:var(--ok)}
+.toggle:checked::before{transform:translateX(20px)}
+
+/* --- Segmented --- */
+.seg{display:inline-flex;background:rgba(118,118,128,.24);border-radius:12px;padding:2px;gap:2px}
+.seg button{border:0;background:transparent;color:var(--c-ink2);padding:7px 14px;border-radius:10px;
+  font-size:12.5px;font-weight:650;transition:background var(--t-fast),color var(--t-fast)}
+.seg button.on{background:rgba(255,255,255,.20);color:#fff;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+
+/* ============ Rechner ============ */
+.display{
+  padding:18px 20px;min-height:118px;display:flex;flex-direction:column;justify-content:center;gap:4px;
+  margin-bottom:14px;border-radius:var(--r-l);position:relative;overflow:hidden;
+  background:linear-gradient(180deg,rgba(140,155,185,.11),rgba(140,155,185,.04));
+  border:1px solid var(--gline);box-shadow:var(--shadow),var(--inlight);
+}
+.display .expr{color:var(--c-ink2);min-height:22px;word-break:break-word;font-size:14.5px;font-variant-numeric:tabular-nums}
+.display .result{font-size:clamp(28px,5vw,42px);font-weight:830;word-break:break-all;line-height:1.1;letter-spacing:-.025em;font-variant-numeric:tabular-nums}
+.display .result.exact{background:linear-gradient(100deg,var(--c-ink),color-mix(in srgb,var(--acc) 60%,#fff));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.display.pop .result{animation:popIn .4s var(--pop)}
+@keyframes popIn{0%{transform:scale(.86);opacity:.4}60%{transform:scale(1.04)}100%{transform:scale(1);opacity:1}}
+.mem-bar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;font-size:11.5px;color:var(--c-ink2)}
+.keys{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.key{
+  min-height:52px;aspect-ratio:1/.92;border-radius:var(--r-m);border:1px solid var(--gline);
+  background:rgba(255,255,255,.07);color:var(--c-ink);
+  display:grid;place-items:center;font-size:16.5px;font-weight:640;
+  transition:background var(--t-fast),transform .13s var(--spring),box-shadow var(--t-fast);
+  user-select:none;-webkit-user-select:none;
+}
+.key:hover{background:rgba(255,255,255,.12)}
+.key:active,.key.pressed{transform:scale(.92);background:rgba(255,255,255,.18)}
+.key.op{color:var(--acc);font-weight:750}
+.key.fn{font-size:13px;color:var(--c-ink2)}
+.key.eq{background:linear-gradient(180deg,var(--acc),color-mix(in srgb,var(--acc) 74%,#000));color:#fff;font-size:19px;
+  box-shadow:0 10px 22px color-mix(in srgb,var(--acc) 36%,transparent)}
+.key.eq:hover{filter:brightness(1.1)}
+.key.warn{color:var(--warn)}
+.key.del{color:#ff9a92}
+.hist{display:grid;gap:8px;max-height:none}
+.hist-item{padding:10px 12px;border-radius:var(--r-s);background:rgba(255,255,255,.045);border:1px solid var(--gline);
+  cursor:pointer;transition:background var(--t-fast),transform .1s var(--spring)}
+.hist-item:hover{background:rgba(255,255,255,.10)}
+.hist-item:active{transform:scale(.985)}
+.hist-item .he{font-size:12.5px;color:var(--c-ink2);word-break:break-all}
+.hist-item .hr2{font-size:15px;font-weight:700;word-break:break-all}
+.hist-empty{color:var(--c-ink3);font-size:12.5px;padding:14px;text-align:center}
+
+/* ============ Bottom-Toolbar (Dock) ============ */
+.dock{
+  position:fixed;left:50%;transform:translateX(-50%);z-index:40;
+  bottom:calc(10px + env(safe-area-inset-bottom));
+  display:flex;gap:4px;padding:7px 9px;border-radius:var(--r-xl);
+  background:linear-gradient(160deg,var(--g3),var(--g1));
+  border:1px solid var(--gline2);
+  -webkit-backdrop-filter:var(--gblur-strong);backdrop-filter:var(--gblur-strong);
+  box-shadow:var(--shadow-lift),var(--inlight);
+}
+.dock .dbtn{
+  display:flex;flex-direction:column;align-items:center;gap:1px;flex:none;
+  min-width:56px;padding:7px 9px 6px;border-radius:var(--r-m);
+  color:var(--c-ink2);font-size:9.5px;font-weight:650;letter-spacing:-.01em;
+  transition:color var(--t-fast),background var(--t-fast),transform .16s var(--spring);
+}
+.dock .dbtn .di{font-size:20px;line-height:22px;transition:transform .16s var(--spring)}
+.dock .dbtn:hover{color:var(--c-ink);background:rgba(255,255,255,.08)}
+.dock .dbtn:active{transform:scale(.9)}
+.dock .dbtn.active{color:#fff;background:color-mix(in srgb,var(--acc) 30%,transparent)}
+.dock .dbtn.active .di{transform:translateY(-1px) scale(1.1)}
+@media(min-width:1024px){.dock{display:none}.stage{padding-bottom:24px}}
+
+/* ============ Handy-Sheet (Tool-Menü) ============ */
+.scrim{position:fixed;inset:0;z-index:50;background:rgba(2,4,9,.55);opacity:0;pointer-events:none;transition:opacity var(--t-mid);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.scrim.show{opacity:1;pointer-events:auto}
+.sheet{
+  position:fixed;left:0;right:0;bottom:0;z-index:51;max-height:76dvh;overflow:auto;
+  padding:10px 14px calc(18px + env(safe-area-inset-bottom));
+  border-radius:var(--r-xl) var(--r-xl) 0 0;
+  background:linear-gradient(200deg,var(--g3),var(--g2));border:1px solid var(--gline2);border-bottom:0;
+  -webkit-backdrop-filter:var(--gblur-strong);backdrop-filter:var(--gblur-strong);
+  box-shadow:0 -20px 60px rgba(0,0,0,.5);
+  transform:translateY(102%);transition:transform .38s var(--ease);
+}
+.sheet.show{transform:translateY(0)}
+.sheet-grab{width:40px;height:5px;border-radius:3px;background:rgba(255,255,255,.25);margin:2px auto 12px}
+
+/* ============ Befehlspalette ============ */
+.palette{
+  position:fixed;left:50%;top:14dvh;transform:translate(-50%,-14px) scale(.97);z-index:60;
+  width:min(620px,calc(100vw - 32px));max-height:64dvh;display:flex;flex-direction:column;
+  opacity:0;pointer-events:none;transition:opacity var(--t-mid),transform var(--t-mid);
+  border-radius:var(--r-l);overflow:hidden;
+}
+.palette.show{opacity:1;transform:translate(-50%,0) scale(1);pointer-events:auto}
+.palette .pinput{border:0;border-bottom:1px solid var(--gline);border-radius:0;background:transparent;font-size:15px;padding:14px 16px}
+.palette .plist{overflow:auto;padding:8px}
+.pal-item{display:flex;align-items:center;gap:11px;padding:10px 11px;border-radius:var(--r-s);font-size:14px;cursor:pointer}
+.pal-item .mi{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;background:rgba(255,255,255,.08);flex:none;font-size:13px}
+.pal-item.sel,.pal-item:hover{background:color-mix(in srgb,var(--acc) 22%,transparent)}
+.pal-empty{padding:18px;text-align:center;color:var(--c-ink3);font-size:13px}
+
+/* ============ Toasts ============ */
+.toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--dock-h) + 16px);z-index:70;
+  display:grid;gap:8px;justify-items:center;pointer-events:none;width:max-content;max-width:calc(100vw - 24px)}
+.toast{
+  padding:10px 16px;font-size:13px;font-weight:600;border-radius:var(--r-full);
+  background:linear-gradient(160deg,var(--g3),var(--g2));border:1px solid var(--gline2);
+  -webkit-backdrop-filter:var(--gblur-strong);backdrop-filter:var(--gblur-strong);
+  box-shadow:var(--shadow),var(--inlight);
+  animation:toastIn .4s var(--pop);
+}
+.toast.out{animation:toastOut .3s var(--ease) forwards}
+.toast.ok{color:#8df0ab}.toast.err{color:#ff9a92}
+@keyframes toastIn{from{opacity:0;transform:translateY(14px) scale(.9)}to{opacity:1;transform:none}}
+@keyframes toastOut{to{opacity:0;transform:translateY(8px) scale(.94)}}
+
+/* ============ Wellen (Ripple) ============ */
+.ripple{position:absolute;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(255,255,255,.34),transparent 70%);
+  transform:scale(0);animation:rip .55s var(--ease) forwards;z-index:5}
+@keyframes rip{to{transform:scale(2.6);opacity:0}}
+
+/* ============ Responsiv: Tablet / Handy ============ */
+@media(max-width:1023px){
+  .app{grid-template-columns:1fr}
+  .rail{display:none}
+  #menuBtn{display:grid}
+}
+@media(max-width:640px){
+  .stage{padding:14px 14px calc(var(--dock-h) + 18px)}
+  .keys{grid-template-columns:repeat(4,1fr);gap:7px}
+  .key{min-height:48px}
+  .top{padding-left:14px;padding-right:14px}
+  .card{padding:15px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  .aurora i{animation:none}
+}
+</style>
+</head>
+<body>
+<div class="aurora" aria-hidden="true"><i class="a1"></i><i class="a2"></i><i class="a3"></i></div>
+<div class="grain" aria-hidden="true"></div>
+
+<div class="app">
+  <!-- Werkzeug-Menü -->
+  <aside class="rail" id="rail" aria-label="Werkzeuge">
+    <div class="brand">
+      <div class="logo">E</div>
+      <div><b>ELIAN Ultimate</b><small>Calculator&nbsp;·&nbsp;v10</small></div>
+    </div>
+    <div class="rail-scroll" id="railGroups"></div>
+    <div class="rail-foot"><span id="railVersion">v10.0</span><span id="railClock"></span></div>
+  </aside>
+
+  <!-- Hauptbühne -->
+  <main class="main">
+    <header class="top" id="top">
+      <button class="iconbtn" id="menuBtn" aria-label="Werkzeuge">☰</button>
+      <div class="titles">
+        <h1 id="stageTitle">Rechner</h1>
+        <p id="stageSub">Exakt. Modular. Überall.</p>
+      </div>
+      <div class="top-actions">
+        <button class="iconbtn" id="angleBtn" title="Winkelmodus (Alt+W)">DEG</button>
+        <button class="iconbtn" id="palBtn" title="Befehlspalette (Strg+K)">⌘</button>
+        <button class="iconbtn" id="themeBtn" title="Akzentfarbe">◐</button>
+      </div>
+    </header>
+    <section class="stage" id="stage" aria-live="polite"></section>
+  </main>
+</div>
+
+<!-- Bottom-Toolbar -->
+<nav class="dock" id="dock" aria-label="Schnellzugriff"></nav>
+
+<!-- Handy-Sheet -->
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-label="Werkzeuge">
+  <div class="sheet-grab"></div>
+  <div id="sheetGroups"></div>
+</div>
+
+<!-- Befehlspalette -->
+<div class="scrim" id="palScrim"></div>
+<div class="palette chrome strong" id="palette" role="dialog" aria-label="Befehlspalette">
+  <input class="pinput" id="palInput" placeholder="Modul oder Aktion suchen …" autocomplete="off" spellcheck="false">
+  <div class="plist" id="palList"></div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<!-- =====================================================================
+     Mathe-Kern v10 — pur, ohne DOM. Global, damit Tests (node) greifen.
+     Exakte rationale Arithmetik (BigInt), Präzedenz-Parser,
+     Winkelmodus DEG/GRAD/RAD global wirksam.
+     ===================================================================== -->
+<script>
+/* ---------- Winkelmodus ---------- */
+var ANGLE_MODE = 'deg';
+var ANS_VALUE = 0;   // letztes Ergebnis (global:Engine liest 'ans')
+function setAngleMode(m){ if(m==='deg'||m==='rad'||m==='gon') ANGLE_MODE = m; return ANGLE_MODE; }
+function _deg2rad(x){ return ANGLE_MODE==='deg' ? x*Math.PI/180 : ANGLE_MODE==='gon' ? x*Math.PI/200 : x; }
+function _rad2deg(x){ return ANGLE_MODE==='deg' ? x*180/Math.PI : ANGLE_MODE==='gon' ? x*200/Math.PI : x; }
+
+/* ---------- exakte rationale Zahlen ---------- */
+function rq(n,d){ // Rational {n:BigInt,d:BigInt}, normiert, d>0
+  if(typeof n==='number'){ n = BigInt(Math.round(n)); }
+  if(typeof d==='number'){ d = BigInt(Math.round(d)); }
+  if(!n) n = 0n; if(!d) d = 1n;
+  if(d < 0n){ n = -n; d = -d; }
+  if(n === 0n) return {n:0n,d:1n};
+  var g = gcd(n<0n?-n:n, d); if(g > 1n){ n/=g; d/=g; }
+  return {n:n,d:d};
+}
+function gcd(a,b){ while(b){ var t=a%b; a=b; b=t; } return a<0n?-a:a; }
+function lcm(a,b){ if(a===0n||b===0n) return 0n; var x=a<0n?-a:a, y=b<0n?-b:b; return x/gcd(x,y)*y; }
+function rIsInt(r){ return r.d === 1n; }
+function rNum(r){ return r.n===0n?0:Number(r.n)/Number(r.d); }
+function rNeg(r){ return {n:-r.n,d:r.d}; }
+function rInv(r){ if(r.n===0n) throw new Error('Division durch 0'); return {n:r.d,d:r.n}; }
+function rAdd(a,b){ var d=lcm(a.d,b.d); return rq(a.n*(d/a.d)+b.n*(d/b.d), d); }
+function rSub(a,b){ return rAdd(a, rNeg(b)); }
+function rMul(a,b){ return rq(a.n*b.n, a.d*b.d); }
+function rDiv(a,b){ return rMul(a, rInv(b)); }
+function rPow(a,k){ // k: BigInt (ganzzahlig, auch negativ)
+  if(k===0n) return rq(1n);
+  if(k>0n){ var r=a; for(var i=1n;i<k;i++) r=rMul(r,a); return r; }
+  var p=rq(1n), i=0n; while(i<(-k)){ p=rMul(p,a); i++; } return rInv(p);
+}
+function rIsSquare(r){ // p/q = (P/Q)² ?
+  if(r.n<0n) return false;
+  var a=isqrt(r.n), b=isqrt(r.d);
+  return a*a===r.n && b*b===r.d ? rq(a,b) : null;
+}
+function isqrt(x){ if(x<2n) return x; var y=x, z=(x+1n)/2n; while(z<y){ y=z; z=(y+x/y)/2n; } return y; }
+function rFromFloat(x){ // exakt, solange Float-Bruch kurz genug
+  if(!isFinite(x)) throw new Error('Keine endliche Zahl');
+  if(Number.isInteger(x) && Math.abs(x)<1e15) return rq(BigInt(x));
+  var s=String(x); var m=s.match(/^([-0-9]+)e([+-])(\d+)$/);
+  if(m){ var mant=m[1], neg=m[2]==='-', exp=parseInt(m[3],10);
+    var shifted = mant*(neg?'e-'+exp:'e'+exp); x=Number(shifted); s=String(x); }
+  var i=s.indexOf('e'); if(i>=0) return rq(0n); // wissenschaftlich → nicht exakt darstellbar
+  var parts=s.split('.'); var dec=parts[1]||''; var den=BigInt(Math.pow(10,dec.length));
+  return rq(BigInt(parts[0].replace('-','')+(dec||'0'))*(parts[0][0]==='-'?-1n:1n), den);
+}
+function rToStr(r){ if(r.n===0n) return '0'; return r.d===1n ? r.n.toString() : r.n+'/'+r.d; }
+
+/* ---------- Zahlenformat ---------- */
+function formatNumber(x){
+  if(typeof x!=='number') x = rNum(x);
+  if(!isFinite(x)) return '∞';
+  if(Number.isInteger(x) && Math.abs(x)<1e15) return x.toString();
+  if(Math.abs(x)>=1e15){ var s=x.toExponential(8); return s.replace(/\.?0+e/,'e'); }
+  var p=x.toPrecision(12); if(p.indexOf('.')>=0 && p.indexOf('e')<0) p=p.replace(/0+$/,'').replace(/\.$/,'');
+  if(p==='-0') p='0';
+  return p;
+}
+
+/* ---------- Tokenizer ---------- */
+var FUNCS = {
+  sin:function(v){return Math.sin(_deg2rad(v));},
+  cos:function(v){return Math.cos(_deg2rad(v));},
+  tan:function(v){return Math.tan(_deg2rad(v));},
+  asin:function(v){return _rad2deg(Math.asin(v));}, acos:function(v){return _rad2deg(Math.acos(v));},
+  atan:function(v){return _rad2deg(Math.atan(v));}, atan2:Math.atan2,
+  sinh:Math.sinh, cosh:Math.cosh, tanh:Math.tanh,
+  exp:Math.exp, ln:Math.log, log:function(v,b){ return b===undefined?Math.log10(v):Math.log(v)/Math.log(b); },
+  sqrt:Math.sqrt, cbrt:Math.cbrt, abs:Math.abs, sign:Math.sign,
+  floor:Math.floor, ceil:Math.ceil, round:Math.round, trunc:Math.trunc
+};
+var CONSTS = { pi:Math.PI, e:Math.E, tau:2*Math.PI, phi:(1+Math.sqrt(5))/2 };
+
+function tokenize(src){
+  var t=[], i=0, s=String(src);
+  while(i<s.length){
+    var c=s[i];
+    if(c===' '||c==='\t'||c==='\n'){ i++; continue; }
+    if(c==='π'){ t.push({t:'id',v:'pi'}); i++; continue; }
+    if(c==='τ'){ t.push({t:'id',v:'tau'}); i++; continue; }
+    if(c==='·'||c==='×'){ t.push({t:'op',v:'*'}); i++; continue; }
+    if(c==='−'){ t.push({t:'op',v:'-'}); i++; continue; }
+    if(c==='÷'){ t.push({t:'op',v:'/'}); i++; continue; }
+    if(c==='√'){ t.push({t:'fn',v:'sqrt'}); i++; continue; }
+    if(c>='0'&&c<='9'||c==='.'){
+      var j=i; while(j<s.length&&(s[j]>='0'&&s[j]<='9'||s[j]==='.')) j++;
+      var raw=s.slice(i,j);
+      if((raw.match(/\./g)||[]).length>1) throw new Error('Ungültige Zahl: '+raw);
+      t.push({t:'num',v:raw}); i=j; continue;
+    }
+    if(c>='a'&&c<='z'||c>='A'&&c<='Z'||c==='_'){
+      var j2=i; while(j2<s.length&&(s[j2]>='a'&&s[j2]<='z'||s[j2]>='A'&&s[j2]<='Z'||s[j2]>='0'&&s[j2]<='9'||s[j2]==='_')) j2++;
+      t.push({t:'id',v:s.slice(i,j2).toLowerCase()}); i=j2; continue;
+    }
+    if('+-*/^%!(),'.indexOf(c)>=0){
+      if(c==='('){t.push({t:'('});}else if(c===')'){t.push({t:')'});}
+      else if(c===','){t.push({t:','});}
+      else t.push({t:'op',v:c});
+      i++; continue;
+    }
+    throw new Error('Unbekanntes Zeichen: '+c);
+  }
+  return t;
+}
+
+/* ---------- Parser (Präzedenz, Implizit-Multiplikation) ---------- */
+function parseTokens(tk, vars){
+  var p=0;
+  function peek(){ return tk[p]; }
+  function next(){ return tk[p++]; }
+  function eatOp(v){ var k=peek(); if(k&&k.t==='op'&&k.v===v){ p++; return true; } return false; }
+  function eatClose(){ var k=peek(); if(k&&k.t===')'){ p++; return true; } return false; }
+  function eatComma(){ var k=peek(); if(k&&k.t===','){ p++; return true; } return false; }
+  function isVar(n){ return vars && Object.prototype.hasOwnProperty.call(vars,n); }
+
+  function primary(){
+    var k=next();
+    if(!k) throw new Error('Unerwartetes Ende');
+    if(k.t==='op'&&k.v==='-') return {k:'neg',a:primary()};
+    if(k.t==='op'&&k.v==='+') return primary();
+    if(k.t==='num'){ var r=rq(BigInt(k.v.replace('.',''))||0n, BigInt(Math.pow(10,(k.v.split('.')[1]||'').length))); return {k:'num',r:r}; }
+    if(k.t==='fn'||(k.t==='id'&&Object.prototype.hasOwnProperty.call(FUNCS,k.v))){
+      if(!(peek()&&peek().t==='(')) throw new Error('"'+k.v+'" erwartet "("');
+      p++;
+      var args=[];
+      if(!(peek()&&peek().t===')')){ args.push(expr()); while(eatComma()) args.push(expr()); }
+      if(!eatClose()) throw new Error('Schließende ")" fehlt');
+      return {k:'call',name:k.v,args:args};
+    }
+    if(k.t==='id'){
+      if(isVar(k.v)) return {k:'num',r:rFromFloat(vars[k.v])};
+      if(k.v==='ans') return {k:'num',r:rFromFloat(typeof ANS_VALUE==='number'?ANS_VALUE:0)};
+      if(Object.prototype.hasOwnProperty.call(CONSTS,k.v)) return {k:'num',r:rFromFloat(CONSTS[k.v])};
+      throw new Error('Unbekannte Variable: '+k.v);
+    }
+    if(k.t==='('){
+      var e=expr();
+      if(!eatClose()) throw new Error('Schließende ")" fehlt');
+      return e;
+    }
+    throw new Error('Unerwartetes Symbol');
+  }
+
+  function postfix(){
+    var e=primary();
+    for(;;){
+      var k=peek();
+      if(k&&k.t==='op'&&k.v==='!'){ p++; e={k:'fact',a:e}; continue; }
+      if(k&&k.t==='op'&&k.v==='%'){ p++; e={k:'pct',a:e}; continue; }
+      break;
+    }
+    return e;
+  }
+  // Implizite Multiplikation: Faktor direkt gefolgt von Faktor (Zahl, Funktion, Klammer, Variable/Konstante)
+  function implicit(){
+    var e=postfix();
+    for(;;){
+      var k=peek();
+      if(!k) break;
+      var isFactor = k.t==='num'||k.t==='fn'||k.t==='('||
+        (k.t==='id'&&(isVar(k.v)||Object.prototype.hasOwnProperty.call(CONSTS,k.v)||Object.prototype.hasOwnProperty.call(FUNCS,k.v)));
+      if(!isFactor) break;
+      var before=p;
+      var r=postfix();
+      if(p<=before) throw new Error('Parser-Fehler');
+      e={k:'mul',a:e,b:r};
+    }
+    return e;
+  }
+  function power(){ // rechtsassoziativ
+    var b=implicit();
+    if(eatOp('^')) return {k:'pow',a:b,b:unary()};
+    return b;
+  }
+  function unary(){
+    var k=peek();
+    if(k&&k.t==='op'&&k.v==='-'){ p++; return {k:'neg',a:unary()}; }
+    if(k&&k.t==='op'&&k.v==='+'){ p++; return unary(); }
+    return power();
+  }
+  function term(){
+    var l=unary();
+    for(;;){ if(eatOp('*')){ l={k:'mul',a:l,b:unary()}; } else if(eatOp('/')){ l={k:'div',a:l,b:unary()}; } else break; }
+    return l;
+  }
+  function expr(){
+    var l=term();
+    for(;;){ if(eatOp('+')){ l={k:'add',a:l,b:term()}; } else if(eatOp('-')){ l={k:'sub',a:l,b:term()}; } else break; }
+    return l;
+  }
+  var tree=expr();
+  if(p<tk.length) throw new Error('Unerwartetes Symbol am Ende');
+  return tree;
+}
+
+/* ---------- Auswertung: exakt wo möglich, sonst Float ---------- */
+function ev(node){
+  if(node.k==='num') return {r:node.r, exact:true};
+  var a,b;
+  function toF(x){ return x.exact?rNum(x.r):x.approx; }
+  function flt(v){ return {approx:v, exact:false}; }
+  switch(node.k){
+    case 'neg': a=ev(node.a); return a.exact?{r:rNeg(a.r), exact:true}:flt(-toF(a));
+    case 'fact': a=ev(node.a); if(!a.exact||!rIsInt(a.r)||a.r.n<0n) throw new Error('Fakultät nur für nicht-negative Ganzzahlen'); return {r:factorial(a.r.n), exact:true};
+    case 'pct': a=ev(node.a); return a.exact?{r:rDiv(a.r,rq(100n)), exact:true}:flt(toF(a)/100);
+    case 'add': a=ev(node.a); b=ev(node.b); return a.exact&&b.exact?{r:rAdd(a.r,b.r), exact:true}:flt(toF(a)+toF(b));
+    case 'sub': a=ev(node.a); b=ev(node.b); return a.exact&&b.exact?{r:rSub(a.r,b.r), exact:true}:flt(toF(a)-toF(b));
+    case 'mul': a=ev(node.a); b=ev(node.b); return a.exact&&b.exact?{r:rMul(a.r,b.r), exact:true}:flt(toF(a)*toF(b));
+    case 'div':
+      a=ev(node.a); b=ev(node.b);
+      if(b.exact&&b.r.n===0n) throw new Error('Division durch 0');
+      return a.exact&&b.exact?{r:rDiv(a.r,b.r), exact:true}:flt(toF(a)/toF(b));
+    case 'pow':
+      a=ev(node.a); b=ev(node.b);
+      if(b.exact && rIsInt(b.r) && b.r.n > -1000n && b.r.n < 1000n) return {r:rPow(a.r,b.r.n), exact:a.exact};
+      return flt(Math.pow(toF(a),toF(b)));
+    case 'call': return callFn(node);
+    default: throw new Error('Knoten nicht auswertbar');
+  }
+}
+function factorial(n){ var f=1n; for(var i=2n;i<=n;i++) f*=i; return {n:f,d:1n}; }
+function callFn(node){
+  var args=node.args.map(ev);
+  if(node.name==='sqrt'){
+    var sq=rIsSquare(args[0].r);
+    if(sq) return {r:sq, exact:args[0].exact};
+    return {approx:Math.sqrt(rNum(args[0].r))};
+  }
+  var fn=FUNCS[node.name];
+  if(!fn) throw new Error('Unbekannte Funktion: '+node.name);
+  var vals=args.map(function(x){ return x.exact?rNum(x.r):x.approx; });
+  if(node.name==='log'&&vals.length===2) return {approx:FUNCS.log(vals[0],vals[1])};
+  return {approx:fn.apply(null,vals)};
+}
+
+/* ---------- öffentliche Engine-API ---------- */
+function evalExpr(src, vars){
+  try{
+    var tree=parseTokens(tokenize(src), vars||{});
+    var res=ev(tree);
+    if(res.exact) return {ok:true, exact:true, text:rToStr(res.r), approx:rNum(res.r)};
+    return {ok:true, exact:false, text:formatNumber(res.approx), approx:res.approx};
+  }catch(e){ return {ok:false, err:e.message||'Fehler'}; }
+}
+function prettyExpr(src){
+  var r=evalExpr(src);
+  return r.ok? r.text : r.err;
+}
+</script>
+<!-- =====================================================================
+     App — Shell, Werkzeug-Registry, Module
+     ===================================================================== -->
+<script>
+(function(){
+'use strict';
+var $=function(s,r){return (r||document).querySelector(s);};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));};
+var h=function(tag,cls,html){var e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;};
+
+/* ============ Store & Settings ============ */
+var store={
+  get:function(k,d){try{var v=localStorage.getItem('elian10.'+k);return v==null?d:JSON.parse(v);}catch(e){return d;}},
+  set:function(k,v){try{localStorage.setItem('elian10.'+k,JSON.stringify(v));}catch(e){}},
+  del:function(k){try{localStorage.removeItem('elian10.'+k);}catch(e){}}
+};
+var S=store.get('settings',{angle:'deg',accent:'blue',fontscale:1,sci:true,reduce:false});
+// ANS_VALUE wird global vom Engine-Block bereitgestellt
+
+function applySettings(){
+  document.documentElement.setAttribute('data-accent',S.accent);
+  document.documentElement.style.setProperty('--font-scale',S.fontscale);
+  setAngleMode(S.angle);
+  var ab=$('#angleBtn'); if(ab) ab.textContent=S.angle.toUpperCase();
+}
+function saveSettings(){ store.set('settings',S); applySettings(); }
+
+/* ============ Toasts ============ */
+function toast(msg,kind){
+  var t=h('div','toast'+(kind?' '+kind:''),msg);
+  $('#toasts').appendChild(t);
+  setTimeout(function(){t.classList.add('out');setTimeout(function(){t.remove();},320);},2200);
+}
+
+/* ============ Ripple (physische Reaktion) ============ */
+document.addEventListener('pointerdown',function(e){
+  if(S.reduce) return;
+  var el=e.target.closest?e.target.closest('.btn,.key,.chip,.mod-btn,.iconbtn,.dbtn,.hist-item'):null;
+  if(!el) return;
+  var r=el.getBoundingClientRect(), d=Math.max(r.width,r.height)*1.4;
+  var rip=h('span','ripple');
+  rip.style.width=rip.style.height=d+'px';
+  rip.style.left=(e.clientX-r.left-d/2)+'px';
+  rip.style.top=(e.clientY-r.top-d/2)+'px';
+  if(getComputedStyle(el).position==='static') el.style.position='relative';
+  el.appendChild(rip);
+  setTimeout(function(){rip.remove();},560);
+});
+
+/* ============ Parallax-Tiefe auf Glasflächen ============ */
+if(!S.reduce) document.addEventListener('pointermove',function(e){
+  var el=e.target.closest?e.target.closest('.glass'):null;
+  if(!el||el.closest('.palette')) return;
+  var r=el.getBoundingClientRect();
+  var dx=(e.clientX-(r.left+r.width/2))/r.width, dy=(e.clientY-(r.top+r.height/2))/r.height;
+  el.style.setProperty('--px',(dx*100).toFixed(2)+'%');
+  el.style.transform='perspective(900px) rotateY('+(dx*2.4).toFixed(2)+'deg) rotateX('+(-dy*2.4).toFixed(2)+'deg) translateZ(0)';
+},{passive:true});
+document.addEventListener('pointerout',function(e){
+  var el=e.target.closest?e.target.closest('.glass'):null;
+  if(el) el.style.transform='';
+},true);
+document.addEventListener('pointerleave',function(){
+  $$('.glass').forEach(function(g){g.style.transform='';});
+});
+
+/* ============ Werkzeug-Registry ============ */
+var Registry={mods:{},order:[],groups:{}};
+function register(id,def){ Registry.mods[id]=def; Registry.order.push(id);
+  (Registry.groups[def.group]=Registry.groups[def.group]||[]).push(id); }
+
+/* ============ Shell aufbauen ============ */
+var current=null;
+function buildMenus(){
+  var rc=$('#railGroups'); rc.innerHTML='';
+  var sc=$('#sheetGroups'); sc.innerHTML='';
+  Object.keys(Registry.groups).forEach(function(g){
+    var gr=h('div','grp');
+    gr.appendChild(h('div','grp-t',g));
+    var items=h('div','grp-items');
+    Registry.groups[g].forEach(function(id){
+      var d=Registry.mods[id];
+      var b=h('button','mod-btn');
+      b.innerHTML='<span class="mi">'+d.icon+'</span><span>'+d.name+'</span>';
+      b.dataset.mid=id;
+      b.addEventListener('click',function(){show(id);closeSheet();});
+      items.appendChild(b);
+    });
+    gr.appendChild(items); rc.appendChild(gr);
+    var gr2=gr.cloneNode(true);
+    $$('.mod-btn',gr2).forEach(function(b){ b.addEventListener('click',function(){show(id);closeSheet();}); });
+    sc.appendChild(gr2);
+  });
+  var dock=$('#dock'); dock.innerHTML='';
+  Registry.order.forEach(function(id){
+    var d=Registry.mods[id];
+    if(!d.primary) return;
+    var b=h('button','dbtn');
+    b.innerHTML='<span class="di">'+d.icon+'</span><span>'+d.name+'</span>';
+    b.dataset.mid=id;
+    b.addEventListener('click',function(){show(id);});
+    dock.appendChild(b);
+  });
+  var mb=h('button','dbtn'); mb.innerHTML='<span class="di">▤</span><span>Menü</span>';
+  mb.addEventListener('click',openSheet); dock.appendChild(mb);
+}
+function show(id){
+  var d=Registry.mods[id]; if(!d) return;
+  if(current&&current.unmount) try{current.unmount();}catch(e){}
+  current=d;
+  var stage=$('#stage'); stage.innerHTML='';
+  var v=h('div','view',''); stage.appendChild(v);
+  $('#stageTitle').textContent=d.name;
+  $('#stageSub').textContent=d.sub||'';
+  $$('.mod-btn').forEach(function(b){b.classList.toggle('active',b.dataset.mid===id);});
+  $$('.dbtn').forEach(function(b){b.classList.toggle('active',b.dataset.mid===id);});
+  v.classList.add('active');
+  try{ d.mount(v); }catch(e){ v.appendChild(h('div','card glass','<h2>Fehler</h2><p class="err">'+e.message+'</p>')); }
+  store.set('lastMod',id);
+  window.scrollTo({top:0});
+  buildPalette();
+}
+
+/* ============ Sheet & Palette ============ */
+function openSheet(){ $('#scrim').classList.add('show'); $('#sheet').classList.add('show'); }
+function closeSheet(){ $('#scrim').classList.remove('show'); $('#sheet').classList.remove('show'); }
+$('#scrim').addEventListener('click',function(){closeSheet();closePalette();});
+$('#menuBtn').addEventListener('click',openSheet);
+
+var palOpen=false, palSel=0, palEntries=[];
+function openPalette(){ palOpen=true; $('#palScrim').classList.add('show'); $('#palette').classList.add('show');
+  buildPalette(); setTimeout(function(){$('#palInput').focus();},60); }
+function closePalette(){ palOpen=false; $('#palScrim').classList.remove('show'); $('#palette').classList.remove('show'); }
+$('#palScrim').addEventListener('click',closePalette);
+function buildPalette(){
+  palEntries=[];
+  Registry.order.forEach(function(id){
+    var d=Registry.mods[id];
+    palEntries.push({icon:d.icon,label:d.name,sub:d.sub||'',run:function(){show(id);closePalette();}});
+  });
+  [ {icon:'↔',label:'Winkelmodus umschalten',sub:'DEG / RAD / GON',run:function(){cycleAngle();closePalette();}},
+    {icon:'◐',label:'Akzentfarbe wechseln',sub:'blue · violet · mint · ember',run:function(){cycleAccent();closePalette();}},
+    {icon:'★',label:'Verlauf leeren',sub:'Historie des Rechners',run:function(){History.clear();closePalette();toast('Verlauf geleert');}},
+    {icon:'↓',label:'Daten exportieren',sub:'Einstellungen, Verlauf, Favoriten als JSON',run:function(){exportData();closePalette();}},
+    {icon:'↑',label:'Daten importieren',sub:'aus JSON-Datei',run:function(){importData();closePalette();}}
+  ].forEach(function(a){palEntries.push(a);});
+  renderPalette('');
+}
+function renderPalette(q){
+  var list=$('#palList'); list.innerHTML='';
+  var ql=q.toLowerCase().trim();
+  var hits=ql? palEntries.filter(function(e){return (e.label+' '+e.sub).toLowerCase().indexOf(ql)>=0;}) : palEntries;
+  palSel=0;
+  if(!hits.length){ list.appendChild(h('div','pal-empty','Keine Treffer')); return; }
+  hits.forEach(function(e,i){
+    var it=h('div','pal-item'+(i===0?' sel':''));
+    it.innerHTML='<span class="mi">'+e.icon+'</span><div style="min-width:0"><div style="font-weight:640">'+e.label+'</div>'+(e.sub?'<div class="help">'+e.sub+'</div>':'')+'</div>';
+    it.addEventListener('click',e.run);
+    list.appendChild(it);
+  });
+  list.__hits=hits;
+}
+$('#palInput').addEventListener('input',function(){renderPalette(this.value);});
+$('#palInput').addEventListener('keydown',function(e){
+  var hits=$('#palList').__hits||[];
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+    e.preventDefault();
+    palSel=(palSel+(e.key==='ArrowDown'?1:-1)+hits.length)%hits.length;
+    $$('.pal-item').forEach(function(it,i){it.classList.toggle('sel',i===palSel);});
+  } else if(e.key==='Enter'){
+    if(hits[palSel]) hits[palSel].run();
+  } else if(e.key==='Escape'){ closePalette(); }
+});
+
+/* ============ Aktionen ============ */
+function cycleAngle(){ var o=['deg','rad','gon']; S.angle=o[(o.indexOf(S.angle)+1)%3]; saveSettings(); toast('Winkelmodus: '+S.angle.toUpperCase()); }
+function cycleAccent(){ var o=['blue','violet','mint','ember']; S.accent=o[(o.indexOf(S.accent)+1)%o.length]; saveSettings(); toast('Akzent: '+S.accent); }
+function exportData(){
+  var blob=new Blob([JSON.stringify({settings:S,history:History.all(),favs:History.favs(),ans:ANS_VALUE},null,2)],{type:'application/json'});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='elian-export.json'; a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);},4000);
+  toast('Export erstellt','ok');
+}
+function importData(){
+  var inp=document.createElement('input'); inp.type='file'; inp.accept='.json,application/json';
+  inp.addEventListener('change',function(){
+    var f=inp.files&&inp.files[0]; if(!f) return;
+    var r=new FileReader();
+    r.onload=function(){ try{
+      var d=JSON.parse(r.result);
+      if(d.settings){S=Object.assign(S,d.settings);saveSettings();}
+      if(d.history) History.replace(d.history);
+      if(d.favs) store.set('favs',d.favs);
+      if(typeof d.ans==='number'){ANS_VALUE=d.ans;}
+      show(current?currentName():'calc'); toast('Import ok','ok');
+    }catch(e){toast('Import fehler: '+e.message,'err');} };
+    r.readAsText(f);
+  });
+  inp.click();
+}
+function currentName(){ for(var k in Registry.mods){ if(Registry.mods[k]===current) return k; } return 'calc'; }
+function copyText(t,label){
+  var done=function(){toast((label||'Kopiert')+' ✓','ok');};
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done,function(){fallbackCopy(t);done();});
+  else {fallbackCopy(t);done();}
+}
+function fallbackCopy(t){
+  var ta=document.createElement('textarea'); ta.value=t; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');}catch(e){} ta.remove();
+}
+
+/* ============ Historie/Favoriten (Rechner) ============ */
+var History={
+  all:function(){return store.get('hist',[]);},
+  favs:function(){return store.get('favs',[]);},
+  push:function(item){var l=History.all();l.unshift(item);store.set('hist',l.slice(0,200));},
+  clear:function(){store.set('hist',[]);},
+  replace:function(l){store.set('hist',l.slice(0,200));},
+  toggleFav:function(expr){var f=History.favs();var i=f.indexOf(expr);if(i>=0)f.splice(i,1);else f.unshift(expr);store.set('favs',f);return i<0;}
+};
+
+/* =====================================================================
+     MODULE
+     ===================================================================== */
+
+/* ---------- Rechner ---------- */
+register('calc',{
+  name:'Rechner', icon:'🖩', group:'Rechnen', primary:true,
+  sub:'Exakte Bruchrechnung, Verlauf, Favoriten',
+  mount:function(root){
+    var card=h('section','card glass');
+    card.innerHTML=
+      '<div class="mem-bar">'+
+        '<span id="cAngle" class="tag"></span>'+
+        '<span class="row tight">'+
+          '<button class="chip" data-act="mc">MC</button><button class="chip" data-act="mr">MR</button>'+
+          '<button class="chip" data-act="mp">M+</button><button class="chip" data-act="ms">MS</button>'+
+        '</span>'+
+        '<span class="row tight"><button class="chip" data-act="fav">★ Favorit</button></span>'+
+      '</div>'+
+      '<div class="display" id="cDisplay">'+
+        '<div class="expr" id="cExpr">0</div>'+
+        '<div class="result" id="cResult">0</div>'+
+      '</div>'+
+      '<div class="row tight" style="margin-bottom:10px">'+
+        '<button class="chip" data-ins="sin(">sin</button><button class="chip" data-ins="cos(">cos</button>'+
+        '<button class="chip" data-ins="tan(">tan</button><button class="chip" data-ins="ln(">ln</button>'+
+        '<button class="chip" data-ins="log(">log</button><button class="chip" data-ins="sqrt(">√</button>'+
+        '<button class="chip" data-ins="^">x²</button><button class="chip" data-ins="pi">π</button>'+
+        '<button class="chip" data-ins="!">n!</button>'+
+      '</div>'+
+      '<div class="keys" id="cKeys"></div>';
+    root.appendChild(card);
+
+    var exprEl=$('#cExpr',card), resEl=$('#cResult',card), disp=$('#cDisplay',card);
+    var expr='0';
+    var mem=store.get('mem',0);
+    var undoStack=[], redoStack=[];
+
+    function setExpr(v,keep){
+      if(!keep){ undoStack.push(expr); if(undoStack.length>100) undoStack.shift(); redoStack=[]; }
+      expr=v; exprEl.textContent=expr;
+      liveEval();
+    }
+    function liveEval(){
+      var r=evalExpr(expr);
+      if(r.ok){
+        resEl.textContent=r.text;
+        resEl.classList.toggle('exact',!!r.exact);
+        resEl.classList.remove('err');
+      } else { resEl.textContent='—'; resEl.classList.remove('exact','err'); }
+    }
+    function evaluate(){
+      var r=evalExpr(expr);
+      if(!r.ok){ resEl.textContent=r.err; resEl.classList.add('err'); toast(r.err,'err'); return; }
+      disp.classList.remove('pop'); void disp.offsetWidth; disp.classList.add('pop');
+      $('#cResult').textContent=r.text;
+      $('#cResult').classList.toggle('exact',!!r.exact);
+      ANS_VALUE=r.approx;
+      History.push({e:expr,r:r.text,exact:r.exact,ts:Date.now()});
+      renderHist();
+      setExpr('ans',true);
+      resEl=$('#cResult');
+    }
+    function ins(s){ if(expr==='0'){ setExpr(s==='.'?'0.':s); } else setExpr(expr+s); }
+    function back(){ setExpr(expr.length>1?expr.slice(0,-1):'0'); }
+
+    /* Tasten */
+    var KEYS=[
+      ['C','del','C'],['⌫','del','⌫'],['(','op','('],[')','op',')'],['%','op','%'],['÷','op','/'],
+      ['7','','7'],['8','','8'],['9','','9'],['×','op','*'],['x²','fn','^2'],['√','fn','sqrt('],
+      ['4','','4'],['5','','5'],['6','','6'],['−','op','-'],['^','op','^'],['1/x','fn','1/('],
+      ['1','','1'],['2','','2'],['3','','3'],['+','op','+'],['π','fn','pi'],['ans','fn','ans'],
+      ['0','','0'],['.','','.'],['±','fn','±'],['=','eq','=',3]
+    ];
+    var keys=$('#cKeys',card);
+    KEYS.forEach(function(k){
+      var b=h('button','key '+(k[1]||''),k[0]);
+      if(k[3]) b.style.gridColumn='span '+k[3];
+      b.addEventListener('click',function(){
+        if(k[2]==='=') evaluate();
+        else if(k[2]==='C'){ setExpr('0'); }
+        else if(k[2]==='⌫') back();
+        else if(k[2]==='x²') ins('^2');
+        else if(k[2]==='√') ins('sqrt(');
+        else if(k[2]==='±'){ setExpr(expr.charAt(0)==='-'?expr.slice(1):'-'+expr); }
+        else if(k[2]==='ans'){ setExpr('ans',true); }
+        else ins(k[2]);
+      });
+      keys.appendChild(b);
+    });
+    /* Dezimal + 0 separat positionieren via CSS-Grid-Reihenfolge: oben OK */
+
+    $$('[data-ins]',card).forEach(function(b){
+      b.addEventListener('click',function(){ ins(b.dataset.ins); });
+    });
+    $$('[data-act]',card).forEach(function(b){
+      b.addEventListener('click',function(){
+        var a=b.dataset.act;
+        if(a==='mc'){mem=0;store.set('mem',0);toast('Speicher geleert');}
+        if(a==='mr'){setExpr(String(mem));}
+        if(a==='='){}
+        if(a==='mp'){var r=evalExpr(expr);if(r.ok){mem+=r.approx;store.set('mem',mem);toast('M+ → '+formatNumber(mem));}else toast(r.err,'err');}
+        if(a==='ms'){var r2=evalExpr(expr);if(r2.ok){mem=r2.approx;store.set('mem',mem);toast('Gespeichert');}else toast(r2.err,'err');}
+        if(a==='fav'){
+          var e=expr;
+          if(History.toggleFav(e)){toast('Favorit ★','ok');}else{toast('Favorit entfernt');}
+          renderFavs();
+        }
+      });
+    });
+    $('#cAngle',card).textContent=S.angle.toUpperCase();
+
+    /* Verlauf + Favoriten-Panel */
+    var hist=h('section','card glass');
+    root.appendChild(hist);
+    function renderHist(){
+      var l=History.all();
+      hist.innerHTML='<h3>Verlauf</h3>';
+      if(!l.length){ hist.appendChild(h('div','hist-empty','Noch keine Rechnungen')); return; }
+      var box=h('div','hist');
+      l.slice(0,30).forEach(function(it){
+        var d=h('div','hist-item');
+        d.innerHTML='<div class="he">'+it.e.replace(/</g,'&lt;')+'</div><div class="hr2">'+(it.exact?'':'≈ ')+it.r.replace(/</g,'&lt;')+'</div>';
+        d.addEventListener('click',function(){ setExpr(it.e); copyText(it.r,'Ergebnis'); });
+        box.appendChild(d);
+      });
+      hist.appendChild(box);
+    }
+    var favs=h('section','card glass');
+    root.appendChild(favs);
+    function renderFavs(){
+      var f=History.favs();
+      favs.innerHTML='<h3>Favoriten</h3>';
+      if(!f.length){ favs.appendChild(h('div','hist-empty','Noch keine Favoriten ★')); return; }
+      var box=h('div','hist');
+      f.forEach(function(e){
+        var d=h('div','hist-item');
+        d.innerHTML='<div class="hr2">★ '+e.replace(/</g,'&lt;')+'</div>';
+        d.addEventListener('click',function(){ setExpr(e); });
+        box.appendChild(d);
+      });
+      favs.appendChild(box);
+    }
+    renderHist(); renderFavs();
+    liveEval();
+
+    /* Tastatur */
+    var kh=function(e){
+      if(palOpen) return;
+      var k=e.key;
+      if(k==='Enter'){ e.preventDefault(); evaluate(); renderHist(); return; }
+      if(k==='Backspace'){ e.preventDefault(); back(); return; }
+      if(k==='Escape'){ setExpr('0'); return; }
+      if(/^[0-9.+\-*/^%!()]/.test(k)){ e.preventDefault(); ins(k); }
+    };
+    document.addEventListener('keydown',kh);
+    this.unmount=function(){
+      document.removeEventListener('keydown',kh);
+    };
+    var self=this;
+    /* Verlauf neu laden beim Wiedersehen */
+    this.unmount=function(){ document.removeEventListener('keydown',kh); };
+  }
+});
+
+/* ---------- Formelbibliothek ---------- */
+var FORMELN=[
+ {c:'Algebra',n:'Binomische Formeln',f:['(a+b)² = a² + 2ab + b²','(a−b)² = a² − 2ab + b²','(a+b)(a−b) = a² − b²']},
+ {c:'Algebra',n:'pq-Formel',f:['x₁,₂ = −p/2 ± √(p²/4 − q)']},
+ {c:'Algebra',n:'Mitternachtsformel',f:['x₁,₂ = (−b ± √(b²−4ac)) / 2a']},
+ {c:'Algebra',n:'Potenzgesetze',f:['aⁿ·aᵐ = aⁿ⁺ᵐ','aⁿ/aᵐ = aⁿ⁻ᵐ','(a·b)ⁿ = aⁿ·bⁿ','(aⁿ)ᵐ = aⁿᵐ','a⁰ = 1','a⁻ⁿ = 1/aⁿ']},
+ {c:'Algebra',n:'Logarithmus',f:['log(a·b) = log a + log b','log(a/b) = log a − log b','log(aⁿ) = n·log a','logₓ y = ln y / ln x']},
+ {c:'Geometrie',n:'Kreis',f:['U = 2πr','A = πr²']},
+ {c:'Geometrie',n:'Dreieck',f:['A = ½·g·h','A = √(s(s−a)(s−b)(s−c))  (Heron)','Sinussatz: a/sin α = b/sin β = c/sin γ','Cosinussatz: a² = b² + c² − 2bc·cos α']},
+ {c:'Geometrie',n:'Kugel',f:['V = 4/3·πr³','O = 4πr²']},
+ {c:'Geometrie',n:'Zylinder',f:['V = πr²h','O = 2πr(r+h)']},
+ {c:'Geometrie',n:'Kegel',f:['V = ⅓·πr²h','M = πr·s,  s = √(r²+h²)']},
+ {c:'Geometrie',n:'Pyramide',f:['V = ⅓·G·h']},
+ {c:'Geometrie',n:'Trapez',f:['A = ½·(a+c)·h']},
+ {c:'Analysis',n:'Ableitungen',f:["(xⁿ)' = n·xⁿ⁻¹","(sin x)' = cos x","(cos x)' = −sin x","(eˣ)' = eˣ","(ln x)' = 1/x","(u·v)' = u'v + uv'","(u/v)' = (u'v − uv')/v²"]},
+ {c:'Analysis',n:'Integrale',f:['∫xⁿ dx = xⁿ⁺¹/(n+1)','∫1/x dx = ln|x|','∫eˣ dx = eˣ','∫sin x dx = −cos x','∫cos x dx = sin x']},
+ {c:'Analysis',n:'Kurvendiskussion',f:["f'(x₀)=0 → Kandidat","f''(x₀)>0 → Minimum","f''(x₀)<0 → Maximum","f''(x)=0, f'''≠0 → Wendepunkt"]},
+ {c:'Physik',n:'Mechanik',f:['v = s/t','s = ½·a·t²','F = m·a','W = F·s','P = W/t','p = m·v']},
+ {c:'Physik',n:'Energie',f:['E = m·c²','E kin = ½·m·v²','E pot = m·g·h']},
+ {c:'Physik',n:'Elektro',f:['U = R·I','P = U·I','P = I²·R']},
+ {c:'Stochastik',f:['Binomial: P(X=k) = C(n,k)·pᵏ·(1−p)ⁿ⁻ᵏ','Erwartungswert: μ = n·p','Standardnormalisierung: z = (x−μ)/σ','Konfidenzintervall: x̄ ± z·σ/√n'],n:'Verteilungen'}
+];
+register('formeln',{
+  name:'Formelbibliothek', icon:'📐', group:'Wissen', primary:true,
+  sub:'Nachschlagen · kopieren · im Rechner öffnen',
+  mount:function(root){
+    var head=h('section','card glass');
+    head.innerHTML='<h2>Formelbibliothek</h2><p class="lead">Tippen zum Filtern. Klick auf eine Formel kopiert sie.</p>'+
+      '<input class="input" id="fSearch" placeholder="Formel oder Thema suchen …">';
+    root.appendChild(head);
+    var list=h('div'); root.appendChild(list);
+    function render(q){
+      list.innerHTML='';
+      var ql=(q||'').toLowerCase();
+      FORMELN.filter(function(g){return !ql||(g.n+' '+g.c+' '+g.f.join(' ')).toLowerCase().indexOf(ql)>=0;})
+      .forEach(function(g){
+        var card=h('section','card glass');
+        card.innerHTML='<h3>'+g.n+' <span class="tag">'+g.c+'</span></h3>';
+        g.f.forEach(function(f){
+          var row=h('div','hist-item');
+          row.style.marginBottom='6px';
+          row.innerHTML='<div class="hr2" style="font-family:ui-monospace,Menlo,monospace;font-size:13px">'+f.replace(/</g,'&lt;')+'</div>';
+          row.addEventListener('click',function(){copyText(f,'Formel');});
+          card.appendChild(row);
+        });
+        list.appendChild(card);
+      });
+      if(!list.children.length) list.appendChild(h('div','hist-empty','Keine Treffer'));
+    }
+    $('#fSearch',head).addEventListener('input',function(){render(this.value);});
+    render('');
+  }
+});
+
+/* ---------- Konstanten ---------- */
+var KONST=[
+ ['π','Kreiszahl','3.14159265358979'],['e','Eulersche Zahl','2.71828182845905'],
+ ['φ','Goldener Schnitt','1.61803398874989'],['τ','2π','6.28318530717959'],
+ ['g','Fallbeschleunigung','9.80665'],['c','Lichtgeschwindigkeit','299792458'],
+ ['h','Planck-Wirkungsquantum','6.62607015e-34'],['ħ','h/2π','1.054571817e-34'],
+ ['e₀','Elementarladung','1.602176634e-19'],['mₑ','Elektronenmasse','9.1093837015e-31'],
+ ['mₚ','Protonenmasse','1.67262192369e-27'],['Nᴀ','Avogadro-Konstante','6.02214076e23'],
+ ['kᴮ','Boltzmann-Konstante','1.380649e-23'],['R','Gaskonstante','8.314462618'],
+ ['G','Gravitationskonstante','6.67430e-11'],['ε₀','Permittivität','8.8541878128e-12'],
+ ['μ₀','Permeabilität','1.25663706212e-6'],['atm','Standarddruck','101325'],
+ ['ly','Lichtjahr','9.4607304725808e15'],['AE','Astronomische Einheit','1.495978707e11'],
+ ['ln2','Natürlicher Log 2','0.693147180559945'],['ln10','Natürlicher Log 10','2.302585092994046'],
+ ['√2','Wurzel 2','1.41421356237310'],['σ','Stefan-Boltzmann','5.670374419e-8'],
+ ['u','Atomare Masseneinheit','1.66053906660e-27']
+];
+register('konstanten',{
+  name:'Konstanten', icon:'🔭', group:'Nachschlagen', primary:true,
+  sub:'25 Mathematik- & Physik-Konstanten',
+  mount:function(root){
+    var head=h('section','card glass');
+    head.innerHTML='<h2>Konstanten</h2><p class="lead">Klick kopiert den Wert.</p><input class="input" id="kSearch" placeholder="Suchen …">';
+    root.appendChild(head);
+    var grid=h('div','grid2'); root.appendChild(grid);
+    function render(q){
+      grid.innerHTML='';
+      var ql=(q||'').toLowerCase();
+      KONST.filter(function(k){return !ql||(k[0]+' '+k[1]).toLowerCase().indexOf(ql)>=0;}).forEach(function(k){
+        var c=h('section','card glass flat');
+        c.innerHTML='<div class="row" style="justify-content:space-between"><b style="font-size:16px">'+k[0]+'</b><span class="help">'+k[1]+'</span></div>'+
+          '<div style="font-family:ui-monospace,Menlo,monospace;font-size:13.5px;margin-top:8px;color:var(--mint)">'+k[2]+'</div>';
+        c.addEventListener('click',function(){copyText(k[2],k[0]);});
+        grid.appendChild(c);
+      });
+      if(!grid.children.length) grid.appendChild(h('div','hist-empty','Keine Treffer'));
+    }
+    $('#kSearch',head).addEventListener('input',function(){render(this.value);});
+    render('');
+  }
+});
+
+/* ---------- Einstellungen ---------- */
+register('settings',{
+  name:'Einstellungen', icon:'⚙️', group:'System', primary:true,
+  sub:'Akzent, Winkel, Schrift, Daten',
+  mount:function(root){
+    var c=h('section','card glass');
+    c.innerHTML=
+      '<h2>Einstellungen</h2>'+
+      '<h3>Akzentfarbe</h3><div class="row" id="setAccent"></div>'+
+      '<h3 style="margin-top:16px">Winkelmodus</h3><div class="seg" id="setAngle"></div>'+
+      '<h3 style="margin-top:16px">Schriftgröße</h3><div class="row" id="setFont"></div>'+
+      '<h3 style="margin-top:16px">Bewegung</h3><div class="row" style="justify-content:space-between"><span>Animationen reduzieren</span><input type="checkbox" class="toggle" id="setReduce"'+(S.reduce?' checked':'')+'></div>'+
+      '<div class="hr"></div>'+
+      '<div class="row"><button class="btn" id="setExport">Daten exportieren</button><button class="btn" id="setImport">Daten importieren</button><span class="spacer"></span><button class="btn danger" id="setReset">Alles zurücksetzen</button></div>'+
+      '<p class="help" style="margin-top:12px">ELIAN v10 · modulare Single-File-App · alle Daten bleiben lokal im Browser.</p>';
+    root.appendChild(c);
+    var acc=h('div','row');
+    ['blue','violet','mint','ember'].forEach(function(a){
+      var b=h('button','chip'+(S.accent===a?' on':''));
+      b.textContent={blue:'Blau',violet:'Violett',mint:'Mint',ember:'Ember'}[a];
+      b.addEventListener('click',function(){S.accent=a;saveSettings();show('settings');});
+      acc.appendChild(b);
+    });
+    $('#setAccent',c).appendChild(acc);
+    var seg=h('div','seg');
+    ['deg','rad','gon'].forEach(function(m){
+      var b=h('button',''+(S.angle===m?'on':''));
+      b.textContent=m.toUpperCase();
+      b.addEventListener('click',function(){S.angle=m;saveSettings();show('settings');});
+      seg.appendChild(b);
+    });
+    $('#setAngle',c).appendChild(seg);
+    var fr=h('div','row');
+    [0.92,1,1.1].forEach(function(v){
+      var b=h('button','chip'+(S.fontscale===v?' on':''));
+      b.textContent=v===0.92?'Klein':v===1?'Normal':'Groß';
+      b.addEventListener('click',function(){S.fontscale=v;saveSettings();show('settings');});
+      fr.appendChild(b);
+    });
+    $('#setFont',c).appendChild(fr);
+    $('#setReduce',c).addEventListener('change',function(){S.reduce=this.checked;saveSettings();toast('Gespeichert');});
+    $('#setExport',c).addEventListener('click',exportData);
+    $('#setImport',c).addEventListener('click',importData);
+    $('#setReset',c).addEventListener('click',function(){
+      if(!confirm('Wirklich alle lokalen Daten löschen?')) return;
+      ['hist','favs','mem','settings'].forEach(store.del);
+      S={angle:'deg',accent:'blue',fontscale:1,sci:true,reduce:false}; saveSettings();
+      toast('Zurückgesetzt','ok'); show('calc');
+    });
+  }
+});
+
+/* ============ Boot ============ */
+buildMenus();
+applySettings();
+$('#palBtn').addEventListener('click',function(){palOpen?closePalette():openPalette();});
+$('#angleBtn').addEventListener('click',cycleAngle);
+$('#themeBtn').addEventListener('click',cycleAccent);
+document.addEventListener('keydown',function(e){
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();palOpen?closePalette():openPalette();}
+  if(e.altKey&&e.key.toLowerCase()==='w'){e.preventDefault();cycleAngle();}
+});
+window.addEventListener('scroll',function(){
+  $('#top').classList.toggle('scrolled',window.scrollY>8);
+},{passive:true});
+function tickClock(){ var el=$('#railClock'); if(el){ var d=new Date(); el.textContent=d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0'); } }
+setInterval(tickClock,30000); tickClock();
+show(store.get('lastMod','calc'));
+})();
+</script>
+</body>
+</html>
