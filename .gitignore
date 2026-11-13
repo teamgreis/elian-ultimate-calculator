@@ -3,3 +3,4 @@ Thumbs.db
 *.bak
 node_modules/
 .testenv/
+_build/

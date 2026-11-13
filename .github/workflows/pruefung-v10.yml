@@ -1,0 +1,53 @@
+name: ELIAN v10 Prüfung
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ELIAN_Ultimate_Calculator_v10.0.html'
+      - 'mathe-tests-v10.js'
+      - '.github/workflows/pruefung-v10.yml'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  pruefung-v10:
+    name: v10 — JS-Syntax, Mathematik, Modul-Registry
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node einrichten
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Script-Blöcke extrahieren und prüfen
+        run: |
+          node -e "
+            const fs = require('fs');
+            const html = fs.readFileSync('ELIAN_Ultimate_Calculator_v10.0.html', 'utf8');
+            const blocks = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]);
+            if (blocks.length < 2) { console.error('v10 erwartet 2 Script-Blöcke (Engine + App)'); process.exit(1); }
+            blocks.forEach((b, i) => fs.writeFileSync('/tmp/app' + i + '.js', b));
+            console.log('Blöcke: ' + blocks.map(b => b.length).join(' + ') + ' Zeichen');
+          "
+          node --check /tmp/app0.js   # Mathe-Kern (pur)
+          node --check /tmp/app1.js   # App-Shell + Module
+          echo "JavaScript-Syntax OK"
+
+      - name: Mathematik-Tests v10
+        run: node mathe-tests-v10.js ELIAN_Ultimate_Calculator_v10.0.html
+
+      - name: HTML-Grundstruktur prüfen
+        run: |
+          node -e "
+            const fs = require('fs');
+            const html = fs.readFileSync('ELIAN_Ultimate_Calculator_v10.0.html', 'utf8');
+            const required = ['id=\"stage\"', 'id=\"dock\"', 'id=\"palette\"', 'id=\"railGroups\"', 'class=\"aurora\"', 'Mathe-Kern'];
+            const missing = required.filter(s => !html.includes(s));
+            if (missing.length) { console.error('Fehlende Struktur: ' + missing.join(', ')); process.exit(1); }
+            console.log('HTML-Grundstruktur OK');
+          "

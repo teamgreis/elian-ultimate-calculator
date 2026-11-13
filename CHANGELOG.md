@@ -1,5 +1,36 @@
 # Changelog
 
+## [10.0.0] — 2026-11-11 — Baustein 1: Neues Fundament
+
+Kompletter Neuaufbau als modulare Single-File-App: neue Engine, neue Shell,
+neues Design. Login/Admin-System entfernt (wie gewünscht).
+
+### Neu
+- **Modulare Architektur**: Werkzeug-Registry (`register`/`show`), Rail-Menü,
+  Bottom-Dock, Handy-Sheet, Befehlspalette (⌘/Strg+K) — jedes weitere Modul
+  hängt sich 1:1 in dieselbe Registry
+- **Neuer Mathe-Kern** (BigInt-Brüche, pur, ohne DOM): `evalExpr` liefert
+  exakte Brüche für alles rational Geschlossene — 10.5 ergibt = 21/2 —,
+  Präzedenz-Parser mit Implizit-Multiplikation (2(3+4), 2sin(30)),
+  Fakultät, Prozent, Winkelmodus DEG/GON/RAD global wirksam
+- **Liquid-Glass-Designsystem „Vollgas"**: Aurora-Tiefe, Spekular-Kanten,
+  Feder-Physik mit Ripple auf jede Taste, Parallax-Neigung der Glasflächen,
+  vier Akzentfarben, Resultat-Pop-Animation
+- **Responsiv**: Desktop-Rail, Tablet-Kompaktdocks, Handy-Bottom-Toolbar mit
+  Sheet-Menü; Safe-Areas; `prefers-reduced-motion` respektiert
+- **Module**: Rechner (Verlauf, Favoriten, Speicher, ans-Weiterrechnung,
+  Tastatur-Steuerung), Formelbibliothek (20 Sammlungen), Konstanten (25 Werte),
+  Einstellungen (Akzent, Winkel, Schriftgröße, Daten-Export/Import, Reset)
+- **Daten**: Settings/Verlauf/Favoriten lokal (`elian10.*`), JSON-Export/Import
+
+### Technik
+- Zwei getrennte Script-Blöcke: Engine (pur, global — in Node testbar) und App
+- `mathe-tests-v10.js`: 41 Engine-Tests, neue CI `pruefung-v10.yml`
+- Kein Login, kein Admin, keine Nutzerkonten — das Programm startet direkt
+
+### Regression
+- v9-Datei und `mathe-tests.js` bleiben unberührt im Repository (alte Suite grün)
+
 ## [9.1.0] — 2026-11-07
 
 Bedienintelligenz: tiefe Spracheingabe, Favoriten und Undo/Redo im Rechner.
