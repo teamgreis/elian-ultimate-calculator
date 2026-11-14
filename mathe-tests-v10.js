@@ -84,6 +84,60 @@ T('Import: ans nicht endlich abgelehnt',()=>!validateImportData({ans:Infinity}).
 T('Import: unbekannte Settings-Schlüssel verworfen',()=>{var v=validateImportData({settings:{angle:'gon',evil:'payload'}});return v.ok&&v.data.settings.evil===undefined&&v.data.settings.angle==='gon'});
 T('Import: leeres Objekt akzeptiert',()=>validateImportData({}).ok&&validateImportData({}).data.settings===undefined);
 
+/* --- Boolesche Algebra --- */
+T('Tafel a&b: 4 Zeilen',()=>boolTable('a&b').rows.length===4&&boolTable('a&b').vars.join()==='a,b');
+T('Tafel a&b Korintheit',()=>{var t=boolTable('a&b');return t.rows.filter(r=>r.out).length===1&&t.rows[3].out===true});
+T('mehrbuchstabige Namen sind EINE Variable',()=>{var t=boolTable('ab');return t.vars.length===1&&t.rows.length===2});
+T('XOR-Tafel',()=>boolTable('a^b').rows.filter(r=>r.out).length===2);
+T('Nicht: !a Tafel',()=>{var t=boolTable('!a');return t.rows.filter(r=>!r.out).length===1&&t.rows[0].out===true&&t.rows[1].out===false});
+T('QMC: a&b|a&!b → a',()=>boolSimplify('a&b|a&!b').after==='a');
+T('QMC: XOR bleibt aufgelöst',()=>boolSimplify('a^b').after==='!ab | a!b');
+T('QMC: Mehrheitsfunktion',()=>boolSimplify('a&b|a&c|b&c').after==='ab | ac | bc');
+T('QMC: Konstante 1',()=>boolSimplify('a|!a').after==='1');
+T('QMC: Konstante 0',()=>boolSimplify('a&!a').after==='0');
+T('QMC: Vereinfachung verifiziert (Mehrheit)',()=>{var s=boolSimplify('a&b|a&c|b&c');return boolTable('a&b|a&c|b&c').rows.every(r=>s.verifier(r.in)===r.out)});
+T('QMC: Vereinfachung verifiziert (XOR)',()=>{var s=boolSimplify('a^b');return boolTable('a^b').rows.every(r=>s.verifier(r.in)===r.out)});
+T('Bool: Wortoperatoren and/or/not',()=>boolTable('a and b').rows.filter(r=>r.out).length===1&&boolSimplify('a and b').after==='ab');
+T('Bool: Unicode-Operatoren',()=>boolTable('¬a ∧ b').rows.filter(r=>r.out).length===1);
+T('Bool: Implikation',()=>boolTable('a->b').rows.filter(r=>r.out).length===3);
+T('Bool: Äquivalenz',()=>{var t=boolTable('a<->b');return t.rows.filter(r=>r.out).length===2});
+T('Bool: 5 Variablen abgelehnt',()=>{try{boolTable('a&b&c&d&e');return false}catch(e){return /Variablen/.test(e.message)}});
+T('Bool: verschachtelte Klammern',()=>boolTable('(a|b)&!(a&b)').rows.filter(r=>r.out).length===2);
+
+/* --- Faktorisierung & Kurvendiskussion --- */
+T('Faktoren x²−1',()=>polyFactors(polyParse('x^2-1')).text==='(x + 1) · (x − 1)');
+T('Faktoren x²+2x+1 (Doppel)',()=>polyFactors(polyParse('x^2+2x+1')).text==='(x + 1)²');
+T('Faktoren x³−6x²+11x−6',()=>polyFactors(polyParse('x^3-6x^2+11x-6')).text==='(x − 1) · (x − 2) · (x − 3)');
+T('Faktoren x³+1 (Rest)',()=>polyFactors(polyParse('x^3+1')).restDeg===2);
+T('Kurve: Symmetrie x²−4',()=>curveAnalyze('x^2-4').symmetry==='Achsensymmetrisch zur y-Achse');
+T('Kurve: Symmetrie x³',()=>curveAnalyze('x^3').symmetry==='Punktsymmetrisch zum Ursprung');
+T('Kurve: Extrema x²',()=>{var e=curveAnalyze('x^2').extrema;return e.length===1&&e[0].type==='Minimum'&&close(e[0].y,0)});
+T('Kurve: Wendepunkt x³−3x',()=>{var w=curveAnalyze('x^3-3x').inflections;return w.length===1&&close(w[0].x,0)});
+T('Kurve: Extrema x³−3x',()=>{var e=curveAnalyze('x^3-3x').extrema;return e.length===2&&e[0].type==='Tödliches'||e.length===2});
+
+/* --- Zahlentheorie --- */
+T('primeList(30)',()=>primeList(30).join()==='2,3,5,7,11,13,17,19,23,29');
+T('primePi(100)=25',()=>primePi(100)===25);
+T('div(12)',()=>divisorsOf(12).join()==='1,2,3,4,6,12');
+T('perfect 28',()=>isPerfect(28)&&!isPerfect(12));
+T('quadratfrei 30, nicht 12',()=>isSquareFree(30)&&!isSquareFree(12));
+T('modInverse 3 mod 11 = 4',()=>modInverse(3,11)===4n&&(3n*modInverse(3,11))%11n===1n);
+T('CRT x≡2(3) x≡3(5) → 8',()=>{var r=crt([[2,3],[3,5]]);return r&&r.x===8n&&r.M===15n});
+T('CRT dreifach',()=>{var r=crt([[2,3],[3,5],[2,7]]);return r&&r.x===23n&&r.M===105n});
+T('CRT ohne Lösung',()=>crt([[0,2],[1,2]])===null);
+
+/* --- Matrix --- */
+T('det 2×2 = 5',()=>rToStr(det([[2,1],[3,4]]))==='5');
+T('det 1×1',()=>rToStr(det([[7]]))==='7');
+T('det 3×3 = −1',()=>rToStr(det([[2,1,-1],[-3,-1,2],[-2,1,2]]))==='-1');
+T('det singulär = 0',()=>det([[1,2],[2,4]]).n===0n);
+T('Inverse: A·A⁻¹ = I',()=>{var m=[[2,1],[3,4]];var inv=matrixInverse(m);
+  var prod=m.map(function(row,i){ return [0,1].map(function(_,j){ return row.reduce(function(a,v,k){ return rAdd(a,rMul(rq(v),inv[k][j])); }, rq(0n)); }); });
+  return rToStr(prod[0][0])==='1'&&rToStr(prod[0][1])==='0'&&rToStr(prod[1][0])==='0'&&rToStr(prod[1][1])==='1';});
+T('singulär erkannt',()=>matrixInverse([[1,2],[2,4]])===null);
+T('fitLine Gerade',()=>{var f=fitLine([[0,1],[1,3],[2,5]]);return f.m===2&&Math.abs(f.b-1)<1e-9});
+T('polyEvalNum',()=>close(polyEvalNum(polyParse('x^2-2x+1'),3),4,1e-9));
+
 /* --- Polynome --- */
 T('(x+1)*(x+2)=x²+3x+2',()=>polyToStr(polyParse('(x+1)*(x+2)'))==='x² + 3x + 2');
 T('(x+1)³=x³+3x²+3x+1',()=>polyToStr(polyParse('(x+1)^3'))==='x³ + 3x² + 3x + 1');
