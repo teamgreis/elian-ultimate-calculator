@@ -113,7 +113,7 @@ T('Kurve: Symmetrie x²−4',()=>curveAnalyze('x^2-4').symmetry==='Achsensymmetr
 T('Kurve: Symmetrie x³',()=>curveAnalyze('x^3').symmetry==='Punktsymmetrisch zum Ursprung');
 T('Kurve: Extrema x²',()=>{var e=curveAnalyze('x^2').extrema;return e.length===1&&e[0].type==='Minimum'&&close(e[0].y,0)});
 T('Kurve: Wendepunkt x³−3x',()=>{var w=curveAnalyze('x^3-3x').inflections;return w.length===1&&close(w[0].x,0)});
-T('Kurve: Extrema x³−3x',()=>{var e=curveAnalyze('x^3-3x').extrema;return e.length===2&&e[0].type==='Tödliches'||e.length===2});
+T('Kurve: Extrema x³−3x klassifiziert',()=>{var e=curveAnalyze('x^3-3x').extrema;return e.length===2&&e.some(x=>x.type==='Maximum')&&e.some(x=>x.type==='Minimum');});
 
 /* --- Zahlentheorie --- */
 T('primeList(30)',()=>primeList(30).join()==='2,3,5,7,11,13,17,19,23,29');
@@ -194,6 +194,33 @@ T('Stats: Mittelwert/Median/Std',()=>{const s=stats([1,2,3,4,5]);return s.mean==
 T('Zinseszins 1000 @5% 3a',()=>close(finInterest(1000,5,3,'compound').end,1157.625,1e-6));
 T('einfache Zinsen',()=>close(finInterest(1000,5,3,'simple').end,1150,1e-9));
 T('Annuität 200000 @4% 10a',()=>close(finAnnuity(200000,4,10).rate,2024.8997,1e-2));
+
+/* --- PR#2-Review-Regressionen --- */
+T('Nullstelle 0: x³',()=>{var r=polyRoots(polyParse('x^3'));return r.roots.length===3&&r.roots.every(x=>x.n===0n)});
+T('Nullstellen x³−x² → 0(2×), 1',()=>{var r=polyRoots(polyParse('x^3-x^2'));var rs=r.roots.map(x=>rNum(x)).sort((a,b)=>a-b);return rs.length===3&&rs[0]===0&&rs[1]===0&&rs[2]===1});
+T('Nullstellen x⁴−2x² → 0(2×), ±√2',()=>{var r=polyRoots(polyParse('x^4-2x^2'));var rs=r.roots.map(x=>typeof x==='number'?x:rNum(x));return rs.length===4&&rs.filter(v=>v===0).length===2&&rs.filter(v=>Math.abs(v-Math.SQRT2)<1e-9).length===1&&rs.filter(v=>Math.abs(v+Math.SQRT2)<1e-9).length===1});
+T('Faktoren x³ → x³',()=>polyFactors(polyParse('x^3')).text==='x³');
+T('Faktoren x³−4x → x(x+2)(x−2)',()=>polyFactors(polyParse('x^3-4x')).text==='x · (x + 2) · (x − 2)');
+T('Faktoren x²−4',()=>polyFactors(polyParse('x^2-4')).text==='(x + 2) · (x − 2)');
+T('Faktoren 2x²−4: Leitkoeffizient 2 ausgeklammert',()=>{var f=polyFactors(polyParse('2x^2-4'));return f.factors.length===2&&f.factors[0].konst===true&&f.factors[0].text==='2'&&f.factors[1].text==='x² − 2';});
+T('konjugiert komplex: x²+1 → ±i',()=>{var r=polyRoots(polyParse('x^2+1'));return r.roots.length===2&&Math.abs(r.roots[0].im)===1&&Math.abs(r.roots[1].im)===1&&r.roots[0].im!==r.roots[1].im});
+T('konjugiert komplex: x²+x+1 Texte',()=>{var r=polyRoots(polyParse('x^2+x+1'));return r.roots[0].text!==r.roots[1].text&&r.roots[0].text.indexOf('i')>0&&r.roots[1].text.indexOf('i')>0});
+T('LGS freie Variable: y=2, x frei',()=>{var r=solveLinearSystem([[0,1],[0,0]],[2,0]);return r.free.indexOf(0)>=0&&r.xText[0]==='t1'&&r.xText[1]==='2'&&r.infinite});
+T('LGS vollek Rang: xText numerisch',()=>{var r=solveLinearSystem([[2,1],[1,3]],[5,10]);return r.fullRank&&r.xText[0]==='1'&&r.xText[1]==='3'});
+T('LGS widerspruch: xText null',()=>{var r=solveLinearSystem([[1,1],[1,1]],[1,2]);return r.none&&r.xText===null});
+T('NOR: a nor b',()=>{var t=boolTable('a nor b');return t.rows.filter(x=>x.out).length===1&&t.rows[0].out===true});
+T('NAND: a nand b',()=>{var t=boolTable('a nand b');return t.rows.filter(x=>x.out).length===3});
+T('NOR verschachtelt: (a nor b) and c',()=>{var t=boolTable('(a nor b) and c');return t.rows.filter(x=>x.out).length===1&&t.rows[1].out===true});
+T('Faktorisierung grosser Semiprim 100003×100019',()=>{var f=primeFactors(100003n*100019n);return f.length===2&&f[0]*f[1]===100003n*100019n&&f.every(isPrimeBig)});
+T('Pollard findet glatten Faktor zuerst',()=>{var f=primeFactors(101n*1000000007n*999999937n);var prod=f.reduce((a,b)=>a*b,1n);return prod===101n*1000000007n*999999937n&&f.every(isPrimeBig)});
+T('factorizeText korrekt fuer Semiprim',()=>{var t=factorizeText(100003n*100019n);return t==='100003 · 100019'||t==='100019 · 100003'});
+T('Wendepunkt: x³ bei 0',()=>curveAnalyze('x^3').inflections.length===1&&close(curveAnalyze('x^3').inflections[0].x,0,1e-9));
+T('KEIN Wendepunkt: x⁴ bei 0',()=>curveAnalyze('x^4').inflections.length===0);
+T('KEIN Wendepunkt: x⁴+x²',()=>curveAnalyze('x^4+x^2').inflections.length===0);
+T('Lagrange exakt mit rationalen Eingaben',()=>{var p=lagrangePoly([[0,0],[rFromFloat(0.5),rFromFloat(0.25)],[1,1]]);return polyToStr(p)==='x²'});
+T('Lagrange exakt: 3 rationale Punkte',()=>{var p=lagrangePoly([[rFromFloat(1),rFromFloat(1)],[rFromFloat(1.5),rFromFloat(2.25)],[2,4]]);return polyToStr(p)==='x²'});
+T('divisorsOf Grenzwert: 10¹⁰ ok',()=>divisorsOf(1000000000).length===100);
+T('divisorsOf Grenzwert: 10¹ⁱ abgelehnt',()=>{try{divisorsOf(100000000000n);return false}catch(e){return /Teilersuche/.test(e.message)}});
 
 console.log(`\n${ok} Tests OK, ${fail.length} Fehler`);
 if(fail.length){fail.forEach(f=>console.log('  ✗ '+f));process.exit(1)}

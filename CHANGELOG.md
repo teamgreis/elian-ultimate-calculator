@@ -1,6 +1,17 @@
 # Changelog
 
 ## [10.1.0] — Welle A: Mathematik-Power
+### Behoben (Review PR#2)
+- Nullstellen bei 0 mit Vielfachheit (polyRoots klammpert x-Faktoren aus)
+- Konjugiert-komplexe Paare: x²+1 liefert ±i (beide Lösungen)
+- Gauß-Elimination: Pivot-Spalten + freie Variablen parametrisiert (x1 = t1, x2 = 2)
+- NOR als eigener AST-Knoten (vorher als OR ausgewertet), NAND verifiziert
+- Faktorisierung: Pollard-Floyd + Miller-Rabin — kein Rest wird mehr als Primzahl ausgegeben
+- Wendepunkte nur bei echtem Krümmungswechsel (x⁴ hat bei 0 keinen)
+- Lagrange exakt mit rationalen Eingaben (kein Float-Umweg)
+- Leistungsgrenzen: divisiorsOf bis 10¹⁰, Faktorisierung mit Tiefenbegrenzung
+- 23 neue Regressionstests (174 gesamt)
+
 
 Fünf neue Module auf der Registry, 44 neue Engine-Funktionen, 149 Tests.
 

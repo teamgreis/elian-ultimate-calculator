@@ -833,9 +833,10 @@ function solveQuadratic2(a,b,c){
     return {disc:rToStr(D), double:sq.n===0n, roots:[r1,r2]}; }
   var Df=rNum(D);
   if(Df<0){
-    var re=rNum(rDiv(rNeg(b), rMul(rq(2n),a))), im=Math.sqrt(-Df)/(2*rNum(a));
-    var z={re:re, im:im, text:im>=0? formatNumber(re)+' + '+formatNumber(Math.abs(im))+'i' : formatNumber(re)+' − '+formatNumber(Math.abs(im))+'i'};
-    return {disc:rToStr(D), double:false, complex:true, roots:[z], text:z.text};
+    var re=rNum(rDiv(rNeg(b), rMul(rq(2n),a))), v=Math.sqrt(-Df)/(2*rNum(a));
+    var m1={re:re, im:v, text:formatNumber(re)+(v>=0?' + ':' − ')+formatNumber(Math.abs(v))+'i'};
+    var m2={re:re, im:-v, text:formatNumber(re)+(-v>=0?' + ':' − ')+formatNumber(Math.abs(-v))+'i'};
+    return {disc:rToStr(D), double:false, complex:true, roots:[m1,m2], pair:[m1,m2]};
   }
   var s=Math.sqrt(Df), f=function(sign){return rNum(a)!==0? (-rNum(b) + sign*s)/(2*rNum(a)) : 0;};
   var x1=f(1), x2=f(-1);
@@ -843,14 +844,17 @@ function solveQuadratic2(a,b,c){
 }
 function rationalRoots(p){
   var d=polyDegree(p); if(d<1) return [];
-  var a0=p[0], an=p[d];
-  if(a0.n===0n) return [];
+  var zeros=0, w=p.slice(0);
+  while(w.length>1&&w[0].n===0n){ w=w.slice(1); zeros++; }
+  if(polyDegree(w)<1) return [];
+  var a0=w[0], an=w[polyDegree(w)];
   var divisors=function(n){ n=n<0n?-n:n; var out=[]; for(var i=1n;i*i<=n;i++){ if(n%i===0n){ out.push(i); if(i!==n/i) out.push(n/i); } } return out.sort(function(x,y){return x<y?-1:1;}); };
   var P=divisors(a0.n), Q=divisors(an.n), out=[];
   for(var i=0;i<P.length;i++) for(var j=0;j<Q.length;j++){
     var cand=rq(P[i],Q[j]), cn=rNeg(cand);
     [cand,cn].forEach(function(r){
-      if(polyHasRoot(p,r)){
+      if(r.n===0n) return;
+      if(polyHasRoot(w,r)){
         var already=out.some(function(x){return x.n===r.n&&x.d===r.d;});
         if(!already) out.push(r);
       }
@@ -875,13 +879,16 @@ function polyDivRoot(p,r){ // synthetische Division durch (x − r)
   return out;
 }
 function polyRoots(p){
-  var d=polyDegree(p), res={roots:[], steps:[]};
-  if(d===0) return res;
-  if(d===1){ var l=solveLinear2(p[1],p[0]); if(l.none){res.none=true;return res;} res.roots=l.roots; return res; }
-  if(d===2){ var q=solveQuadratic2(p[2],p[1],p[0]); res.quad=q; res.roots=q.roots||[]; if(q.complex) res.complex=true; if(q.double) res.double=true; if(q.irrational) res.irrational=true; return res; }
-  var work=p.slice(0), guard=0;
+  var zeros=0, w=p.slice(0);
+  while(w.length>1 && w[0].n===0n){ w=w.slice(1); zeros++; }
+  var zArr=[]; for(var z=0;z<zeros&&z<256;z++) zArr.push(rq(0n));
+  if(polyDegree(w)===0) return {roots:zArr, steps:[], zeroMult:zeros};
+  var d=polyDegree(w), res={roots:[], steps:[]};
+  if(d===1){ var l=solveLinear2(w[1],w[0]); if(l.none){ res.none=true; return res; } res.roots=l.roots; res.roots=zArr.concat(res.roots); return res; }
+  if(d===2){ var q=solveQuadratic2(w[2],w[1],w[0]); res.quad=q; res.roots=q.roots||[]; if(q.complex) res.complex=true; if(q.double) res.double=true; if(q.irrational) res.irrational=true; res.roots=zArr.concat(res.roots); return res; }
+  var work=w.slice(0), guard=0;
   var rr=rationalRoots(work);
-  for(var i=0;i<rr.length && polyDegree(work)>2 && guard<32;i++,guard++){
+  for(var i=0;i<rr.length && polyDegree(work)>2 && guard<64;i++,guard++){
     res.roots.push(rr[i]);
     res.steps.push('Division durch (x − '+(rr[i].n<0n?'('+rToStr(rr[i])+')':rToStr(rr[i]))+')');
     work=polyDivRoot(work, rr[i]);
@@ -890,6 +897,8 @@ function polyRoots(p){
   if(rest===2){ var q2=solveQuadratic2(work[2],work[1],work[0]); res.quad=q2; if(q2.complex) res.complex=true; if(q2.double) res.double=true; if(q2.irrational) res.irrational=true; res.roots=res.roots.concat(q2.roots||[]); }
   else if(rest===1){ res.roots=res.roots.concat(solveLinear2(work[1],work[0]).roots||[]); }
   else if(rest===0){ if(work[0].n===0n){ res.steps.push('Restfaktor 0'); } }
+  res.roots=zArr.concat(res.roots);
+  res.zeroMult=zeros;
   return res;
 }
 /* --- Lineare Gleichungssysteme (exakt, Gauss-Jordan) --- */
@@ -916,9 +925,27 @@ function solveLinearSystem(A,b){
     return row.slice(0,n).every(function(c){return c.n===0n;}) && row[n].n!==0n;
   });
   var x=m.map(function(row){ return row[n]; });
-  return {x:x, steps:steps, rank:rank, infinite:inconsistent?false:rank<n, none:inconsistent};
+  var pivCols=[];
+  for(var rr=0;rr<n;rr++){ var cc=-1; for(var k=0;k<n;k++){ if(m[rr][k].n!==0n){ cc=k; break; } } pivCols[rr]=cc; }
+  var pivotOf={};
+  pivCols.forEach(function(c,r){ if(c>=0) pivotOf[c]=r; });
+  var free=[];
+  for(var v2=0;v2<n;v2++){ if(pivotOf[v2]===undefined) free.push(v2); }
+  var fullRank=rank===n&&!inconsistent;
+  var xText;
+  if(fullRank){ xText=x.map(function(v){ return rToStr(v); }); }
+  else if(inconsistent){ xText=null; }
+  else {
+    xText=[];
+    for(var v3=0;v3<n;v3++){
+      if(pivotOf[v3]!==undefined) xText[v3]=rToStr(m[pivotOf[v3]][n]);
+      else { var ti=free.indexOf(v3)+1; xText[v3]='t'+ti; }
+    }
+  }
+  return {x:x, steps:steps, rank:rank, infinite:inconsistent?false:rank<n, none:inconsistent, pivots:pivCols, free:free, xText:xText, fullRank:fullRank};
 }
 /* --- Interpolation --- */
+function toRat(x){ return (x&&x.n!==undefined)?x:rFromFloat(Number(x)); }
 function lagrangePoly(points, v){
   v=v||'x';
   var total=polyZero();
@@ -926,13 +953,13 @@ function lagrangePoly(points, v){
     var term=[rq(1n)];
     for(var j=0;j<points.length;j++){
       if(i===j) continue;
-      var xi=points[i][0], xj=points[j][0];
-      var denom=rSub(rFromFloat(xi), rFromFloat(xj));
-      var factor=[rNeg(rFromFloat(xj)), rq(1n)]; // (x − xj)
+      var xi=toRat(points[i][0]), xj=toRat(points[j][0]);
+      var denom=rSub(xi, xj);
+      var factor=[rNeg(xj), rq(1n)]; // (x − xj)
       var inv=rInv(denom);
       term=polyMul(term, polyScale(factor, inv));
     }
-    total=polyAdd(total, polyScale(term, rFromFloat(points[i][1])));
+    total=polyAdd(total, polyScale(term, toRat(points[i][1])));
   }
   return total;
 }
@@ -977,8 +1004,36 @@ function primeFactors(n){
   for(var p=2n;p*p<=n && p<100000n;p++){
     while(n%p===0n){ out.push(p); n/=p; }
   }
-  if(n>1n) out.push(n);
+  if(n>1n){
+    if(isPrimeBig(n)){ out.push(n); }
+    else {
+      var rest=[]; factorizeBig(n,rest,0);
+      rest.forEach(function(f){ out.push(f); });
+    }
+  }
   return out;
+}
+function factorizeBig(nn, out, depth){
+  if(nn===1n) return;
+  if(depth>40) throw new Error('Faktorisierung zu komplex');
+  if(isPrimeBig(nn)){ out.push(nn); return; }
+  var d=pollardBrent(nn);
+  if(d===null) throw new Error('Faktorisierung unvollständig');
+  factorizeBig(d,out,depth+1);
+  factorizeBig(nn/d,out,depth+1);
+}
+function pollardBrent(nn){
+  if(nn%2n===0n) return 2n;
+  for(var c=1n;c<40n;c++){
+    var x=2n, y=2n, d=1n, steps=0;
+    while(d===1n && steps++<300000){
+      x=(x*x+c)%nn; y=(y*y+c)%nn; y=(y*y+c)%nn;
+      if(x===y){ d=nn; break; }
+      d=gcdBig(x>y?x-y:y-x, nn);
+    }
+    if(d>1n && d!==nn) return d;
+  }
+  return null;
 }
 function factorizeText(n){ var f=primeFactors(n); if(!f.length) return String(n);
   var g={}; f.forEach(function(p){g[p]=(g[p]||0)+1;});
@@ -1106,7 +1161,7 @@ function boolParse(src){
   function xorL(){ var l=andL(); while(eat('^')) l={k:'xor',a:l,b:andL()}; return l; }
   function impl(){ var l=xorL(); while(eat('->')) l={k:'impl',a:l,b:xorL()}; return l; }
   function eqv(){ var l=impl(); while(eat('==')) l={k:'eqv',a:l,b:impl()}; return l; }
-  function expr(){ var l=eqv(); while(eat('|')||eat('!|')){ var neg=arguments; l={k:'or',a:l,b:eqv()}; } return l; }
+  function expr(){ var l=eqv(); for(;;){ if(eat('|')){ l={k:'or',a:l,b:eqv()}; } else if(eat('!|')){ l={k:'not',a:{k:'or',a:l,b:eqv()}}; } else break; } return l; }
   var t=expr();
   if(p<tk.length) throw new Error('Unerwartetes Symbol am Ende');
   return t;
@@ -1208,14 +1263,24 @@ function polyFactors(p){
     while(polyDegree(work)>=1&&polyHasRoot(work,root)){ work=polyDivRoot(work,root); cnt++; }
     if(!cnt) return;
     var neg=root.n<0n, mag=neg?rq(-root.n):root;
-    var txt=neg?'(x + '+rToStr(mag)+')':'(x − '+rToStr(mag)+')';
+    var txt=root.n===0n?'x':(neg?'(x + '+rToStr(mag)+')':'(x − '+rToStr(mag)+')');
     out.push({root:root, count:cnt, text:txt+(cnt>1?sup(cnt):'')});
   });
+  var lead=work[polyDegree(work)];
   var restDeg=polyDegree(work);
-  if(restDeg>=1) out.push({rest:true, text:polyToStr(work)});
+  if(restDeg>=1){
+    if(lead.n!==1n){ work=polyScale(work, rInv(lead)); out.push({konst:true, text:rToStr(lead)}); }
+    out.push({rest:true, text:polyToStr(work)});
+  }
   else if(restDeg===0&&work[0]&&(work[0].n>1n||work[0].n<-1n)) out.push({konst:true, text:rToStr(work[0])});
   out.sort(function(a,b){
-    if(a.root&&b.root) return a.root.n<b.root.n?-1:(a.root.n>b.root.n?1:0);
+    var ar=a.root, br=b.root;
+    if(!ar&&!br) return 0;
+    if(!ar) return 1;
+    if(!br) return -1;
+    var az=ar.n===0n?0:1, bz=br.n===0n?0:1;
+    if(az!==bz) return az-bz;
+    return ar.n<br.n?-1:(ar.n>br.n?1:0);
     if(a.root) return -1;
     if(b.root) return 1;
     return 0;
@@ -1251,7 +1316,9 @@ function curveAnalyze(expr, v){
   (infRaw.roots||[]).forEach(function(r){
     var x=(r&&r.n!==undefined)?rNum(r):Number(r);
     if(!isFinite(x)) return;
-    if(Math.abs(polyEvalNum(d2,x))<1e-9 && deg>=3) inflections.push({x:x, y:polyEvalNum(p,x)});
+    var eps=Math.max(1e-6,Math.abs(x)*1e-6);
+    var d2a=polyEvalNum(d2,x-eps), d2b=polyEvalNum(d2,x+eps);
+    if(deg>=3 && d2a*d2b<0) inflections.push({x:x, y:polyEvalNum(p,x)});
   });
   var even=p.every(function(c,i){ return i%2===0||c.n===0n; });
   var odd=p.every(function(c,i){ return i%2===1||c.n===0n; });
@@ -1287,7 +1354,8 @@ function primePi(n){ var c=0; for(var i=2;i<=n;i++) if(isPrimeBig(i)) c++; retur
 function divisorsOf(n){
   if(typeof n!=='bigint') n=BigInt(Math.round(n));
   if(n<0n) n=-n; if(n===0n) return [];
-  var out=[]; for(var i=1n;i*i<=n&&i<100000n;i++){ if(n%i===0n){ out.push(i); if(i!==n/i) out.push(n/i); } }
+  if(n>10000000000n) throw new Error('Teilersuche nur bis 10¹⁰');
+  var out=[]; for(var i=1n;i*i<=n;i++){ if(n%i===0n){ out.push(i); if(i!==n/i) out.push(n/i); } }
   out.sort(function(a,b){return a<b?-1:1;}); return out;
 }
 function aliquotSum(n){ var d=divisorsOf(n); if(d.length<2) return 0n; return d.slice(0,-1).reduce(function(a,b){return a+b;},0n); }
@@ -2076,7 +2144,9 @@ register('lgs',{
         var d=read(); var res=solveLinearSystem(d.A,d.b);
         var out=[];
         out.push('Lösung:');
-        res.x.forEach(function(x,i){ out.push('  x'+(i+1)+' = '+fmt(x)); });
+        var xs=res.xText||res.x.map(function(v){return rToStr(v);});
+        xs.forEach(function(xv,i){ out.push('  x'+(i+1)+' = '+xv); });
+        if(res.free&&res.free.length) out.push('  freie Variable: '+(res.free.map(function(f){return 'x'+(f+1);}).join(', ')));
         if(res.none) out.push('Hinweis: System widersprüchlich — keine Lösung.');
         else if(res.infinite) out.push('Hinweis: unendlich viele Lösungen (Rang '+res.rank+' < '+N+').');
         out.push('', 'Lösungsweg:');
